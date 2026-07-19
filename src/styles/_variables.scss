@@ -1,0 +1,52 @@
+// ─────────────────────────────────────────────────────────────
+// Novedades Maritex – Design Tokens (CSS Custom Properties)
+// ─────────────────────────────────────────────────────────────
+
+:root {
+  // Brand
+  --color-maritex-primary:        #f97316; // orange-500
+  --color-maritex-primary-light:  #fdba74; // orange-300
+  --color-maritex-primary-dark:   #c2410c; // orange-700
+
+  --color-maritex-secondary:      #1f2937; // gray-800
+  --color-maritex-secondary-light:#374151; // gray-700
+  --color-maritex-secondary-dark: #111827; // gray-900
+
+  // Status
+  --color-success:  #16a34a; // green-600
+  --color-warning:  #ca8a04; // yellow-600
+  --color-danger:   #dc2626; // red-600
+  --color-info:     #2563eb; // blue-600
+
+  // Surface
+  --color-surface:        #ffffff;
+  --color-surface-muted:  #f9fafb; // gray-50
+  --color-border:         #e5e7eb; // gray-200
+
+  // Typography
+  --color-text-base:   #1f2937; // gray-800
+  --color-text-muted:  #6b7280; // gray-500
+  --color-text-subtle: #9ca3af; // gray-400
+
+  // Spacing & Radius
+  --radius-sm:  0.25rem;
+  --radius-md:  0.5rem;
+  --radius-lg:  0.75rem;
+  --radius-xl:  1rem;
+
+  // Shadows
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-dropdown: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+  // Transitions
+  --transition-fast:   150ms ease-in-out;
+  --transition-base:   250ms ease-in-out;
+  --transition-slow:   400ms ease-in-out;
+
+  // Z-index scale
+  --z-dropdown:  100;
+  --z-sticky:    200;
+  --z-overlay:   300;
+  --z-modal:     400;
+  --z-toast:     500;
+}

@@ -1,0 +1,47 @@
+@import 'tailwindcss';
+
+/* ─────────────────────────────────────────────────────────────
+   Tailwind v4 Theme Extension
+   Equivalente a theme.extend.colors en tailwind.config.js v3.
+   Las clases generadas serán: bg-primary, text-secondary, etc.
+   ───────────────────────────────────────────────────────────── */
+@theme {
+  --color-primary:        var(--color-maritex-primary);
+  --color-primary-light:  var(--color-maritex-primary-light);
+  --color-primary-dark:   var(--color-maritex-primary-dark);
+
+  --color-secondary:      var(--color-maritex-secondary);
+  --color-secondary-light:var(--color-maritex-secondary-light);
+  --color-secondary-dark: var(--color-maritex-secondary-dark);
+
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-danger:  var(--color-danger);
+  --color-info:    var(--color-info);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Base layer
+   ───────────────────────────────────────────────────────────── */
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-800;
+    color: var(--color-text-base);
+    background-color: var(--color-surface-muted);
+  }
+
+  a {
+    @apply transition-colors;
+    color: var(--color-maritex-primary);
+
+    &:hover {
+      color: var(--color-maritex-primary-dark);
+    }
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--color-maritex-secondary-dark);
+    font-weight: 600;
+    line-height: 1.25;
+  }
+}

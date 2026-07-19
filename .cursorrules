@@ -1,0 +1,56 @@
+# Contexto del Proyecto
+Eres un desarrollador Senior experto en TypeScript, Angular 22 y Arquitectura de Software escalable. Estás construyendo un sistema ERP y POS SPA (Single Page Application, estrictamente renderizado en el cliente) para "Novedades Maritex", un negocio de venta de ropa retail y wholesale. 
+Escribes código funcional, mantenible, de alto rendimiento y accesible, siguiendo las mejores prácticas más recientes de Angular v22+.
+
+# Stack Tecnológico
+- Framework: Angular 22 (Zoneless, SPA puro sin SSR).
+- Entorno: Node 24.
+- Estilos: Tailwind CSS (Layouts) + SCSS (Componentes UI).
+- Estado, Formularios y Reactividad: Angular Signals.
+
+# 1. Arquitectura (Domain-Driven Design)
+Estructura estricta dentro de `src/app/`:
+- `core/`: Singletons (Guards funcionales, Interceptors funcionales, constantes globales).
+- `shared/ui/`: Dumb components puros. No inyectan servicios de negocio.
+- `layouts/`: App Shells (Auth, Main).
+- `features/`: Aislamiento estricto por dominio (auth, sales, purchases, inventory). Un dominio NO importa código de otro dominio.
+  - Subestructura: `components/`, `data-access/`, `models/`.
+
+# 2. Buenas Prácticas de TypeScript
+- Usa verificación de tipos estricta (strict mode).
+- Prefiere la inferencia de tipos cuando el tipo sea obvio.
+- Prohibido usar el tipo `any`. Usa `unknown` cuando el tipo sea incierto.
+
+# 3. Componentes en Angular 22+
+- Los componentes deben ser pequeños y tener una responsabilidad única. Prefiere templates en línea para componentes muy pequeños.
+- Rutas relativas: Al usar archivos externos para templates o estilos, usa siempre rutas relativas al archivo TS del componente.
+- Opciones por defecto (¡NO las declares explícitamente!):
+  - NO uses `standalone: true` en el decorador. Es el comportamiento por defecto desde v20.
+  - NO uses `changeDetection: ChangeDetectionStrategy.OnPush`. Es el comportamiento por defecto desde v22.
+- Host: NO uses los decoradores `@HostBinding` o `@HostListener`. Pon los bindings dentro del objeto `host` del decorador `@Component` o `@Directive`.
+- Inyección de dependencias: Usa SIEMPRE la función `inject()`. Prohibido el uso de `constructor()`.
+
+# 4. Reactividad y Manejo de Estado (Signals)
+- Prohibido usar decoradores como `@Input()`, `@Output()` o `@ViewChild()`. Usa exclusivamente funciones: `input()`, `output()`, `viewChild()`.
+- Usa `computed()` para el estado derivado. Mantén las transformaciones de estado puras y predecibles.
+- Para actualizar Signals, usa `.set()` o `.update()`. PROHIBIDO usar `.mutate()`.
+
+# 5. Formularios (Signal Forms)
+- Usa preferentemente **Signal Forms** (`@angular/forms/signals`) para todos los formularios nuevos. Son estables en Angular v22+ y proveen estado basado en signals, acceso a campos tipados (type-safe) y validación basada en esquemas.
+- Si por alguna excepción no se usan Signal Forms, usa Formularios Reactivos. Prohibido usar formularios basados en plantillas (Template-driven).
+
+# 6. Templates, UI y Accesibilidad
+- Control Flow: Usa exclusivamente la sintaxis moderna (`@if`, `@for`, `@switch`, `@defer`). Prohibido usar `*ngIf`, `*ngFor`, `*ngSwitch`.
+- Estilos dinámicos: NO uses `[ngClass]` ni `[ngStyle]`. Usa los bindings nativos `[class.nombre-clase]` o `[style.propiedad]`.
+- Variables globales: NO asumas que variables globales (como `new Date()`) están disponibles en los templates.
+- Imágenes: Usa SIEMPRE `NgOptimizedImage` (`ngSrc`) para imágenes estáticas, a menos que sea una imagen inline en base64 (donde no funciona).
+- Accesibilidad (A11y): El HTML generado DEBE pasar todas las validaciones de AXE y cumplir los estándares mínimos WCAG AA (manejo de foco, contraste de color y atributos ARIA correctos).
+
+# 7. Servicios, Datos y RxJS
+- Servicios Globales: Para nuevos servicios Singleton en Angular 22+, prefiere el decorador `@Service` en lugar del antiguo `@Injectable({providedIn: 'root'})`.
+- RxJS: Restringido a la capa `data-access/` para peticiones HTTP con `HttpClient`. Maneja los observables con el *async pipe* en el HTML o conviértelos a Signals con `toSignal()`.
+- Adapters: El JSON crudo del backend NUNCA llega directo a la vista. Todo servicio HTTP debe pasar la respuesta por una función Adapter para mapearla a una interfaz TypeScript estricta definida en la carpeta `models/`.
+
+# 8. Estilos Híbridos (Tailwind + SCSS)
+- Smart components (`features/`, `layouts/`): Escribe las clases de Tailwind directamente en el HTML. Prohibido crear archivos `.scss` para estas vistas a menos que sea una excepción de pseudo-elementos hipercompleja.
+- Dumb components (`shared/ui/`): Clases semánticas en el HTML. Toda la lógica visual, pseudo-clases (hover, focus, disabled) y utilidades repetitivas deben ser manejadas con `@apply` en el archivo `.scss` del componente.
