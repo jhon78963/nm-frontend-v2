@@ -1,0 +1,32 @@
+<div class="money-wrapper">
+  @if (label()) {
+    <label class="money-label" [for]="inputId">
+      {{ label() }}
+    </label>
+  }
+
+  <div class="money-input-container">
+    <span class="money-prefix" aria-hidden="true">{{ currencySymbol() }}</span>
+
+    <input
+      type="text"
+      inputmode="decimal"
+      autocomplete="off"
+      [id]="inputId"
+      [class]="fieldClass()"
+      [value]="displayValue()"
+      [disabled]="isDisabled()"
+      [attr.aria-invalid]="errorMessage() ? true : null"
+      [attr.aria-describedby]="errorMessage() ? errorMessageId : null"
+      (input)="onInput($event)"
+      (blur)="onBlur($event)"
+      (focus)="onFocus($event)"
+    />
+  </div>
+
+  @if (errorMessage()) {
+    <p class="money-error-text" [id]="errorMessageId" role="alert">
+      {{ errorMessage() }}
+    </p>
+  }
+</div>

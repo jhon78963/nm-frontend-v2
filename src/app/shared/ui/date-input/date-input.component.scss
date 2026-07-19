@@ -1,0 +1,33 @@
+@reference '../../../../tailwind.css';
+
+.date-wrapper {
+  @apply flex w-full flex-col gap-1;
+}
+
+.date-label {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.date-field {
+  @apply w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1;
+
+  &::-webkit-calendar-picker-indicator {
+    @apply cursor-pointer opacity-60 transition-opacity;
+  }
+
+  &::-webkit-calendar-picker-indicator:hover {
+    @apply opacity-100;
+  }
+
+  &:disabled {
+    @apply cursor-not-allowed bg-gray-100 opacity-60;
+  }
+}
+
+.date-field-error {
+  @apply border-danger focus-visible:ring-danger;
+}
+
+.date-error-text {
+  @apply text-xs text-danger;
+}

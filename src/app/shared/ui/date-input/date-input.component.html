@@ -1,0 +1,27 @@
+<div class="date-wrapper">
+  @if (label()) {
+    <label class="date-label" [for]="inputId">
+      {{ label() }}
+    </label>
+  }
+
+  <input
+    type="date"
+    [id]="inputId"
+    [class]="fieldClass()"
+    [value]="value()"
+    [min]="min()"
+    [max]="max()"
+    [disabled]="isDisabled()"
+    [attr.aria-invalid]="errorMessage() ? true : null"
+    [attr.aria-describedby]="errorMessage() ? errorMessageId : null"
+    (change)="onDateChange($event)"
+    (blur)="onBlur()"
+  />
+
+  @if (errorMessage()) {
+    <p class="date-error-text" [id]="errorMessageId" role="alert">
+      {{ errorMessage() }}
+    </p>
+  }
+</div>

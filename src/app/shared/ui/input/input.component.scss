@@ -1,0 +1,45 @@
+@reference '../../../../tailwind.css';
+
+.input-wrapper {
+  @apply flex w-full flex-col gap-1;
+}
+
+.input-label {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.input-control {
+  @apply relative;
+}
+
+.input-field {
+  @apply w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1;
+
+  &:disabled {
+    @apply cursor-not-allowed bg-gray-100 opacity-60;
+  }
+}
+
+.input-field-password {
+  @apply pr-10;
+}
+
+.input-field-error {
+  @apply border-danger focus-visible:ring-danger;
+}
+
+.input-toggle {
+  @apply absolute top-1/2 right-2 inline-flex -translate-y-1/2 items-center justify-center rounded-md p-1 text-gray-500 transition-colors outline-none hover:text-gray-700 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1;
+
+  &:disabled {
+    @apply pointer-events-none cursor-not-allowed opacity-50;
+  }
+}
+
+.input-toggle-icon {
+  @apply h-4 w-4;
+}
+
+.input-error-text {
+  @apply text-xs text-danger;
+}

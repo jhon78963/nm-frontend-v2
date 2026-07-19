@@ -1,0 +1,33 @@
+@reference '../../../../tailwind.css';
+
+.money-wrapper {
+  @apply flex w-full flex-col gap-1;
+}
+
+.money-label {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.money-input-container {
+  @apply relative flex items-center;
+}
+
+.money-prefix {
+  @apply pointer-events-none absolute left-3 select-none text-sm text-gray-500;
+}
+
+.money-field {
+  @apply w-full rounded-md border border-gray-300 bg-white py-2 pr-3 pl-9 text-sm text-gray-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1;
+
+  &:disabled {
+    @apply cursor-not-allowed bg-gray-100 opacity-60;
+  }
+}
+
+.money-field-error {
+  @apply border-danger focus-visible:ring-danger;
+}
+
+.money-error-text {
+  @apply text-xs text-danger;
+}
