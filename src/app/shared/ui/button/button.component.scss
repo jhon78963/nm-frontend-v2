@@ -1,0 +1,49 @@
+@reference '../../../../tailwind.css';
+
+.btn-base {
+  @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer;
+
+  &:disabled {
+    @apply pointer-events-none cursor-not-allowed opacity-50;
+  }
+}
+
+.btn-primary {
+  @apply bg-primary text-white hover:bg-primary-dark focus-visible:ring-primary;
+
+  &:disabled {
+    @apply bg-primary hover:bg-primary;
+  }
+}
+
+.btn-secondary {
+  @apply bg-secondary text-white hover:bg-secondary-dark focus-visible:ring-secondary;
+
+  &:disabled {
+    @apply bg-secondary hover:bg-secondary;
+  }
+}
+
+.btn-danger {
+  @apply bg-danger text-white hover:bg-red-700 focus-visible:ring-danger;
+
+  &:disabled {
+    @apply bg-danger hover:bg-danger;
+  }
+}
+
+.btn-spinner {
+  @apply h-4 w-4 shrink-0 animate-spin;
+}
+
+.btn-spinner-track {
+  opacity: 0.25;
+}
+
+.btn-spinner-indicator {
+  opacity: 0.75;
+}
+
+.btn-icon {
+  @apply h-4 w-4 shrink-0;
+}
