@@ -1,0 +1,25 @@
+@reference '../../../../tailwind.css';
+
+.breadcrumb-nav {
+  @apply min-w-0;
+}
+
+.breadcrumb-list {
+  @apply flex flex-wrap items-center gap-1;
+}
+
+.breadcrumb-item {
+  @apply flex items-center gap-1;
+}
+
+.breadcrumb-link {
+  @apply text-sm text-gray-500 transition-colors hover:text-primary;
+}
+
+.breadcrumb-current {
+  @apply text-sm font-semibold text-gray-900;
+}
+
+.breadcrumb-separator {
+  @apply h-3.5 w-3.5 shrink-0 text-gray-300;
+}

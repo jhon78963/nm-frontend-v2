@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { BreadcrumbComponent, BreadcrumbPath } from '../../shared/ui/breadcrumb/breadcrumb.component';
 
 interface NavItem {
   label: string;
@@ -9,11 +10,17 @@ interface NavItem {
 
 @Component({
   selector: 'app-main-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, BreadcrumbComponent],
   templateUrl: './main-layout.component.html',
 })
 export class MainLayoutComponent {
   protected readonly isMobileMenuOpen = signal(false);
+  protected readonly isProfileMenuOpen = signal(false);
+
+  protected readonly breadcrumbPaths: BreadcrumbPath[] = [
+    { label: 'Inicio', route: '/' },
+    { label: 'Inventario' },
+  ];
 
   protected readonly navItems: NavItem[] = [
     { label: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
@@ -28,5 +35,9 @@ export class MainLayoutComponent {
 
   protected closeMobileMenu(): void {
     this.isMobileMenuOpen.set(false);
+  }
+
+  protected toggleProfileMenu(): void {
+    this.isProfileMenuOpen.update((open) => !open);
   }
 }

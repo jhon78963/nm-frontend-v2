@@ -1,0 +1,29 @@
+<nav class="breadcrumb-nav" aria-label="Breadcrumb">
+  <ul class="breadcrumb-list">
+    @for (path of paths(); track path.label; let last = $last) {
+      <li class="breadcrumb-item">
+        @if (path.route) {
+          <a class="breadcrumb-link" [routerLink]="path.route">{{ path.label }}</a>
+        } @else {
+          <span class="breadcrumb-current" aria-current="page">{{ path.label }}</span>
+        }
+
+        @if (!last) {
+          <svg
+            class="breadcrumb-separator"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        }
+      </li>
+    }
+  </ul>
+</nav>
