@@ -4,7 +4,6 @@
       <h1 class="text-3xl font-bold text-gray-900">
         Novedades <span class="text-orange-600">Maritex</span>
       </h1>
-      <p class="mt-2 text-sm text-gray-600">Sistema ERP & POS</p>
       <h2 class="mt-6 text-2xl font-semibold text-gray-800">Iniciar sesión</h2>
     </div>
 
@@ -36,7 +35,7 @@
         </div>
       }
 
-      <div class="space-y-4">
+      <div class="flex flex-col space-y-4">
         <app-input
           type="text"
           label="Usuario"
@@ -54,11 +53,10 @@
         />
       </div>
 
-      <div class="flex flex-col gap-4">
+      <div class="flex flex-col items-center gap-4">
         <app-button type="submit" variant="primary" [loading]="isLoading()" [disabled]="isLoading()">
           Iniciar sesión
         </app-button>
-
         <a
           href="/auth/forgot-password"
           class="text-center text-sm text-gray-600 transition-colors hover:text-orange-600"

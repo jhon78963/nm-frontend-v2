@@ -2,17 +2,14 @@ import { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
-    path: '',
-    redirectTo: 'inventory',
-    pathMatch: 'full',
+    path: 'change-password',
+    title: 'Cambiar contraseña',
+    data: { breadcrumb: 'Cambiar contraseña' },
+    loadComponent: () =>
+      import('./features/auth/components/login/login.component').then(
+        (m) => m.LoginComponent,
+      ),
   },
-
-  // TODO: Cargar AuthLayoutComponent y rutas hijas (login, recover)
-  {
-    path: 'auth',
-    loadChildren: () => import('./features/auth/auth.routes'),
-  },
-
   {
     path: '',
     loadComponent: () =>
@@ -21,22 +18,81 @@ export const routes: Routes = [
       ),
     children: [
       {
-        path: 'inventory',
-        loadChildren: () => import('./features/inventory/inventory.routes'),
+        path: 'administration',
+        title: 'Administración',
+        data: { breadcrumb: 'Administración' },
+        loadChildren: () => import('./features/administration/administration.routes'),
+      },
+      {
+        path: 'inventories',
+        title: 'Inventario',
+        data: { breadcrumb: 'Inventario' },
+        loadChildren: () => import('./features/inventories/inventories.routes'),
+      },
+      {
+        path: 'ecommerce',
+        title: 'Ecommerce',
+        data: { breadcrumb: 'Ecommerce' },
+        loadChildren: () => import('./features/ecommerce/ecommerce.routes'),
+      },
+      {
+        path: 'reports',
+        title: 'Reportes',
+        data: { breadcrumb: 'Reportes' },
+        loadChildren: () => import('./features/reports/reports.routes'),
+      },
+      {
+        path: 'directory',
+        title: 'Directorio',
+        data: { breadcrumb: 'Directorio' },
+        loadChildren: () => import('./features/directory/directory.routes'),
+      },
+      {
+        path: 'sales/pos',
+        title: 'POS',
+        data: { breadcrumb: 'POS' },
+        loadChildren: () => import('./features/sales/pos/pos.routes'),
       },
       {
         path: 'sales',
+        title: 'Ventas',
+        data: { breadcrumb: 'Ventas' },
         loadChildren: () => import('./features/sales/sales.routes'),
       },
       {
-        path: 'purchases',
-        loadChildren: () => import('./features/purchases/purchases.routes'),
+        path: 'finance',
+        title: 'Módulo Financiero',
+        data: { breadcrumb: 'Módulo Financiero' },
+        loadChildren: () => import('./features/finance/finance.routes'),
+      },
+      {
+        path: 'financial-summary',
+        title: 'Resumen Financiero',
+        data: { breadcrumb: 'Resumen Financiero' },
+        loadChildren: () => import('./features/financial-summary/financial-summary.routes'),
+      },
+      {
+        path: 'dashboard',
+        redirectTo: '',
+        pathMatch: 'full',
+      },
+      {
+        path: '',
+        loadChildren: () => import('./features/dashboard/dashboard.routes'),
       },
     ],
   },
-
+  {
+    path: 'auth',
+    data: { breadcrumb: 'Auth' },
+    loadChildren: () => import('./features/auth/auth.routes'),
+  },
+  {
+    path: 'notfound',
+    loadChildren: () => import('./features/notfound/notfound.routes'),
+  },
   {
     path: '**',
-    redirectTo: '',
+    redirectTo: '/notfound',
   },
 ];

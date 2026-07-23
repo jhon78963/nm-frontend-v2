@@ -9,15 +9,11 @@ export interface AuthUser {
   email: string;
   name: string;
   surname: string;
-  profilePicture: string | null;
+  profilePicture?: string | null;
   role: string;
-  roles: string[];
-  permissions: string[];
-  tenantId: number | null;
-  warehouseId: number | null;
-  mustChangePassword: boolean;
-}
-
-export interface AuthResponse {
-  user: AuthUser;
+  roles?: string[];
+  permissions?: string[];
+  tenantId?: number | null;
+  warehouseId?: number | null;
+  mustChangePassword?: boolean;
 }

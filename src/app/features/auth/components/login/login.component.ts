@@ -44,15 +44,23 @@ export class LoginComponent {
     };
 
     this.authService.login(credentials).subscribe({
-      next: () => {
+      next: (user) => {
         this.isLoading.set(false);
-        this.router.navigate(['/inventory']);
+
+        if (user.mustChangePassword) {
+          void this.router.navigate(['/change-password']);
+          return;
+        }
+
+        void this.router.navigate(['/inventories/products']);
       },
-      error: (error) => {
+      error: (error: unknown) => {
         this.isLoading.set(false);
-        const message =
-          error?.error?.message || 'Error al iniciar sesión. Verifica tus credenciales.';
-        this.errorMessage.set(message);
+        this.errorMessage.set(
+          typeof error === 'string'
+            ? error
+            : 'Error al iniciar sesión. Verifica tus credenciales.',
+        );
       },
     });
   }
