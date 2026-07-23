@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, signal } from '@angular/core';
+import { inject, Service, signal } from '@angular/core';
 import {
   catchError,
   map,
@@ -11,11 +11,19 @@ import {
   throwError,
 } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import {
+  userHasAnyPermission,
+  userHasPermission,
+} from '../../../core/auth/permission.util';
 import { CsrfTokenService } from '../../../core/auth/csrf-token.service';
 import { adaptAuthUser } from './auth.adapter';
-import { AuthUser, LoginRequest } from '../models/auth.model';
+import {
+  AuthUser,
+  ChangePasswordRequest,
+  LoginRequest,
+} from '../models/auth.model';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class AuthService {
   private static readonly SESSION_FLAG_KEY = 'authSession';
 
@@ -25,6 +33,14 @@ export class AuthService {
   readonly currentUser = signal<AuthUser | null>(null);
 
   private sessionLoadRequest$?: Observable<AuthUser | null>;
+
+  hasPermission(permission: string): boolean {
+    return userHasPermission(this.currentUser(), permission);
+  }
+
+  hasAnyPermission(permissions: readonly string[]): boolean {
+    return userHasAnyPermission(this.currentUser(), permissions);
+  }
 
   fetchCsrfHandshake(): Observable<string> {
     return this.http
@@ -71,6 +87,19 @@ export class AuthService {
     return this.http
       .post<AuthUser | { data: AuthUser }>(`${environment.apiUrl}/auth/me`, {})
       .pipe(map((response) => adaptAuthUser(response)));
+  }
+
+  changePassword(payload: ChangePasswordRequest): Observable<AuthUser> {
+    return this.http
+      .post<AuthUser | { data: AuthUser }>(
+        `${environment.apiUrl}/auth/change-password`,
+        payload,
+      )
+      .pipe(
+        map((response) => adaptAuthUser(response)),
+        tap((user) => this.setUserData(user)),
+        catchError((err) => throwError(() => this.extractErrorMessage(err))),
+      );
   }
 
   ensureSessionLoaded(): Observable<AuthUser | null> {

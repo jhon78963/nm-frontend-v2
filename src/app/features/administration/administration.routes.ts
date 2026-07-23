@@ -2,7 +2,12 @@ import { Routes } from '@angular/router';
 import { createPlaceholderRoute } from '../../core/routing/feature-placeholder.component';
 
 const routes: Routes = [
-  createPlaceholderRoute('Roles', 'roles'),
+  {
+    path: 'roles',
+    data: { breadcrumb: 'Roles y permisos' },
+    loadChildren: () =>
+      import('./roles/roles.routes'),
+  },
   createPlaceholderRoute('Usuarios', 'users'),
   createPlaceholderRoute('Clientes', 'tenants'),
   createPlaceholderRoute('Tiendas', 'warehouses'),

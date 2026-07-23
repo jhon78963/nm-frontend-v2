@@ -28,6 +28,7 @@ export class InputComponent implements ControlValueAccessor {
   readonly label = input<string>();
   readonly placeholder = input('');
   readonly errorMessage = input<string>();
+  readonly autocomplete = input<string>();
 
   protected readonly inputId = `app-input-${InputComponent.nextId++}`;
   protected readonly errorMessageId = `${this.inputId}-error`;

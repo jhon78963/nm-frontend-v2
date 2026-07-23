@@ -1,17 +1,29 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/auth/auth.guard';
 
 export const routes: Routes = [
   {
     path: 'change-password',
     title: 'Cambiar contraseña',
-    data: { breadcrumb: 'Cambiar contraseña' },
+    canActivate: [authGuard],
     loadComponent: () =>
-      import('./features/auth/components/login/login.component').then(
-        (m) => m.LoginComponent,
+      import('./layouts/auth-layout/auth-layout.component').then(
+        (m) => m.AuthLayoutComponent,
       ),
+    data: { breadcrumb: 'Cambiar contraseña' },
+    children: [
+      {
+        path: '',
+        loadComponent: () =>
+          import(
+            './features/auth/components/change-password/change-password.component'
+          ).then((m) => m.ChangePasswordComponent),
+      },
+    ],
   },
   {
     path: '',
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./layouts/main-layout/main-layout.component').then(
         (m) => m.MainLayoutComponent,
@@ -73,12 +85,13 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard',
-        redirectTo: '',
+        redirectTo: 'administration/roles',
         pathMatch: 'full',
       },
       {
         path: '',
-        loadChildren: () => import('./features/dashboard/dashboard.routes'),
+        redirectTo: 'administration/roles',
+        pathMatch: 'full',
       },
     ],
   },

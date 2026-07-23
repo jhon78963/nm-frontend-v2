@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
@@ -22,7 +22,7 @@ export interface NavItem {
   imports: [RouterOutlet, RouterLink, RouterLinkActive, BreadcrumbComponent],
   templateUrl: './main-layout.component.html',
 })
-export class MainLayoutComponent {
+export class MainLayoutComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
@@ -30,10 +30,9 @@ export class MainLayoutComponent {
   protected readonly isMobileMenuOpen = signal(false);
   protected readonly isProfileMenuOpen = signal(false);
   protected readonly breadcrumbPaths = signal<BreadcrumbPath[]>([]);
+  protected readonly sessionReady = signal(false);
 
-  private readonly navigationWatcher = this.initializeNavigation();
-
-  protected readonly navItems: NavItem[] = [
+  private readonly allNavItems: NavItem[] = [
     {
       label: 'Administración',
       items: [
@@ -100,7 +99,21 @@ export class MainLayoutComponent {
     },
   ];
 
-  private initializeNavigation(): void {
+  protected readonly navItems = computed(() =>
+    this.allNavItems
+      .map((group) => ({
+        ...group,
+        items: (group.items ?? []).filter((item) => this.canSeeNavItem(item)),
+      }))
+      .filter((group) => (group.items?.length ?? 0) > 0),
+  );
+
+  ngOnInit(): void {
+    this.authService
+      .ensureSessionLoaded()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.sessionReady.set(true));
+
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
@@ -155,5 +168,21 @@ export class MainLayoutComponent {
     }
 
     return `${user.name} ${user.surname}`.trim() || user.username;
+  }
+
+  protected userRole(): string {
+    return this.authService.currentUser()?.role ?? '';
+  }
+
+  private canSeeNavItem(item: NavItem): boolean {
+    if (item.permission) {
+      return this.authService.hasPermission(item.permission);
+    }
+
+    if (item.permissions?.length) {
+      return this.authService.hasAnyPermission(item.permissions);
+    }
+
+    return true;
   }
 }

@@ -1,0 +1,41 @@
+<div
+  role="alert"
+  aria-live="assertive"
+  class="alert"
+  [class.alert-error]="variant() === 'error'"
+  [class.alert-success]="variant() === 'success'"
+  [class.alert-info]="variant() === 'info'"
+  [class.alert-warning]="variant() === 'warning'"
+>
+  <div class="alert-icon-wrap" aria-hidden="true">
+    @switch (variant()) {
+      @case ('success') {
+        <svg class="alert-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      }
+      @case ('info') {
+        <svg class="alert-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+      }
+      @case ('warning') {
+        <svg class="alert-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+        </svg>
+      }
+      @default {
+        <svg class="alert-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      }
+    }
+  </div>
+
+  <div class="alert-content">
+    @if (title()) {
+      <p class="alert-title">{{ title() }}</p>
+    }
+    <p class="alert-message">{{ message() }}</p>
+  </div>
+</div>

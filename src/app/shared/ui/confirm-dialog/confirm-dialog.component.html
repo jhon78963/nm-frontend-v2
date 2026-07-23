@@ -1,0 +1,59 @@
+@if (open()) {
+  <div
+    class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-labelledby]="'confirm-dialog-title'"
+  >
+    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+      <div class="flex items-start gap-4">
+        <div
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
+          [class.bg-red-100]="variant() === 'danger'"
+          [class.bg-indigo-100]="variant() === 'primary'"
+        >
+          @if (variant() === 'danger') {
+            <svg class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+            </svg>
+          } @else {
+            <svg class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+          }
+        </div>
+
+        <div class="min-w-0 flex-1">
+          <h2 id="confirm-dialog-title" class="text-base font-semibold text-gray-900">
+            {{ title() }}
+          </h2>
+          @if (message()) {
+            <p class="mt-1 text-sm text-gray-500">{{ message() }}</p>
+          }
+          <ng-content />
+        </div>
+      </div>
+
+      <div class="mt-5 flex justify-end gap-3">
+        <app-button
+          type="button"
+          variant="secondary"
+          [disabled]="loading()"
+          (clicked)="onCancel()"
+        >
+          {{ cancelLabel() }}
+        </app-button>
+
+        <app-button
+          type="button"
+          [variant]="variant() === 'danger' ? 'danger' : 'primary'"
+          [loading]="loading()"
+          [disabled]="loading()"
+          (clicked)="onConfirm()"
+        >
+          {{ confirmLabel() }}
+        </app-button>
+      </div>
+    </div>
+  </div>
+}

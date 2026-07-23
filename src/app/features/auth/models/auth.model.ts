@@ -3,6 +3,23 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface ChangePasswordRequest {
+  currentPassword?: string;
+  password: string;
+  passwordConfirmation: string;
+}
+
+export interface LoginFormModel {
+  username: string;
+  password: string;
+}
+
+export interface ChangePasswordFormModel {
+  currentPassword: string;
+  password: string;
+  passwordConfirmation: string;
+}
+
 export interface AuthUser {
   id: number;
   username: string;

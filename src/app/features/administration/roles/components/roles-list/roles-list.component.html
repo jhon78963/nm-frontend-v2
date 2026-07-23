@@ -1,0 +1,223 @@
+<app-confirm-dialog
+  [open]="deleteConfirmId() !== null"
+  title="Eliminar rol"
+  confirmLabel="Eliminar"
+  cancelLabel="Cancelar"
+  variant="danger"
+  [loading]="deleting()"
+  (confirmed)="confirmDelete()"
+  (cancelled)="cancelDelete()"
+>
+  @if (deleteTargetName()) {
+    <p class="text-sm text-gray-600">
+      ¿Estás seguro de que deseas eliminar
+      <strong class="text-gray-900">{{ deleteTargetName() }}</strong>?
+      Esta acción no se puede deshacer.
+    </p>
+  }
+</app-confirm-dialog>
+
+@if (formDialogOpen()) {
+  <app-role-form
+    [roleId]="editingRoleId()"
+    (saved)="onFormSaved($event)"
+    (closed)="onFormClosed()"
+  />
+}
+
+<div class="space-y-6">
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Roles y permisos</h1>
+      <p class="mt-0.5 text-sm text-gray-500">
+        Gestiona los roles y sus permisos de acceso al sistema.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500 transition-colors shadow-sm"
+      (click)="openCreate()"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+      Nuevo rol
+    </button>
+  </div>
+
+  <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+    <div class="relative flex-1 max-w-sm" [formGroup]="searchForm">
+      <svg
+        class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
+        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input
+        formControlName="search"
+        type="search"
+        placeholder="Buscar rol…"
+        class="w-full pl-9 pr-9 py-2.5 text-sm bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent placeholder:text-gray-400"
+        aria-label="Buscar roles"
+      />
+      @if (searchForm.controls.search.value) {
+        <button
+          type="button"
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          aria-label="Limpiar búsqueda"
+          (click)="clearSearch()"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      }
+    </div>
+    @if (!loading()) {
+      <p class="text-sm text-gray-500 self-center">
+        <span class="font-semibold text-gray-800">{{ total() }}</span>
+        {{ total() === 1 ? 'rol encontrado' : 'roles encontrados' }}
+      </p>
+    }
+  </div>
+
+  <div class="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+    @if (loading()) {
+      <div class="divide-y divide-gray-100" aria-label="Cargando roles…" aria-busy="true">
+        @for (i of [1,2,3,4,5]; track i) {
+          <div class="flex items-center gap-4 px-6 py-4">
+            <div class="h-4 bg-gray-100 rounded w-8 animate-pulse"></div>
+            <div class="h-4 bg-gray-100 rounded w-40 animate-pulse"></div>
+            <div class="ml-auto flex gap-2">
+              <div class="h-8 w-8 bg-gray-100 rounded-lg animate-pulse"></div>
+              <div class="h-8 w-8 bg-gray-100 rounded-lg animate-pulse"></div>
+              <div class="h-8 w-8 bg-gray-100 rounded-lg animate-pulse"></div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (roles().length === 0) {
+      <div class="flex flex-col items-center justify-center py-16 px-6 text-center">
+        <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+          <svg class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+        @if (currentSearch()) {
+          <p class="text-sm font-medium text-gray-700">Sin resultados para «{{ currentSearch() }}»</p>
+          <p class="mt-1 text-xs text-gray-400">Prueba con otro término de búsqueda.</p>
+        } @else {
+          <p class="text-sm font-medium text-gray-700">No hay roles creados aún</p>
+          <p class="mt-1 text-xs text-gray-400">Crea el primer rol haciendo clic en «Nuevo rol».</p>
+        }
+      </div>
+    } @else {
+      <table class="w-full text-sm" aria-label="Lista de roles">
+        <thead>
+          <tr class="border-b border-gray-200 bg-gray-50/60">
+            <th scope="col" class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider w-16">#</th>
+            <th scope="col" class="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Nombre del rol</th>
+            <th scope="col" class="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          @for (role of roles(); track role.id) {
+            <tr class="hover:bg-gray-50/60 transition-colors group">
+              <td class="px-6 py-4 text-gray-400 font-mono text-xs">{{ role.id }}</td>
+              <td class="px-6 py-4 font-medium text-gray-900">{{ role.name }}</td>
+              <td class="px-6 py-4">
+                <div class="flex items-center justify-end gap-1.5">
+                  <button
+                    type="button"
+                    class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                    [attr.aria-label]="'Editar ' + role.name"
+                    (click)="openEdit(role.id)"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="p-2 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                    [attr.aria-label]="'Gestionar permisos de ' + role.name"
+                    (click)="openSync(role.id)"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    [attr.aria-label]="'Eliminar ' + role.name"
+                    (click)="openDeleteConfirm(role.id)"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                    </svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (totalPages() > 1) {
+        <div class="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/40">
+          <p class="text-xs text-gray-500">
+            Página <span class="font-semibold text-gray-700">{{ page() }}</span> de
+            <span class="font-semibold text-gray-700">{{ totalPages() }}</span>
+          </p>
+          <nav class="flex items-center gap-1" aria-label="Paginación">
+            <button
+              type="button"
+              class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              [disabled]="page() === 1"
+              aria-label="Página anterior"
+              (click)="goToPage(page() - 1)"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+
+            @for (p of paginationPages(); track $index) {
+              @if (p === '...') {
+                <span class="px-2 text-gray-400 text-sm select-none" aria-hidden="true">…</span>
+              } @else {
+                <button
+                  type="button"
+                  class="min-w-[32px] h-8 px-2 rounded-lg text-sm font-medium transition-colors"
+                  [class.bg-indigo-600]="p === page()"
+                  [class.text-white]="p === page()"
+                  [class.text-gray-700]="p !== page()"
+                  [class.hover:bg-gray-100]="p !== page()"
+                  [attr.aria-current]="p === page() ? 'page' : null"
+                  (click)="goToPage(p)"
+                >
+                  {{ p }}
+                </button>
+              }
+            }
+
+            <button
+              type="button"
+              class="p-1.5 rounded-lg text-gray-500 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              [disabled]="page() === totalPages()"
+              aria-label="Página siguiente"
+              (click)="goToPage(page() + 1)"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </nav>
+        </div>
+      }
+    }
+  </div>
+</div>

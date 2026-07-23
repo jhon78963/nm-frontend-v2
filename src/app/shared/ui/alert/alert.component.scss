@@ -1,0 +1,57 @@
+@reference '../../../../tailwind.css';
+
+.alert {
+  @apply flex items-start gap-3 rounded-xl border p-4;
+}
+
+.alert-error {
+  @apply border-red-200 bg-red-50 text-red-800;
+}
+
+.alert-success {
+  @apply border-emerald-200 bg-emerald-50 text-emerald-800;
+}
+
+.alert-info {
+  @apply border-blue-200 bg-blue-50 text-blue-800;
+}
+
+.alert-warning {
+  @apply border-amber-200 bg-amber-50 text-amber-800;
+}
+
+.alert-icon-wrap {
+  @apply shrink-0;
+}
+
+.alert-icon {
+  @apply h-5 w-5;
+}
+
+.alert-error .alert-icon {
+  @apply text-red-600;
+}
+
+.alert-success .alert-icon {
+  @apply text-emerald-600;
+}
+
+.alert-info .alert-icon {
+  @apply text-blue-600;
+}
+
+.alert-warning .alert-icon {
+  @apply text-amber-600;
+}
+
+.alert-title {
+  @apply text-sm font-semibold;
+}
+
+.alert-message {
+  @apply text-sm leading-relaxed;
+}
+
+.alert-title + .alert-message {
+  @apply mt-0.5;
+}
