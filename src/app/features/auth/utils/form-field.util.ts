@@ -1,7 +1,7 @@
 import { FieldTree } from '@angular/forms/signals';
 
 export function fieldErrorMessage(
-  field: FieldTree<string>,
+  field: FieldTree<unknown>,
   messages: Record<string, string> = {},
 ): string {
   const state = field();

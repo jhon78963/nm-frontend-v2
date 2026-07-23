@@ -1,0 +1,36 @@
+<div class="select-wrapper">
+  @if (label()) {
+    <label class="select-label" [for]="selectId">
+      {{ label() }}
+    </label>
+  }
+
+  <select
+    [id]="selectId"
+    [class]="selectClass()"
+    [disabled]="isFieldDisabled()"
+    [attr.aria-invalid]="errorMessage() ? true : null"
+    [attr.aria-describedby]="errorMessage() ? errorMessageId : null"
+    (change)="onSelect($event)"
+    (blur)="onBlur()"
+  >
+    <option value="" [selected]="value() === null">
+      {{ placeholder() }}
+    </option>
+    @for (option of options(); track option.value) {
+      <option
+        [value]="option.value"
+        [disabled]="option.disabled ?? false"
+        [selected]="value() === option.value"
+      >
+        {{ option.label }}
+      </option>
+    }
+  </select>
+
+  @if (errorMessage()) {
+    <p class="select-error-text" [id]="errorMessageId" role="alert">
+      {{ errorMessage() }}
+    </p>
+  }
+</div>

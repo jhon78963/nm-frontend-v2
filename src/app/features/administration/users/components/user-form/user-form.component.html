@@ -1,0 +1,216 @@
+<!-- Backdrop -->
+<div
+  class="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
+  aria-hidden="true"
+  (click)="close()"
+></div>
+
+<!-- Panel lateral -->
+<aside
+  class="fixed inset-y-0 right-0 z-40 flex w-full max-w-lg flex-col bg-white shadow-2xl"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="user-form-title"
+>
+
+  <!-- Header -->
+  <div class="flex items-center justify-between border-b border-gray-200 px-6 py-5">
+    <div class="flex items-center gap-3">
+      <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
+        @if (isEditing()) {
+          <svg class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+        } @else {
+          <svg class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          </svg>
+        }
+      </div>
+      <div>
+        <h2 id="user-form-title" class="text-base font-semibold text-gray-900">
+          {{ isEditing() ? 'Editar usuario' : 'Nuevo usuario' }}
+        </h2>
+        <p class="text-xs text-gray-400">
+          @if (isEditing()) {
+            Actualiza datos, rol, cliente y tienda asignados.
+          } @else {
+            Completa los datos para crear la cuenta.
+          }
+        </p>
+      </div>
+    </div>
+    <button
+      type="button"
+      class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+      aria-label="Cerrar panel"
+      (click)="close()"
+    >
+      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Body: skeleton o formulario -->
+  @if (loadingData()) {
+    <div class="flex-1 space-y-6 overflow-y-auto p-6">
+      <div class="space-y-3">
+        <div class="h-3 w-24 animate-pulse rounded bg-gray-100"></div>
+        <div class="h-10 animate-pulse rounded-xl bg-gray-100"></div>
+        <div class="h-10 animate-pulse rounded-xl bg-gray-100"></div>
+        <div class="h-10 animate-pulse rounded-xl bg-gray-100"></div>
+      </div>
+      <div class="h-px bg-gray-100"></div>
+      <div class="space-y-3">
+        <div class="h-3 w-28 animate-pulse rounded bg-gray-100"></div>
+        <div class="h-10 animate-pulse rounded-xl bg-gray-100"></div>
+        <div class="h-10 animate-pulse rounded-xl bg-gray-100"></div>
+        <div class="h-10 animate-pulse rounded-xl bg-gray-100"></div>
+      </div>
+    </div>
+
+  } @else {
+    <form class="flex flex-1 flex-col overflow-hidden" (submit)="submit($event)" novalidate>
+      <div class="flex-1 space-y-7 overflow-y-auto p-6">
+
+        <!-- Error de carga -->
+        @if (loadError()) {
+          <div class="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3" role="alert">
+            <svg class="mt-0.5 h-4 w-4 shrink-0 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <p class="text-sm text-red-700">{{ loadError() }}</p>
+          </div>
+        }
+
+        <!-- ── Sección 1: Asignación ── -->
+        <section>
+          <div class="mb-4 flex items-center gap-2">
+            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white">1</span>
+            <h3 class="text-sm font-semibold text-gray-700">Asignación</h3>
+          </div>
+          <div class="flex flex-col space-y-4">
+            <app-select
+              label="Cliente (tenant)"
+              placeholder="Selecciona un cliente"
+              [options]="tenantOptions()"
+              [formField]="userForm.tenantId"
+              [errorMessage]="tenantError()"
+            />
+            <app-select
+              label="Tienda (warehouse)"
+              placeholder="Selecciona una tienda"
+              [options]="warehouseOptions()"
+              [disabled]="!formModel().tenantId"
+              [formField]="userForm.warehouseId"
+              [errorMessage]="warehouseError()"
+            />
+            <app-select
+              label="Rol"
+              placeholder="Selecciona un rol"
+              [options]="roleOptions()"
+              [formField]="userForm.roleName"
+              [errorMessage]="roleError()"
+            />
+          </div>
+        </section>
+
+        <div class="h-px bg-gray-100"></div>
+
+        <!-- ── Sección 2: Datos personales ── -->
+        <section>
+          <div class="mb-4 flex items-center gap-2">
+            <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white">2</span>
+            <h3 class="text-sm font-semibold text-gray-700">Datos personales</h3>
+          </div>
+          <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <app-input
+                type="text"
+                label="Nombres"
+                placeholder="Nombres"
+                [formField]="userForm.name"
+                [errorMessage]="nameError()"
+              />
+              <app-input
+                type="text"
+                label="Apellidos"
+                placeholder="Apellidos"
+                [formField]="userForm.surname"
+                [errorMessage]="surnameError()"
+              />
+            </div>
+            <app-input
+              type="text"
+              label="Usuario"
+              placeholder="Nombre de usuario"
+              autocomplete="username"
+              [formField]="userForm.username"
+              [errorMessage]="usernameError()"
+            />
+          </div>
+        </section>
+
+        <!-- ── Sección 3: Credenciales (solo creación) ── -->
+        @if (!isEditing()) {
+          <div class="h-px bg-gray-100"></div>
+
+          <section>
+            <div class="mb-4 flex items-center gap-2">
+              <span class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white">3</span>
+              <h3 class="text-sm font-semibold text-gray-700">Credenciales</h3>
+            </div>
+            <div class="flex flex-col space-y-4">
+              <app-input
+                type="email"
+                label="Email"
+                placeholder="correo@ejemplo.com"
+                autocomplete="email"
+                [formField]="userForm.email"
+                [errorMessage]="emailError()"
+              />
+
+              <!-- Requisitos de contraseña -->
+              <div class="flex items-start gap-2 rounded-xl bg-amber-50 px-3.5 py-3 text-xs text-amber-700 ring-1 ring-inset ring-amber-200">
+                <svg class="mt-0.5 h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>{{ passwordHint }}</span>
+              </div>
+
+              <app-input
+                type="password"
+                label="Contraseña"
+                placeholder="Contraseña inicial"
+                autocomplete="new-password"
+                [formField]="userForm.password"
+                [errorMessage]="passwordError()"
+              />
+              <app-input
+                type="password"
+                label="Confirmar contraseña"
+                placeholder="Repite la contraseña"
+                autocomplete="new-password"
+                [formField]="userForm.passwordConfirmation"
+                [errorMessage]="passwordConfirmationError()"
+              />
+            </div>
+          </section>
+        }
+
+      </div>
+
+      <!-- Footer -->
+      <div class="flex items-center justify-end gap-3 border-t border-gray-200 bg-gray-50/60 px-6 py-4">
+        <app-button type="button" variant="secondary" [disabled]="saving()" (clicked)="close()">
+          Cancelar
+        </app-button>
+        <app-button type="submit" variant="primary" [loading]="saving()" [disabled]="saving()">
+          {{ isEditing() ? 'Guardar cambios' : 'Crear usuario' }}
+        </app-button>
+      </div>
+    </form>
+  }
+</aside>

@@ -8,7 +8,12 @@ const routes: Routes = [
     loadChildren: () =>
       import('./roles/roles.routes'),
   },
-  createPlaceholderRoute('Usuarios', 'users'),
+  {
+    path: 'users',
+    data: { breadcrumb: 'Usuarios' },
+    loadChildren: () =>
+      import('./users/users.routes'),
+  },
   createPlaceholderRoute('Clientes', 'tenants'),
   createPlaceholderRoute('Tiendas', 'warehouses'),
   createPlaceholderRoute('Historial', 'action-logs'),

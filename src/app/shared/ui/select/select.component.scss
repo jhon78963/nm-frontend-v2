@@ -1,0 +1,25 @@
+@reference '../../../../tailwind.css';
+
+.select-wrapper {
+  @apply flex w-full flex-col gap-1;
+}
+
+.select-label {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.select-field {
+  @apply w-full rounded-xl border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1;
+
+  &:disabled {
+    @apply cursor-not-allowed bg-gray-100 opacity-60;
+  }
+}
+
+.select-field-error {
+  @apply border-red-400 focus-visible:ring-red-400;
+}
+
+.select-error-text {
+  @apply text-xs text-red-600;
+}

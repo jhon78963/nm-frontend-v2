@@ -1,0 +1,300 @@
+<app-confirm-dialog
+  [open]="deleteConfirmId() !== null"
+  title="Eliminar usuario"
+  confirmLabel="Eliminar"
+  cancelLabel="Cancelar"
+  variant="danger"
+  [loading]="deleting()"
+  (confirmed)="confirmDelete()"
+  (cancelled)="cancelDelete()"
+>
+  @if (deleteTargetLabel()) {
+    <p class="mt-1 text-sm text-gray-500">
+      ¿Estás seguro de que deseas eliminar a
+      <strong class="font-semibold text-gray-900">{{ deleteTargetLabel() }}</strong>?
+      Esta acción no se puede deshacer.
+    </p>
+  }
+</app-confirm-dialog>
+
+@if (formDialogOpen()) {
+  <app-user-form
+    [userId]="editingUserId()"
+    (saved)="onFormSaved($event)"
+    (closed)="onFormClosed()"
+  />
+}
+
+@if (passwordResetOpen() && passwordResetUser(); as user) {
+  <app-user-password-reset
+    [userId]="user.id"
+    [username]="user.username"
+    (saved)="onPasswordResetSaved($event)"
+    (closed)="onPasswordResetClosed()"
+  />
+}
+
+<div class="space-y-5">
+
+  <!-- ── Header ── -->
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-gray-900">Usuarios</h1>
+      <p class="mt-0.5 text-sm text-gray-500">
+        Administra cuentas, roles y accesos por cliente y tienda.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+      (click)="openCreate()"
+    >
+      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+      Nuevo usuario
+    </button>
+  </div>
+
+  <!-- ── Toolbar ── -->
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+    <!-- Search -->
+    <div class="relative flex-1 max-w-sm" [formGroup]="searchForm">
+      <svg
+        class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"
+      >
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input
+        formControlName="search"
+        type="search"
+        placeholder="Buscar por nombre, email o usuario…"
+        class="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-9 pr-9 text-sm placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        aria-label="Buscar usuarios"
+      />
+      @if (searchForm.controls.search.value) {
+        <button
+          type="button"
+          class="absolute right-3 top-1/2 -translate-y-1/2 rounded text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+          aria-label="Limpiar búsqueda"
+          (click)="clearSearch()"
+        >
+          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      }
+    </div>
+
+    <!-- Count pill -->
+    @if (!loading()) {
+      <div class="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm">
+        <span class="font-semibold text-gray-900">{{ total() }}</span>
+        <span class="text-gray-400">{{ total() === 1 ? 'usuario' : 'usuarios' }}</span>
+      </div>
+    }
+  </div>
+
+  <!-- ── Card ── -->
+  <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+
+    @if (loading()) {
+      <!-- Skeleton -->
+      <div aria-label="Cargando usuarios…" aria-busy="true">
+        @for (i of [1,2,3,4,5]; track i) {
+          <div class="flex items-center gap-4 border-b border-gray-100 px-6 py-4 last:border-0">
+            <div class="h-8 w-8 animate-pulse rounded-full bg-gray-100"></div>
+            <div class="flex-1 space-y-1.5">
+              <div class="h-3.5 w-28 animate-pulse rounded bg-gray-100"></div>
+              <div class="h-3 w-40 animate-pulse rounded bg-gray-100"></div>
+            </div>
+            <div class="h-5 w-16 animate-pulse rounded-full bg-gray-100"></div>
+            <div class="ml-4 flex gap-2">
+              <div class="h-8 w-8 animate-pulse rounded-lg bg-gray-100"></div>
+              <div class="h-8 w-8 animate-pulse rounded-lg bg-gray-100"></div>
+              <div class="h-8 w-8 animate-pulse rounded-lg bg-gray-100"></div>
+            </div>
+          </div>
+        }
+      </div>
+
+    } @else if (users().length === 0) {
+      <!-- Empty state -->
+      <div class="flex flex-col items-center justify-center px-6 py-20 text-center">
+        <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
+          <svg class="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+          </svg>
+        </div>
+        @if (currentSearch()) {
+          <p class="text-sm font-semibold text-gray-700">Sin resultados para «{{ currentSearch() }}»</p>
+          <p class="mt-1 text-xs text-gray-400">Intenta con otro término de búsqueda.</p>
+          <button
+            type="button"
+            class="mt-4 text-sm font-medium text-indigo-600 hover:text-indigo-700 focus-visible:outline-none"
+            (click)="clearSearch()"
+          >
+            Limpiar búsqueda
+          </button>
+        } @else {
+          <p class="text-sm font-semibold text-gray-700">Aún no hay usuarios registrados</p>
+          <p class="mt-1 text-xs text-gray-400">Crea el primero haciendo clic en «Nuevo usuario».</p>
+          <button
+            type="button"
+            class="mt-5 inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700"
+            (click)="openCreate()"
+          >
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Nuevo usuario
+          </button>
+        }
+      </div>
+
+    } @else {
+      <!-- Table -->
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[680px] text-sm" aria-label="Lista de usuarios">
+          <thead>
+            <tr class="border-b border-gray-200 bg-gray-50/70">
+              <th scope="col" class="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Usuario</th>
+              <th scope="col" class="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Nombre completo</th>
+              <th scope="col" class="px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">Rol</th>
+              <th scope="col" class="w-[120px] px-6 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">Acciones</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            @for (user of users(); track user.id) {
+              <tr class="group transition-colors hover:bg-indigo-50/30">
+
+                <!-- Usuario + email -->
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <span
+                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700"
+                      aria-hidden="true"
+                    >
+                      {{ user.name.charAt(0).toUpperCase() }}{{ user.surname.charAt(0).toUpperCase() }}
+                    </span>
+                    <div class="min-w-0">
+                      <p class="truncate font-semibold text-gray-900">{{ user.username }}</p>
+                      <p class="truncate text-xs text-gray-400">{{ user.email }}</p>
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Nombre -->
+                <td class="px-6 py-4 text-gray-700">{{ fullName(user) }}</td>
+
+                <!-- Rol -->
+                <td class="px-6 py-4">
+                  @if (user.role) {
+                    <span class="inline-flex items-center rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-medium text-violet-700 ring-1 ring-inset ring-violet-200">
+                      {{ user.role }}
+                    </span>
+                  } @else {
+                    <span class="text-xs text-gray-400">Sin rol</span>
+                  }
+                </td>
+
+                <!-- Acciones — visibles al hacer hover en la fila -->
+                <td class="px-6 py-4">
+                  <div class="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                    <button
+                      type="button"
+                      class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-indigo-100 hover:text-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                      [attr.aria-label]="'Editar ' + user.username"
+                      (click)="openEdit(user.id)"
+                    >
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-amber-100 hover:text-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+                      [attr.aria-label]="'Restablecer contraseña de ' + user.username"
+                      (click)="openPasswordReset(user)"
+                    >
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-red-100 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                      [attr.aria-label]="'Eliminar ' + user.username"
+                      (click)="openDeleteConfirm(user.id)"
+                    >
+                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages() > 1) {
+        <div class="flex flex-col items-center justify-between gap-3 border-t border-gray-100 bg-gray-50/40 px-6 py-3.5 sm:flex-row">
+          <p class="text-xs text-gray-500">
+            Mostrando
+            <span class="font-semibold text-gray-700">{{ (page() - 1) * limit() + 1 }}</span>–<span class="font-semibold text-gray-700">{{ page() * limit() < total() ? page() * limit() : total() }}</span>
+            de <span class="font-semibold text-gray-700">{{ total() }}</span>
+          </p>
+          <nav class="flex items-center gap-1" aria-label="Paginación">
+            <button
+              type="button"
+              class="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-40"
+              [disabled]="page() === 1"
+              aria-label="Página anterior"
+              (click)="goToPage(page() - 1)"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            @for (p of paginationPages(); track $index) {
+              @if (p === '...') {
+                <span class="select-none px-1.5 text-sm text-gray-400" aria-hidden="true">…</span>
+              } @else {
+                <button
+                  type="button"
+                  class="h-8 min-w-[32px] rounded-lg px-2 text-sm font-medium transition-colors"
+                  [class.bg-indigo-600]="p === page()"
+                  [class.text-white]="p === page()"
+                  [class.shadow-sm]="p === page()"
+                  [class.text-gray-600]="p !== page()"
+                  [class.hover:bg-gray-100]="p !== page()"
+                  [attr.aria-current]="p === page() ? 'page' : null"
+                  (click)="goToPage(p)"
+                >
+                  {{ p }}
+                </button>
+              }
+            }
+            <button
+              type="button"
+              class="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-40"
+              [disabled]="page() === totalPages()"
+              aria-label="Página siguiente"
+              (click)="goToPage(page() + 1)"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </nav>
+        </div>
+      }
+    }
+  </div>
+</div>
