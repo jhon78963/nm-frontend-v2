@@ -1,0 +1,243 @@
+<div class="space-y-5">
+  <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <a
+        routerLink="/directory/team"
+        class="inline-flex w-fit items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+      >
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Equipo
+      </a>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900">Asistencia mensual</h1>
+        <p class="mt-0.5 text-sm text-gray-500">
+          @if (team(); as member) {
+            <span class="font-semibold text-gray-800">{{ member.name }} {{ member.surname }}</span>
+            <span class="mx-2 text-gray-300">·</span>
+          }
+          Registra y revisa el mes completo sin abrir el calendario día a día.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+        (click)="goPayments()"
+      >
+        Pagos
+      </button>
+      <button
+        type="button"
+        class="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+        aria-label="Mes anterior"
+        (click)="prevMonth()"
+      >
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <span class="min-w-[140px] text-center text-sm font-bold text-gray-900">{{ monthTitle() }}</span>
+      <button
+        type="button"
+        class="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+        aria-label="Mes siguiente"
+        (click)="nextMonth()"
+      >
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="grid gap-4 lg:grid-cols-2">
+    <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <label for="valdeo-nth" class="text-sm font-semibold text-gray-800">Valdeo (miércoles del mes)</label>
+      <select
+        id="valdeo-nth"
+        class="mt-2 w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+        [value]="valdeoWednesdayNth()"
+        (change)="onValdeoNthChange(($any($event.target)).value)"
+      >
+        @for (opt of valdeoNthOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+      <p class="mt-2 text-xs text-gray-500">La fila del miércoles elegido se resalta en la tabla.</p>
+    </div>
+
+    <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+      <span class="text-sm font-semibold text-gray-800">Pago quincenal (indicadores)</span>
+      <div class="mt-3 flex flex-wrap gap-2">
+        @for (opt of quincenaOptions; track opt.value) {
+          <button
+            type="button"
+            class="rounded-xl px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+            [class.bg-violet-600]="quincenaView() === opt.value"
+            [class.text-white]="quincenaView() === opt.value"
+            [class.shadow-sm]="quincenaView() === opt.value"
+            [class.bg-gray-100]="quincenaView() !== opt.value"
+            [class.text-gray-700]="quincenaView() !== opt.value"
+            [class.hover:bg-gray-200]="quincenaView() !== opt.value"
+            (click)="onQuincenaChange(opt.value)"
+          >
+            {{ opt.label }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <p class="text-xs text-gray-500">
+    Resumen según registros guardados en <strong>{{ quincenaLabel() }}</strong>.
+    Entrada hasta las 8:00 = puntual; 8:01–8:10 = tolerancia; desde 8:11 = tardanza.
+  </p>
+
+  <div class="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-5">
+    @for (card of [
+      { label: 'Puntuales', value: stats().puntual, tone: 'text-emerald-600' },
+      { label: 'Tolerancia', value: stats().tolerancia, tone: 'text-sky-600' },
+      { label: 'Tardanzas', value: stats().tarde, tone: 'text-amber-600' },
+      { label: 'Faltas', value: stats().falta, tone: 'text-red-600' },
+      { label: 'F. injustificadas', value: stats().faltaInjustificada, tone: 'text-red-800' },
+      { label: 'Descansos', value: stats().descanso, tone: 'text-blue-600' },
+      { label: 'Recuperados', value: stats().recuperacion, tone: 'text-teal-600' },
+      { label: 'Valdeo', value: stats().valdeo, tone: 'text-indigo-600' },
+      { label: 'Domingos en periodo', value: stats().domingosEnPeriodo, tone: 'text-blue-500' },
+      { label: 'Domingo trabajado (recup.)', value: stats().domingoTrabajoRecuperacion, tone: 'text-purple-600' }
+    ]; track card.label) {
+      <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+        <p class="text-xs font-medium text-gray-500">{{ card.label }}</p>
+        <p class="mt-1 text-2xl font-bold" [class]="card.tone">{{ card.value }}</p>
+      </div>
+    }
+  </div>
+
+  <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+    @if (loading()) {
+      <div class="p-8 text-center text-sm text-gray-500" aria-busy="true">Cargando asistencia…</div>
+    } @else {
+      <div class="max-h-[min(70vh,720px)] overflow-auto">
+        <table class="w-full min-w-[960px] text-sm">
+          <thead class="sticky top-0 z-10 bg-gray-50/95 backdrop-blur">
+            <tr class="border-b border-gray-200">
+              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Día</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Sem.</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Estado</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Entrada</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Salida</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Tarde (min)</th>
+              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Observación</th>
+              <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Servidor</th>
+              <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            @for (row of visibleMonthRows(); track row.dateStr) {
+              <tr
+                class="transition-colors"
+                [class.bg-amber-50/60]="row.isValdeo"
+                [class.bg-purple-50/40]="row.isSunday"
+              >
+                <td class="px-4 py-3 align-top">
+                  <span class="text-lg font-bold text-gray-900">{{ row.day }}</span>
+                  @if (row.isValdeo) {
+                    <span class="mt-1 block w-fit rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
+                      {{ valdeoWednesdayNth() === 2 ? 'Valdeo 2.º mié.' : 'Valdeo 1.er mié.' }}
+                    </span>
+                  }
+                  @if (row.isSunday) {
+                    <label class="mt-2 flex items-center gap-2 rounded-lg bg-white/80 p-2 text-xs text-gray-600 ring-1 ring-gray-200">
+                      <input
+                        type="checkbox"
+                        [checked]="row.domingoTrabajoRecuperacion"
+                        (change)="row.domingoTrabajoRecuperacion = ($any($event.target)).checked; onDomingoRecuperaChange(row)"
+                      />
+                      Domingo trabajado (recup.)
+                    </label>
+                  }
+                </td>
+                <td class="px-4 py-3 text-gray-500">{{ row.weekdayLabel }}</td>
+                <td class="px-4 py-3">
+                  <select
+                    class="w-full min-w-[11rem] rounded-lg border border-gray-300 bg-white px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    [value]="row.status"
+                    (change)="onStatusSelect(row, $event)"
+                  >
+                    @for (opt of statusOptions; track opt.value) {
+                      <option [value]="opt.value">{{ opt.label }}</option>
+                    }
+                  </select>
+                </td>
+                <td class="px-4 py-3">
+                  @if (showTimesFor(row)) {
+                    <input
+                      type="time"
+                      class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      [value]="row.checkInTime"
+                      (change)="row.checkInTime = ($any($event.target)).value; onTimeChange(row)"
+                    />
+                  } @else {
+                    <span class="text-gray-400">—</span>
+                  }
+                </td>
+                <td class="px-4 py-3">
+                  @if (showTimesFor(row)) {
+                    <input
+                      type="time"
+                      class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      [value]="row.checkOutTime"
+                      (change)="row.checkOutTime = ($any($event.target)).value; onTimeChange(row)"
+                    />
+                    @if (row.targetExitTimeStr) {
+                      <p class="mt-1 text-xs text-gray-500">Ideal salida: {{ row.targetExitTimeStr }}</p>
+                    }
+                  } @else {
+                    <span class="text-gray-400">—</span>
+                  }
+                </td>
+                <td class="px-4 py-3">
+                  @if (row.delayMinutes > 0) {
+                    <span class="font-bold text-amber-600">{{ row.delayMinutes }}</span>
+                  } @else {
+                    <span class="text-gray-400">0</span>
+                  }
+                </td>
+                <td class="px-4 py-3">
+                  <textarea
+                    rows="2"
+                    class="w-full min-w-[12rem] rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    [value]="row.note"
+                    (input)="row.note = ($any($event.target)).value"
+                    placeholder="Observación…"
+                  ></textarea>
+                </td>
+                <td class="px-4 py-3 text-center">
+                  @if (row.hasRecord) {
+                    <span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">Sí</span>
+                  } @else {
+                    <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">No</span>
+                  }
+                </td>
+                <td class="px-4 py-3 text-right">
+                  <button
+                    type="button"
+                    class="rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                    [disabled]="row.saving"
+                    (click)="saveRow(row)"
+                  >
+                    {{ row.saving ? 'Guardando…' : 'Guardar' }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+</div>

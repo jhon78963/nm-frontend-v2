@@ -1,10 +1,10 @@
 import { Routes } from '@angular/router';
-import { createPlaceholderRoute } from '../../core/routing/feature-placeholder.component';
 
 const routes: Routes = [
-  createPlaceholderRoute('Equipo', 'team'),
-  createPlaceholderRoute('Clientes', 'customers'),
-  createPlaceholderRoute('Proveedores', 'vendors'),
+  {
+    path: 'team',
+    loadChildren: () => import('./team/team.routes'),
+  },
   { path: '', redirectTo: 'team', pathMatch: 'full' },
 ];
 

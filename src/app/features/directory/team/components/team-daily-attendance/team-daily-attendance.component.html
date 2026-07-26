@@ -1,0 +1,102 @@
+<div
+  class="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
+  aria-hidden="true"
+  (click)="close()"
+></div>
+
+<div
+  class="fixed inset-4 z-40 mx-auto flex max-h-[calc(100vh-2rem)] max-w-5xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:inset-8"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="daily-attendance-title"
+>
+  <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+    <div>
+      <h2 id="daily-attendance-title" class="text-lg font-semibold text-gray-900">
+        Asistencia del equipo por día
+      </h2>
+      <p class="text-sm text-gray-500">Consulta cómo marcó cada colaboradora en una fecha.</p>
+    </div>
+    <button
+      type="button"
+      class="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+      aria-label="Cerrar"
+      (click)="close()"
+    >
+      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="grid flex-1 overflow-hidden lg:grid-cols-[280px_1fr]">
+    <aside class="border-b border-gray-100 p-5 lg:border-b-0 lg:border-r">
+      <h3 class="text-sm font-semibold text-gray-800">Elegir día</h3>
+      <p class="mt-1 text-xs text-gray-500">Selecciona la fecha a consultar.</p>
+
+      <div class="mt-4 space-y-3">
+        <label for="daily-date" class="block text-sm font-medium text-gray-700">Fecha</label>
+        <input
+          id="daily-date"
+          type="date"
+          class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-violet-500"
+          [value]="selectedDate()"
+          (change)="onDateChange(($any($event.target)).value)"
+        />
+        <button
+          type="button"
+          class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+          (click)="goToday()"
+        >
+          Ir a hoy
+        </button>
+        <p class="text-xs text-gray-500">
+          Fecha seleccionada:
+          <strong class="text-gray-800">{{ formattedDate() }}</strong>
+        </p>
+      </div>
+    </aside>
+
+    <section class="flex flex-col overflow-hidden p-5">
+      <div class="mb-4 flex items-center justify-between gap-3">
+        <h3 class="text-sm font-semibold text-gray-800">Resumen del equipo</h3>
+        @if (loading()) {
+          <span class="text-xs text-gray-400" aria-live="polite">Cargando…</span>
+        }
+      </div>
+
+      <div class="flex-1 overflow-y-auto pr-1">
+        @if (!loading() && rows().length === 0) {
+          <p class="text-sm text-gray-500">
+            No hay colaboradoras registradas o no se pudo cargar el listado.
+          </p>
+        }
+
+        @if (!loading() && rows().length > 0) {
+          <ul class="space-y-2">
+            @for (row of rows(); track row.teamId) {
+              <li class="rounded-xl border border-gray-200 bg-gray-50/50 p-4 transition-colors hover:bg-violet-50/40">
+                <div class="flex flex-wrap items-start justify-between gap-2">
+                  <p class="font-semibold text-gray-900">{{ row.name }} {{ row.surname }}</p>
+                  @if (row.attendance) {
+                    <span
+                      class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset"
+                      [class]="badgeClass(statusTone(row.attendance.status))"
+                    >
+                      {{ statusLabel(row.attendance.status) }}
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-200">
+                      Sin registro
+                    </span>
+                  }
+                </div>
+                <p class="mt-2 text-sm leading-relaxed text-gray-600">{{ summaryLine(row) }}</p>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </section>
+  </div>
+</div>
