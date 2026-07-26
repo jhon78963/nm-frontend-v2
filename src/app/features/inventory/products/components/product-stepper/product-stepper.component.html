@@ -1,0 +1,101 @@
+<div class="flex flex-col gap-6 p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900">
+        {{ productId() === null ? 'Nuevo producto' : 'Editar producto' }}
+      </h1>
+      <p class="mt-1 text-sm text-gray-500">
+        Complete la información del producto en cada paso
+      </p>
+    </div>
+  </div>
+
+  <!-- Stepper -->
+  <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-900/5">
+    <nav aria-label="Progreso">
+      <div class="flex items-center justify-between">
+        <!-- Botón Anterior -->
+        @if (productId() !== null) {
+          <button
+            type="button"
+            [disabled]="!canGoBack()"
+            (click)="goBack()"
+            class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7" />
+            </svg>
+            Anterior
+          </button>
+        } @else {
+          <div></div>
+        }
+
+        <!-- Steps -->
+        <ol class="flex flex-1 items-center justify-center gap-4 px-8">
+          @for (step of steps(); track $index) {
+            <li class="flex items-center gap-2">
+              @if ($index > 0) {
+                <div class="h-px w-8 bg-gray-300"></div>
+              }
+              <button
+                type="button"
+                [disabled]="step.disabled"
+                (click)="goToStep($index)"
+                [class]="[
+                  'flex flex-col items-center gap-2 rounded-lg px-4 py-2 transition-colors',
+                  currentStepIndex() === $index
+                    ? 'bg-sky-50 text-sky-700'
+                    : step.disabled
+                      ? 'cursor-not-allowed text-gray-400'
+                      : 'text-gray-600 hover:bg-gray-50'
+                ].join(' ')">
+                <svg
+                  class="h-6 w-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    [attr.d]="step.icon" />
+                </svg>
+                <span class="text-xs font-medium">{{ step.label }}</span>
+              </button>
+            </li>
+          }
+        </ol>
+
+        <!-- Botón Siguiente -->
+        @if (productId() !== null) {
+          <button
+            type="button"
+            [disabled]="!canGoNext()"
+            (click)="goNext()"
+            class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40">
+            Siguiente
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        } @else {
+          <div></div>
+        }
+      </div>
+    </nav>
+  </div>
+
+  <!-- Contenido del paso actual -->
+  <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-900/5">
+    <router-outlet />
+  </div>
+</div>

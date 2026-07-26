@@ -2,7 +2,11 @@ import { Routes } from '@angular/router';
 import { createPlaceholderRoute } from '../../core/routing/feature-placeholder.component';
 
 const routes: Routes = [
-  createPlaceholderRoute('Productos', 'products'),
+  {
+    path: 'products',
+    data: { breadcrumb: 'Productos' },
+    loadChildren: () => import('../inventory/products/products.routes'),
+  },
   createPlaceholderRoute('Tallas', 'sizes'),
   createPlaceholderRoute('Colores', 'colors'),
   createPlaceholderRoute('Actualizar inventario', 'reconciliation'),
