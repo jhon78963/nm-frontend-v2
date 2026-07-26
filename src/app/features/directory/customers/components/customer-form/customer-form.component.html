@@ -1,0 +1,98 @@
+<div
+  class="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
+  aria-hidden="true"
+  (click)="close()"
+></div>
+
+<aside
+  class="fixed inset-y-0 right-0 z-40 flex w-full max-w-md flex-col bg-white shadow-2xl"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="customer-form-title"
+>
+  <div class="flex items-center justify-between border-b border-gray-200 px-6 py-5">
+    <div class="flex items-center gap-3">
+      <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sky-100">
+        <svg class="h-5 w-5 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+      </div>
+      <div>
+        <h2 id="customer-form-title" class="text-base font-semibold text-gray-900">
+          {{ isEditing() ? 'Editar cliente' : 'Nuevo cliente' }}
+        </h2>
+        <p class="text-xs text-gray-400">
+          @if (isEditing()) {
+            Actualiza los datos del cliente retail o wholesale.
+          } @else {
+            Registra un cliente para ventas y facturación.
+          }
+        </p>
+      </div>
+    </div>
+    <button
+      type="button"
+      class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+      aria-label="Cerrar panel"
+      (click)="close()"
+    >
+      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  @if (loadingData()) {
+    <div class="flex-1 space-y-6 overflow-y-auto p-6">
+      @for (i of [1,2,3]; track i) {
+        <div class="space-y-3">
+          <div class="h-3 w-32 animate-pulse rounded bg-gray-100"></div>
+          <div class="h-10 animate-pulse rounded-xl bg-gray-100"></div>
+        </div>
+      }
+    </div>
+  } @else {
+    <form class="flex flex-1 flex-col overflow-hidden" (submit)="submit($event)" novalidate>
+      <div class="flex-1 space-y-6 overflow-y-auto p-6">
+        @if (loadError()) {
+          <app-alert variant="error" [message]="loadError()" />
+        }
+
+        <section class="space-y-4">
+          <app-input
+            type="text"
+            label="DNI *"
+            placeholder="8 dígitos"
+            [formField]="customerForm.dni"
+            [errorMessage]="dniError()"
+          />
+
+          <app-input
+            type="text"
+            label="Nombres *"
+            placeholder="Nombres del cliente"
+            [formField]="customerForm.name"
+            [errorMessage]="nameError()"
+          />
+
+          <app-input
+            type="text"
+            label="Apellidos *"
+            placeholder="Apellidos del cliente"
+            [formField]="customerForm.surname"
+            [errorMessage]="surnameError()"
+          />
+        </section>
+      </div>
+
+      <div class="flex items-center justify-end gap-3 border-t border-gray-200 bg-gray-50/60 px-6 py-4">
+        <app-button type="button" variant="secondary" [disabled]="saving()" (clicked)="close()">
+          Cancelar
+        </app-button>
+        <app-button type="submit" variant="primary" [loading]="saving()" [disabled]="saving()">
+          {{ isEditing() ? 'Guardar cambios' : 'Crear cliente' }}
+        </app-button>
+      </div>
+    </form>
+  }
+</aside>
