@@ -15,6 +15,12 @@ import {
 import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import {
+  DataTableComponent,
+  DataTableColumn,
+  DataTablePagination,
+  DataTableEmptyState,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { RoleService } from '../../data-access/role.service';
 import { Role } from '../../models/role.model';
@@ -22,7 +28,12 @@ import { RoleFormComponent } from '../role-form/role-form.component';
 
 @Component({
   selector: 'app-roles-list',
-  imports: [ReactiveFormsModule, RoleFormComponent, ConfirmDialogComponent],
+  imports: [
+    ReactiveFormsModule,
+    RoleFormComponent,
+    ConfirmDialogComponent,
+    DataTableComponent,
+  ],
   templateUrl: './roles-list.component.html',
 })
 export class RolesListComponent implements OnInit {
@@ -75,6 +86,30 @@ export class RolesListComponent implements OnInit {
     pages.push(total);
     return pages;
   });
+
+  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+    if (this.totalPages() <= 1) return null;
+    return {
+      currentPage: this.page(),
+      totalPages: this.totalPages(),
+      pageSize: this.limit(),
+      totalItems: this.total(),
+      pages: this.paginationPages(),
+    };
+  });
+
+  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+    icon: undefined as never,
+    title: 'No hay roles creados aún',
+    description: 'Crea el primer rol haciendo clic en «Nuevo rol».',
+    actionLabel: 'Nuevo rol',
+  }));
+
+  protected readonly tableColumns = signal<DataTableColumn<Role>[]>([
+    { key: 'id', label: '#', align: 'left', width: '16' },
+    { key: 'name', label: 'Nombre del rol', align: 'left' },
+    { key: 'actions', label: 'Acciones', align: 'right' },
+  ]);
 
   ngOnInit(): void {
     this.loadRoles();

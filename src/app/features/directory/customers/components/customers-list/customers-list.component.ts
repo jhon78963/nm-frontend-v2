@@ -14,6 +14,12 @@ import {
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import {
+  DataTableComponent,
+  DataTableColumn,
+  DataTablePagination,
+  DataTableEmptyState,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { CustomerService } from '../../data-access/customer.service';
 import { Customer } from '../../models/customer.model';
@@ -25,6 +31,7 @@ import { CustomerFormComponent } from '../customer-form/customer-form.component'
     ReactiveFormsModule,
     CustomerFormComponent,
     ConfirmDialogComponent,
+    DataTableComponent,
   ],
   templateUrl: './customers-list.component.html',
 })
@@ -78,6 +85,30 @@ export class CustomersListComponent implements OnInit {
     pages.push(total);
     return pages;
   });
+
+  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+    if (this.totalPages() <= 1) return null;
+    return {
+      currentPage: this.page(),
+      totalPages: this.totalPages(),
+      pageSize: this.limit(),
+      totalItems: this.total(),
+      pages: this.paginationPages(),
+    };
+  });
+
+  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+    icon: undefined as never,
+    title: 'Aún no hay clientes registrados',
+    description: 'Crea el primer cliente para usarlo en ventas y POS.',
+    actionLabel: 'Nuevo cliente',
+  }));
+
+  protected readonly tableColumns = signal<DataTableColumn<Customer>[]>([
+    { key: 'customer', label: 'Cliente', align: 'left' },
+    { key: 'dni', label: 'DNI', align: 'left' },
+    { key: 'actions', label: 'Acciones', align: 'right', width: '100px' },
+  ]);
 
   ngOnInit(): void {
     this.loadCustomers();

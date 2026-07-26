@@ -1,0 +1,189 @@
+<div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+  @if (loading()) {
+    <div aria-label="Cargando datos…" aria-busy="true">
+      @for (i of [1,2,3,4,5]; track i) {
+        <div class="flex items-center gap-4 border-b border-gray-100 px-6 py-4 last:border-0">
+          <div class="h-10 w-10 animate-pulse rounded-full bg-gray-100"></div>
+          <div class="flex-1 space-y-1.5">
+            <div class="h-3.5 w-36 animate-pulse rounded bg-gray-100"></div>
+            <div class="h-3 w-24 animate-pulse rounded bg-gray-100"></div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (data().length === 0) {
+    <div class="flex flex-col items-center justify-center px-6 py-20 text-center">
+      @if (emptyIcon()) {
+        <div
+          class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
+          [class.bg-sky-50]="theme() === 'sky'"
+          [class.bg-violet-50]="theme() === 'violet'"
+          [class.bg-amber-50]="theme() === 'amber'"
+          [class.bg-indigo-50]="theme() === 'indigo'"
+          [class.bg-emerald-50]="theme() === 'emerald'"
+          [class.bg-rose-50]="theme() === 'rose'"
+        >
+          <div
+            [class.text-sky-400]="theme() === 'sky'"
+            [class.text-violet-400]="theme() === 'violet'"
+            [class.text-amber-400]="theme() === 'amber'"
+            [class.text-indigo-400]="theme() === 'indigo'"
+            [class.text-emerald-400]="theme() === 'emerald'"
+            [class.text-rose-400]="theme() === 'rose'"
+          >
+            <ng-container *ngTemplateOutlet="emptyIcon()!" />
+          </div>
+        </div>
+      }
+      @if (emptySearch()) {
+        <p class="text-sm font-semibold text-gray-700">Sin resultados para «{{ emptySearch() }}»</p>
+        <button
+          type="button"
+          class="mt-4 text-sm font-medium"
+          [class.text-sky-600]="theme() === 'sky'"
+          [class.hover:text-sky-700]="theme() === 'sky'"
+          [class.text-violet-600]="theme() === 'violet'"
+          [class.hover:text-violet-700]="theme() === 'violet'"
+          [class.text-amber-600]="theme() === 'amber'"
+          [class.hover:text-amber-700]="theme() === 'amber'"
+          [class.text-indigo-600]="theme() === 'indigo'"
+          [class.hover:text-indigo-700]="theme() === 'indigo'"
+          [class.text-emerald-600]="theme() === 'emerald'"
+          [class.hover:text-emerald-700]="theme() === 'emerald'"
+          [class.text-rose-600]="theme() === 'rose'"
+          [class.hover:text-rose-700]="theme() === 'rose'"
+          (click)="onClearSearch()"
+        >
+          Limpiar búsqueda
+        </button>
+      } @else if (emptyState(); as state) {
+        <p class="text-sm font-semibold text-gray-700">{{ state.title }}</p>
+        <p class="mt-1 text-xs text-gray-400">{{ state.description }}</p>
+        @if (state.actionLabel) {
+          <button
+            type="button"
+            class="mt-5 inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-sm"
+            [class.bg-sky-600]="theme() === 'sky'"
+            [class.hover:bg-sky-700]="theme() === 'sky'"
+            [class.bg-violet-600]="theme() === 'violet'"
+            [class.hover:bg-violet-700]="theme() === 'violet'"
+            [class.bg-amber-600]="theme() === 'amber'"
+            [class.hover:bg-amber-700]="theme() === 'amber'"
+            [class.bg-indigo-600]="theme() === 'indigo'"
+            [class.hover:bg-indigo-700]="theme() === 'indigo'"
+            [class.bg-emerald-600]="theme() === 'emerald'"
+            [class.hover:bg-emerald-700]="theme() === 'emerald'"
+            [class.bg-rose-600]="theme() === 'rose'"
+            [class.hover:bg-rose-700]="theme() === 'rose'"
+            (click)="onEmptyAction()"
+          >
+            {{ state.actionLabel }}
+          </button>
+        }
+      }
+    </div>
+  } @else {
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm" [style.min-width]="minWidth()" [attr.aria-label]="ariaLabel()">
+        @if (columns().length > 0) {
+          <thead>
+            <tr class="border-b border-gray-200 bg-gray-50/70">
+              @for (col of columns(); track col.key) {
+                <th
+                  scope="col"
+                  class="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-gray-500"
+                  [class.text-left]="col.align === 'left' || !col.align"
+                  [class.text-center]="col.align === 'center'"
+                  [class.text-right]="col.align === 'right'"
+                  [style.width]="col.width"
+                  [class]="col.className"
+                >
+                  {{ col.label }}
+                </th>
+              }
+            </tr>
+          </thead>
+        }
+        <tbody class="divide-y divide-gray-100">
+          @if (rowTemplate()) {
+            @for (item of data(); track $index) {
+              <ng-container *ngTemplateOutlet="rowTemplate()!; context: { $implicit: item, index: $index }" />
+            }
+          } @else {
+            @for (item of data(); track $index) {
+              <tr class="group transition-colors">
+                @for (col of columns(); track col.key) {
+                  <td class="px-6 py-4" [class]="col.className">
+                    @if (col.template) {
+                      <ng-container *ngTemplateOutlet="col.template; context: { $implicit: item, index: $index }" />
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (pagination(); as pg) {
+      @if (pg.totalPages > 1) {
+        <div class="flex flex-col items-center justify-between gap-3 border-t border-gray-100 bg-gray-50/40 px-6 py-3.5 sm:flex-row">
+          <p class="text-xs text-gray-500">
+            Mostrando
+            <span class="font-semibold text-gray-700">{{ (pg.currentPage - 1) * pg.pageSize + 1 }}</span>–<span class="font-semibold text-gray-700">{{ pg.currentPage * pg.pageSize < pg.totalItems ? pg.currentPage * pg.pageSize : pg.totalItems }}</span>
+            de <span class="font-semibold text-gray-700">{{ pg.totalItems }}</span>
+          </p>
+          <nav class="flex items-center gap-1" aria-label="Paginación">
+            <button
+              type="button"
+              class="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-40"
+              [disabled]="pg.currentPage === 1"
+              aria-label="Página anterior"
+              (click)="onPageChange(pg.currentPage - 1)"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            @for (p of pg.pages; track $index) {
+              @if (p === '...') {
+                <span class="select-none px-1.5 text-sm text-gray-400" aria-hidden="true">…</span>
+              } @else {
+                <button
+                  type="button"
+                  class="h-8 min-w-[32px] rounded-lg px-2 text-sm font-medium transition-colors"
+                  [class.bg-sky-600]="p === pg.currentPage && theme() === 'sky'"
+                  [class.bg-violet-600]="p === pg.currentPage && theme() === 'violet'"
+                  [class.bg-amber-600]="p === pg.currentPage && theme() === 'amber'"
+                  [class.bg-indigo-600]="p === pg.currentPage && theme() === 'indigo'"
+                  [class.bg-emerald-600]="p === pg.currentPage && theme() === 'emerald'"
+                  [class.bg-rose-600]="p === pg.currentPage && theme() === 'rose'"
+                  [class.text-white]="p === pg.currentPage"
+                  [class.shadow-sm]="p === pg.currentPage"
+                  [class.text-gray-600]="p !== pg.currentPage"
+                  [class.hover:bg-gray-100]="p !== pg.currentPage"
+                  [attr.aria-current]="p === pg.currentPage ? 'page' : null"
+                  (click)="onPageChange(p)"
+                >
+                  {{ p }}
+                </button>
+              }
+            }
+            <button
+              type="button"
+              class="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-40"
+              [disabled]="pg.currentPage === pg.totalPages"
+              aria-label="Página siguiente"
+              (click)="onPageChange(pg.currentPage + 1)"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </nav>
+        </div>
+      }
+    }
+  }
+</div>

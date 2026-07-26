@@ -14,6 +14,12 @@ import {
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import {
+  DataTableComponent,
+  DataTableColumn,
+  DataTablePagination,
+  DataTableEmptyState,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { VendorService } from '../../data-access/vendor.service';
 import { Vendor } from '../../models/vendor.model';
@@ -25,6 +31,7 @@ import { VendorFormComponent } from '../vendor-form/vendor-form.component';
     ReactiveFormsModule,
     VendorFormComponent,
     ConfirmDialogComponent,
+    DataTableComponent,
   ],
   templateUrl: './vendors-list.component.html',
 })
@@ -77,6 +84,33 @@ export class VendorsListComponent implements OnInit {
     pages.push(total);
     return pages;
   });
+
+  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+    if (this.totalPages() <= 1) return null;
+    return {
+      currentPage: this.page(),
+      totalPages: this.totalPages(),
+      pageSize: this.limit(),
+      totalItems: this.total(),
+      pages: this.paginationPages(),
+    };
+  });
+
+  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+    icon: undefined as never,
+    title: 'Aún no hay proveedores registrados',
+    description: 'Agrega proveedores para gestionar compras e inventario.',
+    actionLabel: 'Nuevo proveedor',
+  }));
+
+  protected readonly tableColumns = signal<DataTableColumn<Vendor>[]>([
+    { key: 'id', label: '#', align: 'left', width: '16' },
+    { key: 'vendor', label: 'Proveedor', align: 'left' },
+    { key: 'phone', label: 'Celular', align: 'left' },
+    { key: 'address', label: 'Dirección', align: 'left' },
+    { key: 'local', label: 'Galería', align: 'left' },
+    { key: 'actions', label: 'Acciones', align: 'right', width: '100px' },
+  ]);
 
   ngOnInit(): void {
     this.loadVendors();

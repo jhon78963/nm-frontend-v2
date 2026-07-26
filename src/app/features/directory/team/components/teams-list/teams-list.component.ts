@@ -15,6 +15,12 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import {
+  DataTableComponent,
+  DataTableColumn,
+  DataTablePagination,
+  DataTableEmptyState,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { TeamService } from '../../data-access/team.service';
 import { Team } from '../../models/team.model';
@@ -30,6 +36,7 @@ import { TeamFormComponent } from '../team-form/team-form.component';
     TeamFormComponent,
     TeamDailyAttendanceComponent,
     ConfirmDialogComponent,
+    DataTableComponent,
   ],
   templateUrl: './teams-list.component.html',
 })
@@ -87,6 +94,32 @@ export class TeamsListComponent implements OnInit {
   });
 
   protected readonly firstTeamOnPage = computed(() => this.teams()[0] ?? null);
+
+  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+    if (this.totalPages() <= 1) return null;
+    return {
+      currentPage: this.page(),
+      totalPages: this.totalPages(),
+      pageSize: this.limit(),
+      totalItems: this.total(),
+      pages: this.paginationPages(),
+    };
+  });
+
+  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+    icon: undefined as never,
+    title: 'Aún no hay colaboradores registrados',
+    description: 'Agrega la primera colaboradora para gestionar asistencia y nómina.',
+    actionLabel: 'Nuevo colaborador',
+  }));
+
+  protected readonly tableColumns = signal<DataTableColumn<Team>[]>([
+    { key: 'id', label: '#', align: 'left', width: '16' },
+    { key: 'member', label: 'Colaborador', align: 'left' },
+    { key: 'dni', label: 'DNI', align: 'left' },
+    { key: 'salary', label: 'Salario', align: 'left' },
+    { key: 'actions', label: 'Acciones', align: 'right', width: '140px' },
+  ]);
 
   ngOnInit(): void {
     this.loadTeams();
