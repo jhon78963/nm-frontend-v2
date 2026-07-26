@@ -20,7 +20,12 @@ const routes: Routes = [
     loadChildren: () =>
       import('./tenants/tenants.routes'),
   },
-  createPlaceholderRoute('Tiendas', 'warehouses'),
+  {
+    path: 'warehouses',
+    data: { breadcrumb: 'Tiendas' },
+    loadChildren: () =>
+      import('./warehouses/warehouses.routes'),
+  },
   createPlaceholderRoute('Historial', 'action-logs'),
   { path: '', redirectTo: 'roles', pathMatch: 'full' },
 ];
