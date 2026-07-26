@@ -23,6 +23,24 @@ const routes: Routes = [
             (m) => m.LoginComponent,
           ),
       },
+      {
+        path: 'forgot-password',
+        title: 'Recuperar contraseña',
+        canActivate: [guestGuard],
+        loadComponent: () =>
+          import('./components/forgot-password/forgot-password.component').then(
+            (m) => m.ForgotPasswordComponent,
+          ),
+      },
+      {
+        path: 'reset-password',
+        title: 'Nueva contraseña',
+        canActivate: [guestGuard],
+        loadComponent: () =>
+          import('./components/reset-password/reset-password.component').then(
+            (m) => m.ResetPasswordComponent,
+          ),
+      },
     ],
   },
 ];

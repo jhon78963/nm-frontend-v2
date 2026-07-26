@@ -20,7 +20,9 @@ import { adaptAuthUser } from './auth.adapter';
 import {
   AuthUser,
   ChangePasswordRequest,
+  ForgotPasswordRequest,
   LoginRequest,
+  ResetPasswordRequest,
 } from '../models/auth.model';
 
 @Service()
@@ -69,8 +71,13 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<AuthUser> {
-    return this.fetchCsrfHandshake().pipe(
-      tap((token) => this.csrfTokenService.setToken(token)),
+    const csrf$ = this.csrfTokenService.getToken()
+      ? of(this.csrfTokenService.getToken()!)
+      : this.fetchCsrfHandshake().pipe(
+          tap((token) => this.csrfTokenService.setToken(token)),
+        );
+
+    return csrf$.pipe(
       switchMap(() =>
         this.http.post<AuthUser | { data: AuthUser }>(
           `${environment.apiUrl}/auth/login`,
@@ -90,16 +97,27 @@ export class AuthService {
   }
 
   changePassword(payload: ChangePasswordRequest): Observable<AuthUser> {
-    return this.http
-      .post<AuthUser | { data: AuthUser }>(
-        `${environment.apiUrl}/auth/change-password`,
-        payload,
-      )
-      .pipe(
-        map((response) => adaptAuthUser(response)),
-        tap((user) => this.setUserData(user)),
-        catchError((err) => throwError(() => this.extractErrorMessage(err))),
-      );
+    const csrf$ = this.csrfTokenService.getToken()
+      ? of(this.csrfTokenService.getToken()!)
+      : this.fetchCsrfHandshake().pipe(
+          tap((token) => this.csrfTokenService.setToken(token)),
+        );
+
+    return csrf$.pipe(
+      switchMap(() =>
+        this.http.post<AuthUser | { data: AuthUser }>(
+          `${environment.apiUrl}/auth/change-password`,
+          payload,
+        ),
+      ),
+      map((response) => adaptAuthUser(response)),
+      tap((user) => this.setUserData(user)),
+      catchError((err) => throwError(() => this.extractErrorMessage(err))),
+    );
+  }
+
+  hasLocalSession(): boolean {
+    return localStorage.getItem(AuthService.SESSION_FLAG_KEY) !== null;
   }
 
   ensureSessionLoaded(): Observable<AuthUser | null> {
@@ -112,17 +130,33 @@ export class AuthService {
       this.sessionLoadRequest$ = this.getMe().pipe(
         map((user) => {
           this.setUserData(user);
-          return user;
+          return user as AuthUser | null;
         }),
         catchError(() => {
-          this.clearLocalSession();
+          this.currentUser.set(null);
+          this.csrfTokenService.clear();
+          localStorage.removeItem(AuthService.SESSION_FLAG_KEY);
+          // Permitir reintentar en la siguiente navegación (evita null cacheado para siempre).
+          this.sessionLoadRequest$ = undefined;
           return of(null);
         }),
-        shareReplay({ bufferSize: 1, refCount: true }),
+        shareReplay({ bufferSize: 1, refCount: false }),
       );
     }
 
     return this.sessionLoadRequest$;
+  }
+
+  forgotPassword(payload: ForgotPasswordRequest): Observable<{ message: string }> {
+    return this.http
+      .post<{ message: string }>(`${environment.apiUrl}/auth/forgot-password`, payload)
+      .pipe(catchError((err) => throwError(() => this.extractErrorMessage(err))));
+  }
+
+  resetPassword(payload: ResetPasswordRequest): Observable<{ message: string }> {
+    return this.http
+      .post<{ message: string }>(`${environment.apiUrl}/auth/reset-password`, payload)
+      .pipe(catchError((err) => throwError(() => this.extractErrorMessage(err))));
   }
 
   logout(): Observable<{ message: string }> {
@@ -183,6 +217,9 @@ export class AuthService {
     }
     if (http?.status === 419) {
       return 'La sesión de seguridad expiró. Recarga la página e intenta de nuevo.';
+    }
+    if (http?.status === 429) {
+      return 'Demasiados intentos. Espera un minuto e inténtalo de nuevo.';
     }
 
     return http?.message ?? 'Error de autenticación. Intenta nuevamente.';

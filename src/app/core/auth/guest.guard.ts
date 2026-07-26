@@ -8,6 +8,12 @@ export const guestGuard: CanActivateFn = () => {
   const router = inject(Router);
   const authService = inject(AuthService);
 
+  // Optimización: si no hay flag de sesión local, el usuario definitivamente
+  // no está autenticado → permitir acceso sin disparar /auth/me.
+  if (!authService.hasLocalSession()) {
+    return true;
+  }
+
   return authService.ensureSessionLoaded().pipe(
     map((user) => {
       if (!isAuthenticatedUser(user)) {

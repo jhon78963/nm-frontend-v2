@@ -1,4 +1,5 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
   form,
@@ -27,18 +28,37 @@ import {
   imports: [FormField, AlertComponent, InputComponent, ButtonComponent],
   templateUrl: './change-password.component.html',
 })
-export class ChangePasswordComponent {
+export class ChangePasswordComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly toastService = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly isLoading = signal(false);
+  protected readonly isHydrating = signal(true);
   protected readonly errorMessage = signal('');
   protected readonly passwordHint = PASSWORD_HINT;
 
   protected readonly mustChangePassword = computed(
     () => this.authService.currentUser()?.mustChangePassword === true,
   );
+
+  ngOnInit(): void {
+    if (this.authService.currentUser()?.username?.trim()) {
+      this.isHydrating.set(false);
+      return;
+    }
+
+    this.authService
+      .ensureSessionLoaded()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((user) => {
+        this.isHydrating.set(false);
+        if (!user?.username?.trim()) {
+          void this.router.navigate(['/auth/login']);
+        }
+      });
+  }
 
   protected readonly formModel = signal<ChangePasswordFormModel>({
     currentPassword: '',

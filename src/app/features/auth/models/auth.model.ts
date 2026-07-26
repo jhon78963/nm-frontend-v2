@@ -3,6 +3,26 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  token: string;
+  email: string;
+  password: string;
+  passwordConfirmation: string;
+}
+
+export interface ForgotPasswordFormModel {
+  email: string;
+}
+
+export interface ResetPasswordFormModel {
+  password: string;
+  passwordConfirmation: string;
+}
+
 export interface ChangePasswordRequest {
   currentPassword?: string;
   password: string;

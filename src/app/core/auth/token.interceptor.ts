@@ -11,7 +11,19 @@ import {
 } from 'rxjs';
 import { AuthService } from '../../features/auth/data-access/auth.service';
 
-const AUTH_REFRESH_SKIP = ['/auth/login', '/auth/refresh', '/auth/logout'];
+// Rutas donde un 401 es esperado/normal: no intentar refresh.
+// /auth/me retorna 401 cuando no hay sesión (guest); sin este skip
+// cada navegación en rutas públicas dispara un refresh innecesario.
+const AUTH_REFRESH_SKIP = [
+  '/auth/login',
+  '/auth/me',
+  '/auth/refresh',
+  '/auth/logout',
+  '/auth/csrf-token',
+  '/sanctum/csrf-cookie',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+];
 
 let isRefreshing = false;
 const refreshResult$ = new BehaviorSubject<boolean | null>(null);
