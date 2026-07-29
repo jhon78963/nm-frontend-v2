@@ -1,0 +1,186 @@
+@if (createDrawerOpen()) {
+  <app-product-create-drawer
+    (created)="onProductCreated($event)"
+    (closed)="closeCreateDrawer()"
+  />
+}
+
+<div class="space-y-5">
+  <!-- Header -->
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-gray-900">
+        Publicar productos
+      </h1>
+      <p class="mt-0.5 max-w-2xl text-sm text-gray-500">
+        Busca un producto del almacén, configura ofertas, sube imágenes y sincroniza con WooCommerce.
+        El listado permanece visible mientras configuras cada producto.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2"
+      (click)="openCreateDrawer()"
+    >
+      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+      </svg>
+      Nuevo producto
+    </button>
+  </div>
+
+  <!-- Layout: list + panel -->
+  <div class="grid gap-5 xl:grid-cols-5">
+    <!-- Product list -->
+    <div class="xl:col-span-2">
+      <!-- Search -->
+      <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center" [formGroup]="filterForm">
+          <div class="relative flex-1">
+            <svg
+              class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+              fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              formControlName="search"
+              type="search"
+              placeholder="Buscar por nombre o código de barras…"
+              class="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-9 pr-9 text-sm placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-violet-500"
+              aria-label="Buscar productos"
+            />
+            @if (filterForm.controls.search.value) {
+              <button
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 rounded text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                aria-label="Limpiar búsqueda"
+                (click)="clearSearch()"
+              >
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            }
+          </div>
+        </div>
+
+        <app-data-table
+          [columns]="tableColumns()"
+          [data]="products()"
+          [loading]="loading()"
+          [emptyState]="emptyState()"
+          [emptySearch]="currentSearch()"
+          [pagination]="paginationData()"
+          theme="violet"
+          ariaLabel="Productos del almacén"
+          (pageChange)="onPageChange($event)"
+          (clearSearch)="clearSearch()"
+          (emptyAction)="openCreateDrawer()"
+        >
+          <ng-template #rowTemplate let-product let-index="index">
+            <tr
+              class="cursor-pointer transition-colors hover:bg-gray-50"
+              [class.bg-violet-50]="isSelected(product)"
+              (click)="selectProduct(product)"
+            >
+              <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">{{ product.id }}</td>
+              <td class="px-4 py-3">
+                <span class="text-sm font-medium text-gray-900">{{ product.name }}</span>
+              </td>
+              <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
+                {{ product.barcode || '—' }}
+              </td>
+              <td class="px-4 py-3 text-center">
+                <span
+                  class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
+                  [class.bg-emerald-100]="mediaCount(product) > 0"
+                  [class.text-emerald-700]="mediaCount(product) > 0"
+                  [class.bg-amber-100]="mediaCount(product) === 0"
+                  [class.text-amber-700]="mediaCount(product) === 0"
+                >
+                  {{ mediaCount(product) }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-center">
+                @if (product.wooStatus === 'publish') {
+                  <span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                    Publicado
+                  </span>
+                } @else {
+                  <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
+                    Borrador
+                  </span>
+                }
+              </td>
+              <td class="px-4 py-3 text-right">
+                <button
+                  type="button"
+                  class="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                  [class.bg-violet-600]="isSelected(product)"
+                  [class.text-white]="isSelected(product)"
+                  [class.text-violet-600]="!isSelected(product)"
+                  [class.hover:bg-violet-50]="!isSelected(product)"
+                  (click)="selectProduct(product); $event.stopPropagation()"
+                >
+                  @if (isSelected(product)) {
+                    Cerrar
+                  } @else {
+                    Configurar
+                  }
+                </button>
+              </td>
+            </tr>
+          </ng-template>
+        </app-data-table>
+    </div>
+
+    <!-- Publish panel -->
+    <div class="xl:col-span-3">
+      @for (product of selectedProductList(); track product.id) {
+        <div class="sticky top-4">
+          @if (loadingSelectedProduct()) {
+            <div class="flex min-h-[420px] items-center justify-center rounded-2xl border border-gray-200 bg-white shadow-sm">
+              <div class="flex flex-col items-center gap-3">
+                <svg class="h-8 w-8 animate-spin text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                <p class="text-sm text-gray-500">Cargando configuración del producto…</p>
+              </div>
+            </div>
+          } @else {
+            <app-product-publish-panel
+              [product]="product"
+              (updated)="onProductUpdated($event)"
+              (closed)="closePublishPanel()"
+            />
+          }
+        </div>
+      } @empty {
+        <div class="flex min-h-[420px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 px-6 py-12 text-center">
+          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-100">
+            <svg class="h-7 w-7 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 0 1 .75-.75h3a.75.75 0 0 1 .75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349M3.75 21V9.349m0 0a3.001 3.001 0 0 0 3.75-.615A2.993 2.993 0 0 0 9.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 0 0 2.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 0 0 3.75.614m-16.5 0a3.004 3.004 0 0 1-.621-4.72L4.318 3.44A1.5 1.5 0 0 1 5.378 3h13.243a1.5 1.5 0 0 1 1.06.44l1.19 1.189a3 3 0 0 1-.621 4.72M6.75 18h3.75a.75.75 0 0 0 .75-.75V13.5a.75.75 0 0 0-.75-.75H6.75a.75.75 0 0 0-.75.75v3.75c0 .414.336.75.75.75Z"/>
+            </svg>
+          </div>
+          <h2 class="mt-4 text-base font-semibold text-gray-900">
+            Selecciona un producto para publicar
+          </h2>
+          <p class="mt-2 max-w-sm text-sm text-gray-500">
+            Elige un producto de la lista o crea uno nuevo con variantes talla × color.
+            Aquí configurarás ofertas, imágenes y sincronización con WordPress.
+          </p>
+          <button
+            type="button"
+            class="mt-5 inline-flex items-center gap-2 rounded-xl border border-violet-200 bg-white px-4 py-2 text-sm font-medium text-violet-700 transition-colors hover:bg-violet-50"
+            (click)="openCreateDrawer()"
+          >
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+            Crear producto nuevo
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</div>

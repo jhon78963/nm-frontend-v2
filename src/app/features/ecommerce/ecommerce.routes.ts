@@ -1,9 +1,16 @@
 import { Routes } from '@angular/router';
-import { createPlaceholderRoute } from '../../core/routing/feature-placeholder.component';
 
 const routes: Routes = [
-  createPlaceholderRoute('Publicar productos', 'products'),
-  createPlaceholderRoute('Multimedia', 'multimedia'),
+  {
+    path: 'products',
+    data: { breadcrumb: 'Publicar productos' },
+    loadChildren: () => import('./products/products.routes'),
+  },
+  {
+    path: 'multimedia',
+    data: { breadcrumb: 'Multimedia' },
+    loadChildren: () => import('./multimedia/multimedia.routes'),
+  },
   { path: '', redirectTo: 'products', pathMatch: 'full' },
 ];
 

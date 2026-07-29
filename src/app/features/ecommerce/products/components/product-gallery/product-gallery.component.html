@@ -1,0 +1,216 @@
+<section class="rounded-2xl border border-gray-200 bg-white p-4">
+  <h3 class="m-0 text-base font-semibold text-gray-900">Galería del producto</h3>
+  <p class="mt-1 text-xs text-gray-500">
+    Sube al menos una imagen para publicar en WooCommerce.
+  </p>
+
+  <div class="mt-4">
+    <app-file-dropzone
+      [maxFiles]="maxFiles"
+      [maxFileSizeMb]="maxFileSizeMb"
+      [accept]="accept"
+      [splitPickers]="true"
+      subjectLabel="imágenes"
+      formatsHint="JPEG, PNG o WebP"
+      [disabled]="dropzoneDisabled()"
+      [fileKeyFn]="bindDropzoneFileKey"
+      [fileStatusLabel]="bindDropzoneStatusLabel"
+      [fileStatusSeverity]="bindDropzoneStatusSeverity"
+      [fileStatusUploading]="bindDropzoneStatusUploading"
+      (filesChange)="onDropzoneFiles($event)"
+    />
+  </div>
+
+  @if (queueItems().length > 0) {
+    <div class="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3">
+      <div class="mb-3 flex items-center justify-between gap-2">
+        <h4 class="m-0 text-sm font-semibold text-gray-900">
+          Cola de subida ({{ queueItems().length }})
+        </h4>
+        <span class="text-xs text-gray-400">Toca una foto para enviarla primero</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        @for (item of queueItems(); track item.key; let i = $index) {
+          <div
+            class="group relative cursor-pointer overflow-hidden rounded-xl border-2 bg-white transition-colors"
+            [class.border-violet-500]="isQueueSelected(item.key)"
+            [class.border-gray-200]="!isQueueSelected(item.key)"
+            role="button"
+            tabindex="0"
+            [attr.aria-label]="'Imagen en cola: ' + item.file.name"
+            (click)="selectQueueItem(item.key)"
+            (keydown.enter)="selectQueueItem(item.key)"
+          >
+            @if (queuePreviewUrl(item.key); as previewUrl) {
+              <img
+                [src]="previewUrl"
+                [alt]="item.file.name"
+                class="aspect-square w-full object-cover"
+              />
+            } @else {
+              <div class="flex aspect-square w-full items-center justify-center bg-gray-100">
+                <svg class="h-8 w-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z"/>
+                </svg>
+              </div>
+            }
+
+            <div class="flex items-center justify-between gap-1 px-2 py-1.5">
+              <span
+                class="rounded px-1.5 py-0.5 text-xs font-medium"
+                [class.bg-blue-100]="queueStatusSeverity(item) === 'info'"
+                [class.text-blue-700]="queueStatusSeverity(item) === 'info'"
+                [class.bg-gray-100]="queueStatusSeverity(item) === 'neutral'"
+                [class.text-gray-600]="queueStatusSeverity(item) === 'neutral'"
+                [class.bg-amber-100]="queueStatusSeverity(item) === 'warning'"
+                [class.text-amber-700]="queueStatusSeverity(item) === 'warning'"
+                [class.bg-red-100]="queueStatusSeverity(item) === 'danger'"
+                [class.text-red-700]="queueStatusSeverity(item) === 'danger'"
+              >
+                {{ queueStatusLabel(item) }}
+              </span>
+              <span class="text-xs text-gray-400">#{{ i + 1 }}</span>
+            </div>
+
+            <div class="flex gap-1 px-2 pb-2">
+              <button
+                type="button"
+                class="flex-1 rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+                aria-label="Subir prioridad"
+                [disabled]="i === 0 || item.status === 'uploading'"
+                (click)="moveQueueItem(item.key, -1, $event)"
+              >
+                <svg class="mx-auto h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/>
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="flex-1 rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 disabled:opacity-40"
+                aria-label="Bajar prioridad"
+                [disabled]="i === queueItems().length - 1 || item.status === 'uploading'"
+                (click)="moveQueueItem(item.key, 1, $event)"
+              >
+                <svg class="mx-auto h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="flex-1 rounded-lg p-1.5 text-violet-600 hover:bg-violet-50 disabled:opacity-40"
+                aria-label="Subir esta imagen"
+                [disabled]="!canUploadNext() || item.status === 'uploading'"
+                (click)="uploadQueueItem(item.key, $event)"
+              >
+                <svg class="mx-auto h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <div class="mt-4 flex flex-col gap-2">
+    <button
+      type="button"
+      class="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+      [disabled]="!canUploadNext()"
+      (click)="uploadNext()"
+    >
+      @if (isUploading()) {
+        <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+        Subiendo…
+      } @else {
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"/>
+        </svg>
+        {{ nextUploadLabel() }}
+      }
+    </button>
+
+    <button
+      type="button"
+      class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+      [disabled]="!canRetryFailed()"
+      (click)="retryFailedUploads()"
+    >
+      Reintentar fallidas@if (failedCount() > 0) { ({{ failedCount() }}) }
+    </button>
+
+    <button
+      type="button"
+      class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+      [disabled]="!canClearQueue()"
+      (click)="clearQueue()"
+    >
+      Limpiar cola@if (queueItems().length > 0) { ({{ queueItems().length }}) }
+    </button>
+  </div>
+
+  @if (pendingCount() > 1 && !isUploading()) {
+    <p class="mt-3 text-center text-xs text-gray-500">
+      Se sube de a una foto. Pulsa «Subir siguiente» o el icono de nube en la imagen que quieras enviar primero.
+    </p>
+  }
+
+  @if (mediaItems().length === 0 && queueItems().length === 0 && !isLoading()) {
+    <p class="mt-3 text-center text-xs text-gray-500">
+      Este producto aún no tiene imágenes. Hasta que subas al menos una, permanecerá en borrador en WooCommerce.
+    </p>
+  }
+
+  @if (isLoading()) {
+    <div class="flex justify-center py-8">
+      <svg class="h-8 w-8 animate-spin text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+      </svg>
+    </div>
+  }
+
+  @if (!isLoading() && mediaItems().length > 0) {
+    <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      @for (item of mediaItems(); track item.id) {
+        <div class="group relative overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
+          @if (displayUrl(item.id); as url) {
+            <img
+              [src]="url"
+              [alt]="item.fileName ?? 'Imagen del producto'"
+              class="aspect-square w-full object-cover"
+              loading="lazy"
+            />
+          } @else {
+            <div class="flex aspect-square w-full items-center justify-center">
+              <svg class="h-6 w-6 animate-spin text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+            </div>
+          }
+
+          <button
+            type="button"
+            class="absolute right-2 top-2 rounded-full bg-red-600 p-1.5 text-white opacity-0 shadow-sm transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 disabled:cursor-not-allowed"
+            aria-label="Eliminar imagen"
+            [disabled]="isDeleting() && !isDeletingItem(item.id)"
+            (click)="deleteImage(item.id)"
+          >
+            @if (isDeletingItem(item.id)) {
+              <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+            } @else {
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            }
+          </button>
+        </div>
+      }
+    </div>
+  }
+</section>
