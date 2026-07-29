@@ -13,6 +13,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, forkJoin } from 'rxjs';
+import { isSuperAdmin } from '../../../../../core/auth/permission.util';
 import {
   DataTableComponent,
   DataTableColumn,
@@ -20,6 +21,9 @@ import {
   DataTablePagination,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
+import { AuthService } from '../../../../auth/data-access/auth.service';
+import { UserService } from '../../../users/data-access/user.service';
+import { User, UserListResponse } from '../../../users/models/user.model';
 import { WarehouseService } from '../../../warehouses/data-access/warehouse.service';
 import { ActionLogService } from '../../data-access/action-log.service';
 import { ActionLog } from '../../models/action-log.model';
@@ -39,12 +43,14 @@ import {
 @Component({
   selector: 'app-action-logs-list',
   imports: [ReactiveFormsModule, DataTableComponent],
-  providers: [ActionLogService, WarehouseService],
+  providers: [ActionLogService, WarehouseService, UserService],
   templateUrl: './action-logs-list.component.html',
 })
 export class ActionLogsListComponent implements OnInit {
   private readonly actionLogService = inject(ActionLogService);
   private readonly warehouseService = inject(WarehouseService);
+  private readonly userService = inject(UserService);
+  private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
 
@@ -56,18 +62,25 @@ export class ActionLogsListComponent implements OnInit {
   protected readonly limit = signal(20);
   protected readonly expandedLogId = signal<number | null>(null);
   protected readonly warehouseNames = signal<Map<number, string>>(new Map());
+  protected readonly userOptions = signal<User[]>([]);
   protected readonly activeDatePreset = signal<ActionLogDatePreset | null>(null);
   protected readonly dateRangeError = signal<string | null>(null);
+
+  protected readonly canViewAllUsers = computed(() =>
+    isSuperAdmin(this.authService.currentUser()),
+  );
 
   protected readonly filtersForm = new FormGroup({
     search: new FormControl('', { nonNullable: true }),
     actionFilter: new FormControl('', { nonNullable: true }),
+    userId: new FormControl('', { nonNullable: true }),
     startDate: new FormControl('', { nonNullable: true }),
     endDate: new FormControl('', { nonNullable: true }),
   });
 
   protected readonly currentSearch = signal('');
   protected readonly currentActionFilter = signal('');
+  protected readonly currentUserId = signal<number | null>(null);
   protected readonly currentStartDate = signal('');
   protected readonly currentEndDate = signal('');
 
@@ -118,6 +131,7 @@ export class ActionLogsListComponent implements OnInit {
     () =>
       Boolean(this.currentSearch()) ||
       Boolean(this.currentActionFilter()) ||
+      this.currentUserId() != null ||
       Boolean(this.currentStartDate()) ||
       Boolean(this.currentEndDate()),
   );
@@ -157,6 +171,14 @@ export class ActionLogsListComponent implements OnInit {
         this.resetPageAndLoad();
       });
 
+    this.filtersForm.controls.userId.valueChanges
+      .pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        const parsed = value ? Number(value) : null;
+        this.currentUserId.set(parsed && parsed > 0 ? parsed : null);
+        this.resetPageAndLoad();
+      });
+
     this.filtersForm.controls.startDate.valueChanges
       .pipe(debounceTime(300), takeUntilDestroyed(this.destroyRef))
       .subscribe((value) => {
@@ -177,30 +199,29 @@ export class ActionLogsListComponent implements OnInit {
   protected loadContext(): void {
     this.loading.set(true);
 
-    forkJoin({
-      warehouses: this.warehouseService.getAll({ limit: 200, page: 1 }),
-      logs: this.actionLogService.getAll(this.buildQueryParams()),
-    })
+    const warehouses$ = this.warehouseService.getAll({ limit: 200, page: 1 });
+    const logs$ = this.actionLogService.getAll(this.buildQueryParams());
+
+    if (this.canViewAllUsers()) {
+      forkJoin({
+        warehouses: warehouses$,
+        logs: logs$,
+        users: this.userService.getAll({ limit: 200, page: 1 }),
+      })
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (result) => this.applyLoadedContext(result),
+          error: () => this.handleLoadError(),
+        });
+      return;
+    }
+
+    forkJoin({ warehouses: warehouses$, logs: logs$ })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ warehouses, logs }) => {
-          const names = new Map<number, string>();
-          for (const warehouse of warehouses.data) {
-            names.set(warehouse.id, warehouse.name);
-          }
-          this.warehouseNames.set(names);
-          this.logs.set(logs.data);
-          this.total.set(logs.paginate.total);
-          this.totalPages.set(logs.paginate.pages);
-          this.loading.set(false);
-        },
-        error: () => {
-          this.loading.set(false);
-          this.toastService.show(
-            'error',
-            'No se pudo cargar el historial de acciones.',
-          );
-        },
+        next: (result) =>
+          this.applyLoadedContext({ ...result, users: null }),
+        error: () => this.handleLoadError(),
       });
   }
 
@@ -243,6 +264,7 @@ export class ActionLogsListComponent implements OnInit {
     this.filtersForm.setValue({
       search: '',
       actionFilter: '',
+      userId: '',
       startDate: '',
       endDate: '',
     });
@@ -329,6 +351,39 @@ export class ActionLogsListComponent implements OnInit {
     return log.description?.trim() || '—';
   }
 
+  protected userOptionLabel(user: User): string {
+    const name = [user.name, user.surname].filter(Boolean).join(' ').trim();
+    if (name && user.email) {
+      return `${name} (${user.email})`;
+    }
+    return name || user.username || user.email || `Usuario #${user.id}`;
+  }
+
+  private applyLoadedContext(result: {
+    warehouses: { data: { id: number; name: string }[] };
+    logs: { data: ActionLog[]; paginate: { total: number; pages: number } };
+    users: UserListResponse | null;
+  }): void {
+    const names = new Map<number, string>();
+    for (const warehouse of result.warehouses.data) {
+      names.set(warehouse.id, warehouse.name);
+    }
+    this.warehouseNames.set(names);
+    this.userOptions.set(result.users?.data ?? []);
+    this.logs.set(result.logs.data);
+    this.total.set(result.logs.paginate.total);
+    this.totalPages.set(result.logs.paginate.pages);
+    this.loading.set(false);
+  }
+
+  private handleLoadError(): void {
+    this.loading.set(false);
+    this.toastService.show(
+      'error',
+      'No se pudo cargar el historial de acciones.',
+    );
+  }
+
   private resetPageAndLoad(): void {
     this.page.set(1);
     this.expandedLogId.set(null);
@@ -356,6 +411,7 @@ export class ActionLogsListComponent implements OnInit {
     actionGroup?: string;
     startDate?: string;
     endDate?: string;
+    userId?: number | null;
   } {
     const actionParts = encodeActionFilter(this.currentActionFilter());
 
@@ -366,6 +422,7 @@ export class ActionLogsListComponent implements OnInit {
       ...actionParts,
       startDate: this.currentStartDate(),
       endDate: this.currentEndDate(),
+      userId: this.canViewAllUsers() ? this.currentUserId() : null,
     };
   }
 }

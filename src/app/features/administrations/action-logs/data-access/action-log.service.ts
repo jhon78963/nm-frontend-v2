@@ -18,6 +18,7 @@ export class ActionLogService {
     actionGroup?: string;
     startDate?: string;
     endDate?: string;
+    userId?: number | null;
   }): Observable<ActionLogListResponse> {
     let url = `${this.base}?limit=${params.limit}&page=${params.page}`;
     if (params.search?.trim()) {
@@ -33,6 +34,9 @@ export class ActionLogService {
     }
     if (params.endDate?.trim()) {
       url += `&end_date=${encodeURIComponent(params.endDate.trim())}`;
+    }
+    if (params.userId != null && params.userId > 0) {
+      url += `&user_id=${params.userId}`;
     }
 
     return this.http.get<unknown>(url).pipe(map(adaptActionLogList));

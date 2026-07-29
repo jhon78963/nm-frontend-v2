@@ -25,7 +25,11 @@
       />
     </svg>
     <p>
-      Vista de solo lectura. Los registros se generan automáticamente y no pueden editarse ni eliminarse.
+      @if (canViewAllUsers()) {
+        Como Super Admin ves el historial de todos los usuarios del tenant. Puedes filtrar por usuario en los filtros.
+      } @else {
+        Vista de solo lectura. Se muestran las acciones de todos los usuarios de tu tienda.
+      }
     </p>
   </div>
 
@@ -40,7 +44,7 @@
           Filtros
         </h2>
         <p class="mt-0.5 text-xs text-gray-500">
-          Refina por texto, tipo de acción o periodo.
+          Refina por texto, usuario, tipo de acción o periodo.
         </p>
       </div>
 
@@ -71,7 +75,7 @@
     </div>
 
     <div class="grid gap-3 lg:grid-cols-12">
-      <div class="relative lg:col-span-4">
+      <div class="relative lg:col-span-3">
         <svg
           class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
           fill="none"
@@ -86,7 +90,7 @@
         <input
           formControlName="search"
           type="search"
-          placeholder="Buscar por acción o descripción…"
+          [placeholder]="canViewAllUsers() ? 'Buscar por acción, detalle o usuario…' : 'Buscar por acción o descripción…'"
           class="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-9 pr-9 text-sm placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-slate-500"
           aria-label="Buscar en historial de acciones"
         />
@@ -111,7 +115,24 @@
         }
       </div>
 
-      <div class="lg:col-span-4">
+      @if (canViewAllUsers()) {
+        <div class="lg:col-span-3">
+          <label class="sr-only" for="user-filter">Usuario</label>
+          <select
+            id="user-filter"
+            formControlName="userId"
+            class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-700 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-slate-500"
+            aria-label="Filtrar por usuario"
+          >
+            <option value="">Todos los usuarios</option>
+            @for (user of userOptions(); track user.id) {
+              <option [value]="user.id">{{ userOptionLabel(user) }}</option>
+            }
+          </select>
+        </div>
+      }
+
+      <div class="lg:col-span-3">
         <label class="sr-only" for="action-filter">Tipo de acción</label>
         <select
           id="action-filter"
@@ -133,7 +154,7 @@
         </select>
       </div>
 
-      <div class="grid grid-cols-2 gap-3 lg:col-span-4">
+      <div class="grid grid-cols-2 gap-3 lg:col-span-3">
         <div>
           <label class="sr-only" for="start-date">Fecha inicial</label>
           <input
