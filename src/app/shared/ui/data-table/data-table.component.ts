@@ -11,7 +11,7 @@ export interface DataTableColumn<T = unknown> {
 }
 
 export interface DataTableEmptyState {
-  icon: TemplateRef<void>;
+  icon?: TemplateRef<void>;
   title: string;
   description: string;
   actionLabel?: string;
