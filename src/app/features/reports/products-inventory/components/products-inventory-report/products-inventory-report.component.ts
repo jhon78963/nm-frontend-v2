@@ -20,6 +20,7 @@ import { ProductInventoryItem } from '../../models/products-inventory.model';
 @Component({
   selector: 'app-products-inventory-report',
   imports: [DecimalPipe, RouterLink],
+  providers: [ProductsInventoryService],
   templateUrl: './products-inventory-report.component.html',
 })
 export class ProductsInventoryReportComponent implements OnInit {

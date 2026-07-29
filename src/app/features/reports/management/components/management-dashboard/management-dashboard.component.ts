@@ -22,6 +22,7 @@ import { DashboardTab } from '../../models/report-dashboard.model';
 @Component({
   selector: 'app-management-dashboard',
   imports: [DecimalPipe, RouterLink],
+  providers: [ReportDashboardService],
   templateUrl: './management-dashboard.component.html',
 })
 export class ManagementDashboardComponent implements OnInit {

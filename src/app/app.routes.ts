@@ -73,9 +73,8 @@ export const routes: Routes = [
       },
       {
         path: 'financial-summaries',
-        title: 'Resumen Financiero',
-        data: { breadcrumb: 'Resumen Financiero' },
-        loadChildren: () => import('./features/financial-summaries/financial-summaries.routes'),
+        redirectTo: 'reports/financial-summaries',
+        pathMatch: 'full',
       },
       // Compatibilidad con rutas anteriores
       {

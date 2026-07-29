@@ -24,6 +24,7 @@ import { QuickTransactionFormComponent } from '../quick-transaction-form/quick-t
 @Component({
   selector: 'app-financial-summary-dashboard',
   imports: [DecimalPipe, RouterLink, QuickTransactionFormComponent],
+  providers: [FinancialSummaryService],
   templateUrl: './financial-summary-dashboard.component.html',
 })
 export class FinancialSummaryDashboardComponent implements OnInit {

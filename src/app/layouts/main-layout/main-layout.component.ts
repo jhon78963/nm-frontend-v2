@@ -94,7 +94,7 @@ export class MainLayoutComponent implements OnInit {
       items: [
         { label: 'Reportes', route: '/reports', permission: 'report.index' },
         { label: 'Productos (inventario)', route: '/reports/products', permission: 'report.products' },
-        { label: 'Resumen Financiero', route: '/financial-summaries', permission: 'financialSummary.getSummary' },
+        { label: 'Resumen Financiero', route: '/reports/financial-summaries', permission: 'financialSummary.getSummary' },
       ],
     },
   ];
