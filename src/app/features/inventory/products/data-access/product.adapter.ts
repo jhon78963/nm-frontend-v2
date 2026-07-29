@@ -10,6 +10,11 @@ import {
   Warehouse,
   SizeType,
   ProductImportResponse,
+  ProductHistoryChange,
+  ProductHistoryEvent,
+  ProductHistoryIcon,
+  ProductHistoryResponse,
+  ProductHistorySeverity,
 } from '../models/product.model';
 
 function readNumber(value: unknown, fallback = 0): number {
@@ -238,4 +243,72 @@ export function adaptProductImportResponse(
     skipped: readNumber(r['skipped']),
     errors: Array.isArray(r['errors']) ? (r['errors'] as string[]) : [],
   };
+}
+
+function adaptProductHistorySeverity(value: unknown): ProductHistorySeverity {
+  const severity = readString(value, 'secondary');
+  if (
+    severity === 'success' ||
+    severity === 'info' ||
+    severity === 'danger' ||
+    severity === 'warning'
+  ) {
+    return severity;
+  }
+  return 'secondary';
+}
+
+function adaptProductHistoryIcon(iconClass: unknown): ProductHistoryIcon {
+  const icon = readString(iconClass).toLowerCase();
+
+  if (icon.includes('shopping-cart')) return 'sale';
+  if (icon.includes('sync')) return 'exchange';
+  if (icon.includes('undo')) return 'return';
+  if (icon.includes('trash')) return 'delete';
+  if (icon.includes('plus')) return 'in';
+  if (icon.includes('minus')) return 'out';
+  if (icon.includes('pencil')) return 'update';
+  if (icon.includes('plus-circle') || icon.endsWith(' pi-plus')) return 'create';
+
+  return 'default';
+}
+
+function adaptProductHistoryChange(raw: unknown): ProductHistoryChange {
+  const r = raw as Record<string, unknown>;
+  return {
+    field: readString(r['field']),
+    from: r['from'] as string | number,
+    to: r['to'] as string | number,
+  };
+}
+
+export function adaptProductHistoryEvent(raw: unknown): ProductHistoryEvent {
+  const r = raw as Record<string, unknown>;
+  const changes = Array.isArray(r['changes'])
+    ? (r['changes'] as unknown[]).map(adaptProductHistoryChange)
+    : [];
+
+  const id = r['id'];
+  const parsedId =
+    typeof id === 'string' || typeof id === 'number' ? id : readNumber(id);
+
+  return {
+    id: parsedId,
+    date: readString(r['date']),
+    time: readString(r['time']),
+    user: readString(r['user'], 'Sistema'),
+    actionTitle: readString(r['action_title']),
+    changes,
+    severity: adaptProductHistorySeverity(r['severity']),
+    icon: adaptProductHistoryIcon(r['icon']),
+  };
+}
+
+export function adaptProductHistoryResponse(raw: unknown): ProductHistoryEvent[] {
+  const r = raw as ProductHistoryResponse;
+  if (!r?.success || !Array.isArray(r.data)) {
+    return [];
+  }
+
+  return r.data.map(adaptProductHistoryEvent);
 }

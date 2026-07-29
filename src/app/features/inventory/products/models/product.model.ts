@@ -149,3 +149,43 @@ export interface ProductFormModel {
   genderId: number;
   warehouseId: number;
 }
+
+export type ProductHistorySeverity =
+  | 'success'
+  | 'info'
+  | 'danger'
+  | 'warning'
+  | 'secondary';
+
+export type ProductHistoryIcon =
+  | 'create'
+  | 'update'
+  | 'delete'
+  | 'sale'
+  | 'exchange'
+  | 'return'
+  | 'in'
+  | 'out'
+  | 'default';
+
+export interface ProductHistoryChange {
+  field: string;
+  from: string | number;
+  to: string | number;
+}
+
+export interface ProductHistoryEvent {
+  id: number | string;
+  date: string;
+  time: string;
+  user: string;
+  actionTitle: string;
+  changes: ProductHistoryChange[];
+  severity: ProductHistorySeverity;
+  icon: ProductHistoryIcon;
+}
+
+export interface ProductHistoryResponse {
+  success: boolean;
+  data: ProductHistoryEvent[];
+}

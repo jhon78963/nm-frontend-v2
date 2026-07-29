@@ -7,11 +7,13 @@ import {
   ProductListResponse,
   ProductFormData,
   ProductImportResponse,
+  ProductHistoryEvent,
 } from '../models/product.model';
 import {
   adaptProduct,
   adaptProductList,
   adaptProductImportResponse,
+  adaptProductHistoryResponse,
 } from './product.adapter';
 
 function extractErrorMessage(err: unknown): string {
@@ -86,8 +88,10 @@ export class ProductService {
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
-  getHistory(id: number): Observable<unknown> {
-    return this.http.get(`${this.base}/${id}/history`);
+  getHistory(id: number): Observable<ProductHistoryEvent[]> {
+    return this.http
+      .get<unknown>(`${this.base}/${id}/history`)
+      .pipe(map(adaptProductHistoryResponse));
   }
 
   exportToExcel(warehouseId?: number): Observable<Blob> {
