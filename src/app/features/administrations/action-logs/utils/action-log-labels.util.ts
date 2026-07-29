@@ -23,10 +23,17 @@ const ACTION_LABELS: Record<string, ActionLogLabel> = {
   'team_payment.created': { label: 'Pago registrado', tone: 'create' },
   'team_payment.updated': { label: 'Pago actualizado', tone: 'update' },
   'team_payment.deleted': { label: 'Pago eliminado', tone: 'delete' },
+  'pos.checkout': { label: 'Venta POS registrada', tone: 'create' },
+  'pos.product_searched': { label: 'Consulta producto POS', tone: 'neutral' },
+  'pos.customer_searched': { label: 'Consulta cliente POS', tone: 'neutral' },
   'sale.deleted': { label: 'Venta eliminada', tone: 'delete' },
+  'sale.updated': { label: 'Venta actualizada', tone: 'update' },
+  'sale.viewed': { label: 'Consulta de venta', tone: 'neutral' },
+  'sale.exchanged': { label: 'Cambio de mercadería', tone: 'update' },
   'cashflow.created': { label: 'Movimiento de caja creado', tone: 'create' },
   'cashflow.updated': { label: 'Movimiento de caja actualizado', tone: 'update' },
   'cashflow.deleted': { label: 'Movimiento de caja eliminado', tone: 'delete' },
+  'cashflow.daily_viewed': { label: 'Consulta caja del día', tone: 'neutral' },
 };
 
 export const ACTION_LOG_FILTER_GROUPS: ActionLogFilterGroup[] = [
@@ -60,14 +67,29 @@ export const ACTION_LOG_FILTER_GROUPS: ActionLogFilterGroup[] = [
     ],
   },
   {
+    id: 'pos',
+    label: 'POS',
+    actions: [
+      'pos.checkout',
+      'pos.product_searched',
+      'pos.customer_searched',
+    ],
+  },
+  {
     id: 'sale',
     label: 'Ventas',
-    actions: ['sale.deleted'],
+    actions: [
+      'sale.viewed',
+      'sale.updated',
+      'sale.exchanged',
+      'sale.deleted',
+    ],
   },
   {
     id: 'cashflow',
     label: 'Caja',
     actions: [
+      'cashflow.daily_viewed',
       'cashflow.created',
       'cashflow.updated',
       'cashflow.deleted',
