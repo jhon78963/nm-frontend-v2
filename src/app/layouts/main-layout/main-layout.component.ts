@@ -77,7 +77,7 @@ export class MainLayoutComponent implements OnInit {
     {
       label: 'Ventas',
       items: [
-        { label: 'POS', route: '/sales/pos', permission: 'pos.checkout' },
+        { label: 'POS', route: '/finance/pos', permission: 'pos.checkout' },
         { label: 'Ventas', route: '/sales', permissions: ['sale.getAll', 'sale.get'] },
         { label: 'Caja', route: '/finance/cash-movements', permission: 'cashflow.getDaily' },
       ],

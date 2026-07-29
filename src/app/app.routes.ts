@@ -61,9 +61,8 @@ export const routes: Routes = [
       },
       {
         path: 'sales/pos',
-        title: 'POS',
-        data: { breadcrumb: 'POS' },
-        loadChildren: () => import('./features/sales/pos/pos.routes'),
+        redirectTo: 'finance/pos',
+        pathMatch: 'full',
       },
       {
         path: 'sales',

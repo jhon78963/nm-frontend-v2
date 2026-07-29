@@ -1,0 +1,256 @@
+<div class="pos-shell">
+
+  <!-- ── Inline toast notification ─────────────────────────────────────────── -->
+  @if (posService.toastMessage(); as msg) {
+    <div class="pos-toast" role="status" aria-live="polite" data-testid="pos-toast">
+      <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+      </svg>
+      <span class="text-sm font-semibold">{{ msg }}</span>
+    </div>
+  }
+
+  <!-- ── Header: POS title + customer search ───────────────────────────────── -->
+  <div class="shrink-0">
+    <!-- Title bar -->
+    <div class="flex items-center justify-between border-b border-gray-100 bg-white px-4 py-3">
+      <div class="flex items-center gap-2">
+        <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-600" aria-hidden="true">
+          <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+          </svg>
+        </span>
+        <div>
+          <h1 class="text-sm font-bold text-gray-900 leading-tight">Punto de Venta</h1>
+          <p class="text-xs text-gray-400 leading-tight">
+            {{ posService.totalItems() }} ítems ·
+            S/ {{ posService.grandTotal() | number: '1.2-2' }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Reprint FAB -->
+      @if (posService.lastSaleIdForReprint()) {
+        <button
+          type="button"
+          class="flex items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-3 py-1.5 text-xs font-bold text-violet-700 transition-colors hover:bg-violet-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+          data-testid="pos-reprint-ticket"
+          (click)="posService.reprintLastTicket()"
+        >
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+          </svg>
+          Imprimir ticket
+        </button>
+      }
+    </div>
+
+    <!-- Customer search -->
+    <app-pos-header />
+  </div>
+
+  <!-- ── Body: scanner + cart ───────────────────────────────────────────────── -->
+  <div class="flex-1 overflow-y-auto bg-gray-50">
+
+    <!-- Warehouse warning banner -->
+    @if (hasNoWarehouse()) {
+      <div
+        class="flex items-start gap-3 border-b border-amber-200 bg-amber-50 px-4 py-3"
+        role="alert"
+      >
+        <svg class="mt-0.5 h-5 w-5 shrink-0 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+        <p class="text-sm text-amber-800">
+          <strong class="font-semibold">Sin almacén asignado.</strong>
+          No puedes buscar productos ni registrar ventas. Contacta al administrador.
+        </p>
+      </div>
+    }
+
+    <!-- Barcode scanner -->
+    <div class="sticky top-0 z-10 border-b border-gray-100 bg-white/90 px-4 py-3 backdrop-blur-sm">
+      <div
+        class="flex items-center overflow-hidden rounded-xl border transition-all"
+        [class.border-gray-200]="!posService.isLoading()"
+        [class.border-violet-300]="posService.isLoading()"
+        [class.ring-2]="posService.isLoading()"
+        [class.ring-violet-200]="posService.isLoading()"
+      >
+        <span
+          class="shrink-0 pl-3 pr-2 transition-colors"
+          [class.text-gray-400]="!posService.isLoading()"
+          [class.text-violet-500]="posService.isLoading()"
+          aria-hidden="true"
+        >
+          @if (posService.isLoading()) {
+            <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+          } @else {
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+          }
+        </span>
+        <input
+          #barcodeInput
+          type="text"
+          autocomplete="off"
+          autocorrect="off"
+          spellcheck="false"
+          placeholder="Escanear o ingresar código de producto…"
+          class="flex-1 bg-transparent py-3 pr-3 text-sm font-mono text-gray-800 placeholder:text-gray-400 focus:outline-none"
+          [value]="barcodeQuery()"
+          [disabled]="hasNoWarehouse() || posService.isLoading()"
+          (input)="onBarcodeInput($event)"
+          (keydown.enter)="onScanKeydown()"
+          autofocus
+          aria-label="Escáner de código de barras"
+        />
+        <button
+          type="button"
+          class="shrink-0 border-l border-gray-200 px-3.5 py-3 text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500"
+          [disabled]="hasNoWarehouse() || posService.isLoading() || !barcodeQuery().trim()"
+          (click)="onScanKeydown()"
+          aria-label="Buscar producto"
+        >
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Cart content -->
+    <div class="px-4 pb-4 pt-3">
+
+      <!-- Cart toolbar -->
+      <div class="mb-3 flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wide text-gray-400">
+          Carrito ({{ posService.totalItems() }})
+        </span>
+        @if (posService.cart().length > 0) {
+          <button
+            type="button"
+            class="text-xs font-semibold uppercase text-red-500 transition-colors hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-1 rounded"
+            (click)="posService.clearCart()"
+            aria-label="Vaciar carrito"
+          >
+            Vaciar
+          </button>
+        }
+      </div>
+
+      <!-- Empty state -->
+      @if (posService.cart().length === 0) {
+        <div class="flex flex-col items-center justify-center gap-3 py-14 text-center opacity-50">
+          <svg class="h-14 w-14 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+          </svg>
+          <div>
+            <p class="text-sm font-semibold text-gray-500">Carrito vacío</p>
+            <p class="mt-0.5 text-xs text-gray-400">Escanea un código para agregar productos</p>
+          </div>
+        </div>
+      }
+
+      <!-- Cart items -->
+      @if (posService.cart().length > 0) {
+        <ul class="flex flex-col gap-2.5" aria-label="Ítems en el carrito">
+          @for (item of posService.cart(); track item.cartId) {
+            <li class="cart-item">
+              <!-- Color swatch -->
+              <div
+                class="h-12 w-12 shrink-0 rounded-full shadow-sm"
+                [style.background-color]="item.color.hex"
+                [class.ring-1]="item.color.hex === '#ffffff' || item.color.hex === '#FFFFFF'"
+                [class.ring-gray-200]="item.color.hex === '#ffffff' || item.color.hex === '#FFFFFF'"
+                aria-hidden="true"
+              ></div>
+
+              <!-- Details -->
+              <div class="flex-1 min-w-0">
+                <!-- Name + remove -->
+                <div class="flex items-start justify-between gap-2">
+                  <p class="truncate text-sm font-bold leading-tight text-gray-900">
+                    {{ item.name }}
+                  </p>
+                  <button
+                    type="button"
+                    class="shrink-0 rounded p-0.5 text-gray-300 transition-colors hover:text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                    (click)="posService.removeItem(item.cartId)"
+                    [attr.aria-label]="'Eliminar ' + item.name + ' del carrito'"
+                  >
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Variant tags + price -->
+                <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    class="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-bold text-gray-600 transition-colors hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                    (click)="posService.openEditModal(item)"
+                    [attr.aria-label]="'Editar ' + item.name"
+                  >
+                    {{ item.size }} · {{ item.color.colorName }}
+                    <svg class="h-3 w-3 text-violet-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    class="ml-auto font-bold text-xs text-violet-600 underline underline-offset-2 hover:text-violet-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded"
+                    (click)="posService.openEditModal(item)"
+                    [attr.aria-label]="'Editar precio de ' + item.name"
+                  >
+                    S/ {{ item.unitPrice | number: '1.2-2' }}
+                  </button>
+                </div>
+
+                <!-- Qty controls + line total -->
+                <div class="mt-2.5 flex items-center justify-between border-t border-gray-100 pt-2">
+                  <div
+                    class="flex items-center overflow-hidden rounded-lg border border-gray-200"
+                    role="group"
+                    [attr.aria-label]="'Cantidad de ' + item.name"
+                  >
+                    <button
+                      type="button"
+                      class="flex h-8 w-8 items-center justify-center border-r border-gray-200 text-sm font-bold text-gray-500 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500"
+                      (click)="posService.updateQuantity(item.cartId, -1)"
+                      [attr.aria-label]="'Reducir cantidad de ' + item.name"
+                    >−</button>
+                    <span
+                      class="flex h-8 w-9 items-center justify-center text-sm font-bold text-gray-800"
+                      aria-live="polite"
+                    >{{ item.quantity }}</span>
+                    <button
+                      type="button"
+                      class="flex h-8 w-8 items-center justify-center border-l border-gray-200 text-sm font-bold text-violet-600 transition-colors hover:bg-violet-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-violet-500"
+                      (click)="posService.updateQuantity(item.cartId, 1)"
+                      [attr.aria-label]="'Aumentar cantidad de ' + item.name"
+                    >+</button>
+                  </div>
+                  <span class="text-sm font-bold tabular-nums text-gray-700">
+                    S/ {{ item.total | number: '1.2-2' }}
+                  </span>
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+
+  <!-- ── Footer: payment + checkout ────────────────────────────────────────── -->
+  <app-pos-footer [hasNoWarehouse]="hasNoWarehouse()" />
+
+  <!-- ── Product variant selector modal ────────────────────────────────────── -->
+  <app-pos-selector />
+</div>

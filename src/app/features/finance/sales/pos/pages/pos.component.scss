@@ -1,0 +1,87 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// POS Shell — fills the available main-layout area
+// ─────────────────────────────────────────────────────────────────────────────
+
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.pos-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: #ffffff;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 0 0 1px rgb(0 0 0 / 0.06);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Inline toast
+// ─────────────────────────────────────────────────────────────────────────────
+
+.pos-toast {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: 999px;
+  background: #111827;
+  color: #ffffff;
+  max-width: min(360px, 90vw);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  animation: toast-appear 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes toast-appear {
+  from { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(0.95); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0)    scale(1);    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Cart item card
+// ─────────────────────────────────────────────────────────────────────────────
+
+.cart-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 100ms ease;
+  animation: item-enter 220ms ease-out;
+
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+@keyframes item-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hide main UI from print (safety net — fullscreen iframe handles isolation)
+// ─────────────────────────────────────────────────────────────────────────────
+
+@media print {
+  :host {
+    visibility: hidden !important;
+    height: 0 !important;
+    overflow: hidden !important;
+  }
+}
