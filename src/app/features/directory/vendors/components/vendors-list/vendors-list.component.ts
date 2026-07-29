@@ -20,6 +20,8 @@ import {
   DataTablePagination,
   DataTableEmptyState,
 } from '../../../../../shared/ui/data-table/data-table.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
+import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { VendorService } from '../../data-access/vendor.service';
 import { Vendor } from '../../models/vendor.model';
@@ -32,6 +34,8 @@ import { VendorFormComponent } from '../vendor-form/vendor-form.component';
     VendorFormComponent,
     ConfirmDialogComponent,
     DataTableComponent,
+    TableActionButtonComponent,
+    TableActionsComponent,
   ],
   templateUrl: './vendors-list.component.html',
 })

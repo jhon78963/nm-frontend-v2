@@ -13,7 +13,7 @@ import {
   FormField,
   required,
 } from '@angular/forms/signals';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, of, switchMap } from 'rxjs';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import {
@@ -71,6 +71,7 @@ function toIsoDate(date: Date): string {
 })
 export class ProductKardexComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly productService = inject(ProductService);
   private readonly productSizesService = inject(ProductSizesService);
   private readonly productColorsService = inject(ProductColorsService);
@@ -454,6 +455,21 @@ export class ProductKardexComponent implements OnInit {
     if (id !== null) {
       this.loadProductContext(id);
     }
+  }
+
+  protected openInventoryUpdate(): void {
+    const id = this.productId();
+    const currentProduct = this.product();
+    if (id === null || !currentProduct) return;
+
+    this.router.navigate([`/inventories/reconciliation/${id}`], {
+      state: {
+        productId: id,
+        productName: currentProduct.name,
+        barcode: currentProduct.barcode,
+        gender: currentProduct.gender,
+      },
+    });
   }
 
   private loadProductContext(id: number): void {

@@ -1,0 +1,655 @@
+<div class="flex flex-col gap-6 p-6">
+  <!-- Header -->
+  <header class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div class="max-w-3xl">
+      <span class="inline-flex items-center rounded-full bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700 ring-1 ring-inset ring-sky-600/20">
+        Inventario
+      </span>
+      <h1 class="mt-3 text-3xl font-bold tracking-tight text-gray-900">
+        Actualizar inventario
+      </h1>
+      <p class="mt-2 text-sm leading-relaxed text-gray-600">
+        Busque por nombre o código de barras, ajuste stocks, cambie colores, agregue tallas o colores nuevos y guarde.
+        Los cambios quedan en historial y kardex.
+      </p>
+    </div>
+
+    @if (draft(); as currentDraft) {
+      <div class="flex flex-wrap gap-2">
+        <a
+          [routerLink]="['/inventories/products', currentDraft.productId, 'sizes']"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+          Tallas (catálogo)
+        </a>
+        <a
+          [routerLink]="['/inventories/products', currentDraft.productId, 'colors']"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+          Colores
+        </a>
+        <a
+          [routerLink]="['/inventories/products', currentDraft.productId, 'kardex']"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Ver kardex
+        </a>
+      </div>
+    }
+  </header>
+
+  <!-- Search hero -->
+  <section class="rounded-2xl bg-gradient-to-br from-sky-600 to-sky-700 p-6 shadow-lg shadow-sky-600/20">
+    <label for="reconciliation-search" class="block text-sm font-medium text-sky-100">
+      Buscar producto
+    </label>
+    <div class="relative mt-2">
+      <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+        @if (searching() || loadingBundle()) {
+          <svg class="h-5 w-5 animate-spin text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        } @else {
+          <svg class="h-5 w-5 text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        }
+      </div>
+      <input
+        #searchInput
+        id="reconciliation-search"
+        type="search"
+        name="reconciliationSearch"
+        class="block w-full rounded-xl border-0 bg-white/95 py-3.5 pl-12 pr-28 text-gray-900 shadow-sm ring-1 ring-inset ring-white/20 placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-white sm:text-sm"
+        [value]="searchQuery()"
+        [disabled]="searching() || loadingBundle()"
+        placeholder="Nombre, ID numérico o código de barras…"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        (input)="onSearchInput($event)"
+        (keydown.enter)="onSearchEnter($event)" />
+      <div class="absolute inset-y-0 right-0 flex items-center pr-2">
+        <button
+          type="button"
+          class="rounded-lg bg-sky-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-900 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+          [disabled]="searching() || loadingBundle()"
+          (click)="runSearch()">
+          Buscar
+        </button>
+      </div>
+    </div>
+    @if (navigationHint(); as hint) {
+      <p class="mt-3 text-sm text-sky-100">
+        Cargando producto seleccionado: <strong class="text-white">{{ hint.productName }}</strong>
+        @if (hint.barcode) {
+          <span class="ml-1 font-mono text-sky-200">· {{ hint.barcode }}</span>
+        }
+      </p>
+    }
+  </section>
+
+  @if (loadingBundle() && draft() === null) {
+    <div class="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white py-20 shadow-sm" aria-live="polite" aria-busy="true">
+      <svg class="h-10 w-10 animate-spin text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      <p class="mt-3 text-sm text-gray-600">Cargando inventario del producto…</p>
+    </div>
+  }
+
+  @if (draft(); as currentDraft) {
+    @if (hasAnyShelfWarning()) {
+      <app-alert
+        variant="warning"
+        title="Atención"
+        message="Al menos una talla tenía el maestro y la suma de colores distintos en el servidor. Ajuste los stocks y guarde; el backend alineará el maestro." />
+    }
+
+    @if (hasPosSalesSinceInventory()) {
+      <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-950" role="status">
+        <div class="flex items-start gap-3">
+          <svg class="mt-0.5 h-5 w-5 shrink-0 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+          <div>
+            <p class="font-semibold">
+              Ventas POS durante el inventario
+              <span class="font-normal text-amber-800">(desde el {{ posSalesSinceLabel() }})</span>
+            </p>
+            <p class="mt-1">
+              Este producto tuvo
+              <strong>{{ posSalesSummary()?.totalSold ?? 0 }}</strong>
+              unidad{{ (posSalesSummary()?.totalSold ?? 0) === 1 ? '' : 'es' }} vendida{{ (posSalesSummary()?.totalSold ?? 0) === 1 ? '' : 's' }} por caja.
+              Cuente solo lo que queda físicamente en anaquel.
+            </p>
+          </div>
+        </div>
+      </div>
+    } @else if (!posSalesLoading()) {
+      <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900" role="status">
+        Sin ventas POS registradas desde el {{ posSalesSinceLabel() }} en este producto.
+      </div>
+    }
+
+    <!-- Sticky product bar -->
+    <div class="sticky top-0 z-20 -mx-6 border-b border-gray-200 bg-white/95 px-6 py-4 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p class="text-lg font-semibold text-gray-900">{{ currentDraft.name }}</p>
+          <p class="text-sm text-gray-500">
+            ID {{ currentDraft.productId }} · SKU
+            <span class="font-mono text-gray-700">{{ currentDraft.sku || '—' }}</span>
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <app-button
+            type="button"
+            variant="primary"
+            [loading]="saving()"
+            [disabled]="saving() || productForm().invalid()"
+            (clicked)="saveAll()">
+            Guardar inventario
+          </app-button>
+          <app-button
+            type="button"
+            variant="secondary"
+            [disabled]="saving()"
+            (clicked)="clearProduct()">
+            Otro producto
+          </app-button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-6">
+      <!-- Product section -->
+      <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm" aria-labelledby="section-product">
+        <div class="mb-4 flex items-start gap-3">
+          <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-600 text-sm font-bold text-white">1</span>
+          <div>
+            <h2 id="section-product" class="text-lg font-semibold text-gray-900">Producto</h2>
+            <p class="text-sm text-gray-500">Datos generales del producto en inventario.</p>
+          </div>
+        </div>
+
+        <form class="grid gap-4 md:grid-cols-2" (submit)="$event.preventDefault()">
+          <app-select
+            label="Género *"
+            placeholder="Selecciona género"
+            [options]="genderSelectOptions()"
+            [formField]="productForm.genderId"
+            [errorMessage]="genderError()" />
+
+          <app-select
+            label="Tienda / almacén *"
+            placeholder="Selecciona almacén"
+            [options]="warehouseOptions()"
+            [formField]="productForm.warehouseId"
+            [errorMessage]="warehouseError()" />
+
+          <div class="md:col-span-2">
+            <app-input
+              label="Nombre *"
+              placeholder="Nombre del producto"
+              [formField]="productForm.name"
+              [errorMessage]="nameError()" />
+          </div>
+        </form>
+      </section>
+
+      <!-- Inventory grid -->
+      <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm" aria-labelledby="section-inventory">
+        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div class="flex items-start gap-3">
+            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-600 text-sm font-bold text-white">2</span>
+            <div>
+              <h2 id="section-inventory" class="text-lg font-semibold text-gray-900">Tallas y colores</h2>
+              <p class="text-sm text-gray-500">
+                Edite stocks por color. Marque el checkbox al revisar cada stock.
+                @if (hasPosSalesSinceInventory()) {
+                  Las etiquetas naranjas indican unidades vendidas por POS.
+                }
+              </p>
+            </div>
+          </div>
+          <app-button
+            type="button"
+            variant="secondary"
+            [disabled]="saving() || addingSize()"
+            (clicked)="openAddSizeDialog()">
+            Agregar talla
+          </app-button>
+        </div>
+
+        <div class="overflow-x-auto rounded-lg border border-gray-200">
+          <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Talla / color</th>
+                <th scope="col" class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">P. compra</th>
+                <th scope="col" class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">P. venta</th>
+                <th scope="col" class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">P. mín.</th>
+                <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Cód. talla</th>
+                <th scope="col" class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Stock</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+              @for (size of sortedSizes(); track size.id) {
+                <tr [class]="sizeRowClasses(size)">
+                  <td class="px-4 py-3 align-top">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <span class="font-semibold text-gray-900">{{ size.sizeLabel }}</span>
+                      <div class="flex items-center gap-1">
+                        @if (!hasColorBreakdown(size) && sizePosSoldQty(size) > 0) {
+                          <span
+                            class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800"
+                            [title]="posSoldTooltip(sizePosSoldQty(size), size.posSaleCount, size.posLastSoldAt)">
+                            {{ posSoldTagLabel(sizePosSoldQty(size)) }}
+                          </span>
+                        }
+                        <button
+                          type="button"
+                          class="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-sky-600"
+                          title="Agregar color a esta talla"
+                          [disabled]="saving() || addingColor() || removingSize()"
+                          (click)="openAddColorDialog(size)">
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          class="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
+                          [title]="sizeRemoveTooltip(size)"
+                          [disabled]="!canRemoveSize(size) || removingSize()"
+                          (click)="confirmRemoveSize(size)">
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                    @if (hasColorBreakdown(size)) {
+                      <p class="mt-1 text-xs text-gray-500">
+                        Suma colores: <strong class="text-gray-800">{{ colorStockSum(size) }}</strong>
+                        · Ref. maestro BD: {{ size.serverMasterStock }}
+                      </p>
+                    }
+                  </td>
+                  <td class="px-4 py-3 align-top text-right">
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      class="w-24 rounded-lg border-gray-300 text-right text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
+                      [value]="size.purchasePrice ?? ''"
+                      (change)="updateSizeField(size.id, 'purchasePrice', $any($event.target).value === '' ? null : +$any($event.target).value)" />
+                  </td>
+                  <td class="px-4 py-3 align-top text-right">
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      class="w-24 rounded-lg border-gray-300 text-right text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
+                      [value]="size.salePrice ?? ''"
+                      (change)="updateSizeField(size.id, 'salePrice', $any($event.target).value === '' ? null : +$any($event.target).value)" />
+                  </td>
+                  <td class="px-4 py-3 align-top text-right">
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      class="w-24 rounded-lg border-gray-300 text-right text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
+                      [value]="size.minSalePrice ?? ''"
+                      (change)="updateSizeField(size.id, 'minSalePrice', $any($event.target).value === '' ? null : +$any($event.target).value)" />
+                  </td>
+                  <td class="px-4 py-3 align-top">
+                    <input
+                      type="text"
+                      maxlength="255"
+                      class="w-full min-w-[7rem] rounded-lg border-gray-300 text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
+                      [value]="size.barcode ?? ''"
+                      [disabled]="saving()"
+                      (change)="updateSizeField(size.id, 'barcode', $any($event.target).value)" />
+                  </td>
+                  <td class="px-4 py-3 align-top text-right">
+                    @if (hasColorBreakdown(size)) {
+                      <span class="inline-block w-20 rounded-lg bg-gray-100 px-3 py-2 text-right font-medium text-gray-700">
+                        {{ colorStockSum(size) }}
+                      </span>
+                    } @else {
+                      <div class="flex flex-col items-end gap-1">
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          class="w-20 rounded-lg border-gray-300 text-right text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
+                          [class.ring-2]="sizePosSoldQty(size) > 0"
+                          [class.ring-amber-300]="sizePosSoldQty(size) > 0"
+                          [value]="size.masterStock"
+                          (change)="updateSizeField(size.id, 'masterStock', +$any($event.target).value)" />
+                        @if (sizePosSoldQty(size) > 0) {
+                          <span class="text-xs text-amber-700">{{ posStockHint(size) }}</span>
+                        }
+                      </div>
+                    }
+                  </td>
+                </tr>
+
+                @for (color of sortedColorsFor(size); track color.colorId) {
+                  <tr [class]="colorRowClasses(color)">
+                    <td class="px-4 py-2.5 pl-10">
+                      <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
+                          <span class="text-gray-800">{{ color.description }}</span>
+                          @if (colorPosSoldQty(color) > 0) {
+                            <span
+                              class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800"
+                              [title]="posSoldTooltip(colorPosSoldQty(color), color.posSaleCount, color.posLastSoldAt)">
+                              {{ posSoldTagLabel(colorPosSoldQty(color)) }}
+                            </span>
+                          } @else if (variantShowNoPosSaleChip(color)) {
+                            <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600" [title]="'Sin ventas POS desde el ' + posSalesSinceLabel()">
+                              Sin venta POS
+                            </span>
+                          }
+                        </div>
+                        <div class="flex items-center gap-1">
+                          <button
+                            type="button"
+                            class="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-sky-50 hover:text-sky-600"
+                            title="Sustituir por otro color (conserva stock)"
+                            [disabled]="saving() || replacingVariantColor() || removingColor()"
+                            (click)="openReplaceColorDialog(size, color)">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            class="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                            title="Eliminar variante de color"
+                            [disabled]="saving() || replacingVariantColor() || removingColor() || removingSize()"
+                            (click)="confirmRemoveColor(size, color)">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </td>
+                    <td colspan="4" class="px-4 py-2.5 text-center text-gray-400">—</td>
+                    <td class="px-4 py-2.5 text-right">
+                      <div class="flex flex-col items-end gap-1">
+                        <div class="flex items-center justify-end gap-2">
+                          <input
+                            type="checkbox"
+                            class="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
+                            [checked]="color.stockReviewed"
+                            [disabled]="saving() || replacingVariantColor()"
+                            [attr.aria-label]="'Marcar stock revisado — ' + color.description"
+                            (change)="updateColorReviewed(size.id, color.colorId, $any($event.target).checked)" />
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            class="w-20 rounded-lg border-gray-300 text-right text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
+                            [class.ring-2]="colorPosSoldQty(color) > 0"
+                            [class.ring-amber-300]="colorPosSoldQty(color) > 0"
+                            [value]="color.stock"
+                            (change)="updateColorStock(size.id, color.colorId, +$any($event.target).value)" />
+                        </div>
+                        @if (colorPosSoldQty(color) > 0) {
+                          <span class="text-xs text-amber-700">{{ posStockHint(size, color) }}</span>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  } @else if (!loadingBundle()) {
+    <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 px-6 py-16 text-center">
+      <svg class="h-14 w-14 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+      </svg>
+      <h3 class="mt-4 text-sm font-semibold text-gray-900">Busque un producto para comenzar</h3>
+      <p class="mt-1 max-w-md text-sm text-gray-500">
+        Escriba el nombre, ID o escanee un código de barras para cargar tallas, colores y stocks.
+      </p>
+    </div>
+  }
+</div>
+
+<!-- Search results modal -->
+@if (searchResultsVisible()) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="search-results-title">
+    <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
+      <h2 id="search-results-title" class="text-base font-semibold text-gray-900">Resultados de búsqueda</h2>
+      <ul class="mt-4 max-h-80 space-y-2 overflow-y-auto">
+        @for (item of searchResults(); track item.id) {
+          <li>
+            <button
+              type="button"
+              class="w-full rounded-lg border border-gray-200 px-4 py-3 text-left transition-colors hover:border-sky-300 hover:bg-sky-50"
+              (click)="openProduct(item.id)">
+              <span class="font-semibold text-gray-900">{{ item.name }}</span>
+              <span class="ml-2 text-sm text-gray-500">
+                ID {{ item.id }}@if (item.gender) { — {{ item.gender }} }
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
+      <div class="mt-5 flex justify-end">
+        <app-button type="button" variant="secondary" (clicked)="closeSearchResults()">
+          Cerrar
+        </app-button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Replace color modal -->
+@if (replaceDialogVisible()) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="replace-color-title">
+    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+      <h2 id="replace-color-title" class="text-base font-semibold text-gray-900">Cambiar color de la variante</h2>
+      @if (replaceCtx(); as ctx) {
+        <p class="mt-2 text-sm text-gray-600">
+          Talla <strong>{{ ctx.sizeLabel }}</strong>.
+          Sustituir <strong>{{ ctx.fromLabel }}</strong> (stock {{ ctx.stock }}) por el color correcto.
+        </p>
+      }
+      @if (catalogColorsLoading()) {
+        <p class="mt-4 text-sm text-gray-500">Cargando colores…</p>
+      } @else {
+        <label for="replace-color-select" class="mt-4 block text-sm font-medium text-gray-700">Color destino</label>
+        <select
+          id="replace-color-select"
+          class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          (change)="onReplaceColorSelected($any($event.target).value ? +$any($event.target).value : null)">
+          <option value="">Buscar color destino…</option>
+          @for (option of replaceColorOptions(); track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      }
+      <div class="mt-5 flex justify-end gap-3">
+        <app-button type="button" variant="secondary" [disabled]="replacingVariantColor()" (clicked)="closeReplaceColorDialog()">
+          Cancelar
+        </app-button>
+        <app-button
+          type="button"
+          variant="primary"
+          [loading]="replacingVariantColor()"
+          [disabled]="catalogColorsLoading() || replaceTargetColorId() === null"
+          (clicked)="confirmReplaceVariantColor()">
+          Aplicar cambio
+        </app-button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Add size modal -->
+@if (addSizeDialogVisible()) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="add-size-title">
+    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+      <h2 id="add-size-title" class="text-base font-semibold text-gray-900">Agregar talla al producto</h2>
+      <p class="mt-2 text-sm text-gray-600">
+        Busque la talla en el catálogo. Si no existe, créela antes en Inventario → Tallas.
+      </p>
+      <label for="add-size-search" class="mt-4 block text-sm font-medium text-gray-700">Talla</label>
+      <input
+        id="add-size-search"
+        type="text"
+        class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
+        placeholder="Ej. 32, M, L…"
+        [value]="addSizeSearch()"
+        (input)="onAddSizeSearchInput($event)" />
+      @if (addSizeResults().length > 0) {
+        <ul class="mt-2 max-h-40 overflow-y-auto rounded-lg border border-gray-200">
+          @for (option of addSizeResults(); track option.id) {
+            <li>
+              <button
+                type="button"
+                class="w-full px-3 py-2 text-left text-sm hover:bg-sky-50"
+                (click)="selectAddSizeTarget(option)">
+                {{ option.value }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+      @if (addSizeTarget(); as target) {
+        <p class="mt-3 text-sm text-gray-700">
+          Seleccionada: <strong>{{ target.value }}</strong>
+        </p>
+      }
+      <div class="mt-5 flex justify-end gap-3">
+        <app-button type="button" variant="secondary" [disabled]="addingSize()" (clicked)="closeAddSizeDialog()">
+          Cancelar
+        </app-button>
+        <app-button
+          type="button"
+          variant="primary"
+          [loading]="addingSize()"
+          [disabled]="!addSizeTarget()"
+          (clicked)="confirmAddSize()">
+          Agregar talla
+        </app-button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Add color modal -->
+@if (addColorDialogVisible()) {
+  <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="add-color-title">
+    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+      <h2 id="add-color-title" class="text-base font-semibold text-gray-900">Agregar color a la talla</h2>
+      @if (addColorCtx(); as ctx) {
+        <p class="mt-2 text-sm text-gray-600">Talla <strong>{{ ctx.sizeLabel }}</strong></p>
+      }
+      <div class="mt-4 flex gap-2" role="group" aria-label="Modo de color">
+        <button
+          type="button"
+          class="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+          [class.bg-sky-600]="addColorMode() === 'catalog'"
+          [class.text-white]="addColorMode() === 'catalog'"
+          [class.bg-gray-100]="addColorMode() !== 'catalog'"
+          [class.text-gray-700]="addColorMode() !== 'catalog'"
+          (click)="setAddColorMode('catalog')">
+          Del catálogo
+        </button>
+        <button
+          type="button"
+          class="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+          [class.bg-sky-600]="addColorMode() === 'new'"
+          [class.text-white]="addColorMode() === 'new'"
+          [class.bg-gray-100]="addColorMode() !== 'new'"
+          [class.text-gray-700]="addColorMode() !== 'new'"
+          (click)="setAddColorMode('new')">
+          Color nuevo
+        </button>
+      </div>
+      @if (addColorMode() === 'catalog') {
+        @if (catalogColorsLoading()) {
+          <p class="mt-4 text-sm text-gray-500">Cargando colores…</p>
+        } @else {
+          <label for="add-color-select" class="mt-4 block text-sm font-medium text-gray-700">Color</label>
+          <select
+            id="add-color-select"
+            class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
+            (change)="onAddColorSelected($any($event.target).value ? +$any($event.target).value : null)">
+            <option value="">Seleccionar color…</option>
+            @for (option of addColorOptions(); track option.value) {
+              <option [value]="option.value">{{ option.label }}</option>
+            }
+          </select>
+        }
+      } @else {
+        <label for="add-color-name" class="mt-4 block text-sm font-medium text-gray-700">Nombre del color</label>
+        <input
+          id="add-color-name"
+          type="text"
+          class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
+          placeholder="Ej. Guinda"
+          [value]="addColorNewName()"
+          (input)="onAddColorNewNameInput($event)" />
+      }
+      <label for="add-color-stock" class="mt-4 block text-sm font-medium text-gray-700">Stock inicial</label>
+      <input
+        id="add-color-stock"
+        type="number"
+        min="0"
+        class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
+        [value]="addColorInitialStock()"
+        (input)="onAddColorStockInput($event)" />
+      <div class="mt-5 flex justify-end gap-3">
+        <app-button type="button" variant="secondary" [disabled]="addingColor()" (clicked)="closeAddColorDialog()">
+          Cancelar
+        </app-button>
+        <app-button
+          type="button"
+          variant="primary"
+          [loading]="addingColor()"
+          [disabled]="catalogColorsLoading() || (addColorMode() === 'catalog' && addColorTargetId() === null) || (addColorMode() === 'new' && !addColorNewName().trim())"
+          (clicked)="confirmAddColor()">
+          Agregar color
+        </app-button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (confirmDialogState(); as dialog) {
+  <app-confirm-dialog
+    [open]="confirmAction() !== null"
+    [title]="dialog.title"
+    [message]="dialog.message"
+    [loading]="dialog.loading"
+    confirmLabel="Sí, eliminar"
+    cancelLabel="Cancelar"
+    variant="danger"
+    (confirmed)="executeConfirmAction()"
+    (cancelled)="cancelConfirmAction()" />
+}

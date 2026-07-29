@@ -1,0 +1,32 @@
+@reference '../../../../tailwind.css';
+
+.tooltip-host {
+  @apply relative inline-flex;
+}
+
+.tooltip-label {
+  @apply pointer-events-none absolute left-1/2 z-30 -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-900 px-2.5 py-1 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity duration-150;
+}
+
+.tooltip-host-bottom .tooltip-label {
+  @apply top-full mt-2;
+}
+
+.tooltip-host-bottom .tooltip-label::before {
+  content: '';
+  @apply absolute -top-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-gray-900;
+}
+
+.tooltip-host-top .tooltip-label {
+  @apply bottom-full mb-2;
+}
+
+.tooltip-host-top .tooltip-label::after {
+  content: '';
+  @apply absolute -bottom-1 left-1/2 h-2 w-2 -translate-x-1/2 rotate-45 bg-gray-900;
+}
+
+.tooltip-host:hover .tooltip-label,
+.tooltip-host:focus-within .tooltip-label {
+  @apply opacity-100;
+}

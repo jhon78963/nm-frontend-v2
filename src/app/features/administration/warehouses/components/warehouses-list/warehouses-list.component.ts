@@ -14,6 +14,8 @@ import {
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
+import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { WarehouseLookupService } from '../../data-access/warehouse-lookup.service';
 import { WarehouseService } from '../../data-access/warehouse.service';
@@ -26,6 +28,8 @@ import { WarehouseFormComponent } from '../warehouse-form/warehouse-form.compone
     ReactiveFormsModule,
     WarehouseFormComponent,
     ConfirmDialogComponent,
+    TableActionButtonComponent,
+    TableActionsComponent,
   ],
   templateUrl: './warehouses-list.component.html',
 })

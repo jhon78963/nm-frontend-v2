@@ -21,6 +21,8 @@ import {
   DataTablePagination,
   DataTableEmptyState,
 } from '../../../../../shared/ui/data-table/data-table.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
+import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { TeamService } from '../../data-access/team.service';
 import { Team } from '../../models/team.model';
@@ -37,6 +39,8 @@ import { TeamFormComponent } from '../team-form/team-form.component';
     TeamDailyAttendanceComponent,
     ConfirmDialogComponent,
     DataTableComponent,
+    TableActionButtonComponent,
+    TableActionsComponent,
   ],
   templateUrl: './teams-list.component.html',
 })

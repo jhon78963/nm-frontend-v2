@@ -14,6 +14,8 @@ import {
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
+import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { UserService } from '../../data-access/user.service';
 import { User } from '../../models/user.model';
@@ -27,6 +29,8 @@ import { UserPasswordResetComponent } from '../user-password-reset/user-password
     UserFormComponent,
     UserPasswordResetComponent,
     ConfirmDialogComponent,
+    TableActionButtonComponent,
+    TableActionsComponent,
   ],
   templateUrl: './users-list.component.html',
 })

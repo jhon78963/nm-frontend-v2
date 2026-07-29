@@ -9,7 +9,11 @@ const routes: Routes = [
   },
   createPlaceholderRoute('Tallas', 'sizes'),
   createPlaceholderRoute('Colores', 'colors'),
-  createPlaceholderRoute('Actualizar inventario', 'reconciliation'),
+  {
+    path: 'reconciliation',
+    data: { breadcrumb: 'Actualizar inventario' },
+    loadChildren: () => import('../inventory/reconciliation/reconciliation.routes'),
+  },
   {
     path: 'purchase',
     data: { breadcrumb: 'Compras' },

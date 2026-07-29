@@ -18,6 +18,8 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
+import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { ProductService } from '../../data-access/product.service';
 import { ProductLookupService } from '../../data-access/product-lookup.service';
@@ -29,6 +31,8 @@ import { Product, Gender } from '../../models/product.model';
     CommonModule,
     ReactiveFormsModule,
     ConfirmDialogComponent,
+    TableActionButtonComponent,
+    TableActionsComponent,
   ],
   templateUrl: './products-list.component.html',
 })
@@ -185,8 +189,15 @@ export class ProductsListComponent implements OnInit {
     this.router.navigate([`/inventories/products/${id}/history`]);
   }
 
-  protected openInventoryUpdate(id: number): void {
-    this.router.navigate([`/inventories/reconciliation/${id}`]);
+  protected openInventoryUpdate(product: Product): void {
+    this.router.navigate([`/inventories/reconciliation/${product.id}`], {
+      state: {
+        productId: product.id,
+        productName: product.name,
+        barcode: product.barcode,
+        gender: product.gender,
+      },
+    });
   }
 
   protected openDeleteConfirm(id: number): void {
@@ -308,5 +319,9 @@ export class ProductsListComponent implements OnInit {
       return (words[0][0] + words[1][0]).toUpperCase();
     }
     return product.name.substring(0, 2).toUpperCase();
+  }
+
+  protected getProductStock(product: Product): number {
+    return Math.max(0, Math.trunc(Number(product.stock) || 0));
   }
 }

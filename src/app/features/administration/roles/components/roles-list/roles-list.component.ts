@@ -21,6 +21,8 @@ import {
   DataTablePagination,
   DataTableEmptyState,
 } from '../../../../../shared/ui/data-table/data-table.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
+import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { RoleService } from '../../data-access/role.service';
 import { Role } from '../../models/role.model';
@@ -33,6 +35,8 @@ import { RoleFormComponent } from '../role-form/role-form.component';
     RoleFormComponent,
     ConfirmDialogComponent,
     DataTableComponent,
+    TableActionButtonComponent,
+    TableActionsComponent,
   ],
   templateUrl: './roles-list.component.html',
 })

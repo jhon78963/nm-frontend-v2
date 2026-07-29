@@ -1,0 +1,5 @@
+@reference '../../../../tailwind.css';
+
+.table-actions {
+  @apply flex items-center justify-end gap-1;
+}

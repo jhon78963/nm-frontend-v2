@@ -13,6 +13,14 @@
         </p>
       }
     </div>
+    @if (product()) {
+      <app-button
+        type="button"
+        variant="secondary"
+        (clicked)="openInventoryUpdate()">
+        Actualizar inventario
+      </app-button>
+    }
   </div>
 
   @if (loadingContext()) {

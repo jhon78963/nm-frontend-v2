@@ -174,6 +174,7 @@ export function adaptProduct(raw: unknown): Product {
     status: readString(r['status']),
     genderId: readNumber(r['genderId']),
     gender: readString(r['gender']),
+    stock: readStock(r['stock']),
     sizes,
     filter: readBoolean(r['filter']),
     sizeTypeId,

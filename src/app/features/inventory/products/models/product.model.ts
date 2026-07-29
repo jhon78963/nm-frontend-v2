@@ -65,6 +65,7 @@ export interface Product {
   status: string;
   genderId: number;
   gender: string;
+  stock: number;
   sizes: ProductSize[];
   filter: boolean;
   sizeTypeId: number[];

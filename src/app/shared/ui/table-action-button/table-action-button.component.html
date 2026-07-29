@@ -1,0 +1,10 @@
+<app-tooltip [label]="label()" position="bottom">
+  <button
+    type="button"
+    [class]="buttonClass()"
+    [disabled]="disabled()"
+    [attr.aria-label]="ariaLabel() || label()"
+    (click)="onClick($event)">
+    <ng-content />
+  </button>
+</app-tooltip>

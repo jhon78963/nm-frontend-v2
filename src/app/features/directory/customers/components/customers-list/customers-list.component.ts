@@ -20,6 +20,8 @@ import {
   DataTablePagination,
   DataTableEmptyState,
 } from '../../../../../shared/ui/data-table/data-table.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
+import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { CustomerService } from '../../data-access/customer.service';
 import { Customer } from '../../models/customer.model';
@@ -32,6 +34,8 @@ import { CustomerFormComponent } from '../customer-form/customer-form.component'
     CustomerFormComponent,
     ConfirmDialogComponent,
     DataTableComponent,
+    TableActionButtonComponent,
+    TableActionsComponent,
   ],
   templateUrl: './customers-list.component.html',
 })
