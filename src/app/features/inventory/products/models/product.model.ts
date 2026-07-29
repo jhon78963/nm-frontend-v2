@@ -6,9 +6,30 @@ export interface ProductVariantInventory {
 export interface ProductColor {
   id: number;
   description: string;
+  hash?: string;
   value?: string;
+  stock?: number;
+  productSizeId?: number;
+  isExists?: boolean;
   price?: number;
   inventory?: ProductVariantInventory;
+}
+
+/** Fila editable en la tabla de variantes color × talla. */
+export interface ProductColorVariantRow extends ProductColor {
+  variantAttached: boolean;
+}
+
+export interface ProductColorSizeOption {
+  id: number;
+  productSizeId?: number;
+  description: string;
+  stock?: number;
+}
+
+export interface CatalogColorCreateData {
+  description: string;
+  hash: string;
 }
 
 export interface ProductSize {

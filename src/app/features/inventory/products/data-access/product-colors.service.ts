@@ -2,8 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
-import { ProductColor, ProductColorFormData } from '../models/product.model';
-import { adaptProductColor } from './product.adapter';
+import { ProductColorFormData, ProductColorSizeOption, ProductColorVariantRow, CatalogColorCreateData } from '../models/product.model';
+import { adaptProductColorVariantRow, adaptProductSize } from './product.adapter';
 
 function extractErrorMessage(err: unknown): string {
   if (typeof err === 'string' && err.trim()) {
@@ -31,25 +31,47 @@ export class ProductColorsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
 
-  getColors(productId: number, sizeId: number): Observable<ProductColor[]> {
+  getColors(productId: number, sizeId: number): Observable<ProductColorVariantRow[]> {
     return this.http
       .get<unknown>(
         `${this.apiUrl}/colors/selected?productId=${productId}&sizeId=${sizeId}`,
       )
       .pipe(
         map((raw) =>
-          Array.isArray(raw) ? (raw as unknown[]).map(adaptProductColor) : [],
+          Array.isArray(raw)
+            ? (raw as unknown[]).map(adaptProductColorVariantRow)
+            : [],
         ),
       );
   }
 
-  getSizes(productId: number, size?: string): Observable<unknown[]> {
+  getSizes(productId: number, size?: string): Observable<ProductColorSizeOption[]> {
     let url = `${this.apiUrl}/colors/sizes?productId=${productId}`;
     if (size?.trim()) {
       url += `&size=${encodeURIComponent(size.trim())}`;
     }
 
-    return this.http.get<unknown[]>(url);
+    return this.http.get<unknown[]>(url).pipe(
+      map((raw) =>
+        Array.isArray(raw)
+          ? (raw as unknown[]).map((item) => {
+              const adapted = adaptProductSize(item);
+              return {
+                id: adapted.id,
+                productSizeId: adapted.productSizeId,
+                description: adapted.description,
+                stock: adapted.stock,
+              } satisfies ProductColorSizeOption;
+            })
+          : [],
+      ),
+    );
+  }
+
+  createCatalogColor(data: CatalogColorCreateData): Observable<{ message: string }> {
+    return this.http
+      .post<{ message: string }>(`${this.apiUrl}/colors`, data)
+      .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
   add(

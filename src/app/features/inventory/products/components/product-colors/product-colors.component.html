@@ -1,0 +1,639 @@
+<div class="flex flex-col gap-6">
+  <!-- Header -->
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div>
+      <h2 class="text-xl font-semibold text-gray-900">Gestión de Colores</h2>
+      <p class="mt-1 max-w-2xl text-sm text-gray-500">
+        Asigna variantes de color por talla. La suma del stock de variantes debe
+        coincidir con el stock maestro de la talla antes de guardar.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <app-button
+        type="button"
+        variant="secondary"
+        icon="plus"
+        (clicked)="openCreateColorModal()">
+        Nuevo color
+      </app-button>
+      <app-button
+        type="button"
+        variant="secondary"
+        icon="save"
+        [disabled]="!canSaveAll()"
+        [loading]="saving()"
+        (clicked)="saveAllSelectedColors()">
+        Guardar
+      </app-button>
+      <app-button
+        type="button"
+        variant="secondary"
+        icon="trash"
+        [disabled]="!canRemoveAll()"
+        (clicked)="deleteAllSelectedColors()">
+        Remover
+      </app-button>
+      <a
+        routerLink="/inventories/products"
+        class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50">
+        Regresar
+      </a>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+    <!-- Sidebar: size + stock panel -->
+    <aside class="flex flex-col gap-4 lg:col-span-4">
+      <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <label for="size-search" class="block text-sm font-medium text-gray-700">
+          Buscar talla
+        </label>
+        <div class="relative mt-2">
+          <svg
+            class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            id="size-search"
+            type="search"
+            class="block w-full rounded-lg border-0 py-2.5 pl-10 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-600"
+            placeholder="Filtrar por nombre…"
+            [ngModel]="sizeSearch()"
+            (ngModelChange)="onSizeSearchInput($event)" />
+        </div>
+
+        <label for="size-select" class="mt-4 block text-sm font-medium text-gray-700">
+          Talla seleccionada
+        </label>
+        @if (loadingSizes()) {
+          <div class="mt-2 flex items-center gap-2 py-3 text-sm text-gray-500">
+            <svg
+              class="h-4 w-4 animate-spin text-sky-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Cargando tallas…
+          </div>
+        } @else {
+          <select
+            id="size-select"
+            class="mt-2 block w-full rounded-lg border-0 py-2.5 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
+            [ngModel]="selectedSize()?.id ?? ''"
+            (ngModelChange)="onSizeSelect($event)">
+            <option value="">Selecciona una talla</option>
+            @for (size of filteredSizeOptions(); track size.id) {
+              <option [value]="size.id">
+                {{ size.description }}
+                @if (size.stock != null) {
+                  · {{ size.stock }} uds
+                }
+              </option>
+            }
+          </select>
+        }
+
+        @if (!loadingSizes() && !filteredSizeOptions().length) {
+          <p class="mt-3 text-sm text-gray-500">
+            No hay tallas asignadas. Configura tallas en el paso anterior.
+          </p>
+        }
+      </section>
+
+      @if (selectedSize()) {
+        <section
+          class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+          aria-live="polite">
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <p class="text-xs font-medium uppercase tracking-wide text-gray-500">
+                Balance de stock
+              </p>
+              <p
+                class="mt-1 text-sm font-semibold"
+                [class.text-emerald-600]="effectiveStockBalancedForPanel()"
+                [class.text-amber-600]="!effectiveStockBalancedForPanel()">
+                Maestro:
+                <span class="tabular-nums">{{ masterProductSizeStock() }}</span>
+                · Variantes:
+                <span class="tabular-nums">{{ totalAssignedStock() }}</span>
+              </p>
+            </div>
+            @if (effectiveStockBalancedForPanel()) {
+              <span
+                class="inline-flex shrink-0 items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                Cuadrado
+              </span>
+            } @else {
+              <span
+                class="inline-flex shrink-0 items-center rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                Desbalance
+              </span>
+            }
+          </div>
+
+          @if (catalogColorsPending()) {
+            <p class="mt-3 text-sm text-gray-500">Cargando variantes para esta talla…</p>
+          } @else {
+            <div class="mt-4">
+              <div
+                class="h-2 w-full overflow-hidden rounded-full bg-gray-100"
+                role="progressbar"
+                [attr.aria-valuenow]="stockAssignPercent()"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                [attr.aria-label]="'Stock asignado: ' + stockAssignPercent() + '%'">
+                <div
+                  class="h-full rounded-full transition-all duration-300"
+                  [class]="progressBarClass()"
+                  [style.width.%]="stockAssignPercent()"></div>
+              </div>
+
+              @if (variantVsMasterRatioPercent() !== null) {
+                <p
+                  class="mt-2 text-center text-xs tabular-nums"
+                  [class.text-gray-500]="isStockBalanced()"
+                  [class.text-red-600]="!isStockBalanced() && remainingStock() < 0"
+                  [class.font-semibold]="!isStockBalanced()"
+                  [class.text-amber-700]="!isStockBalanced() && remainingStock() >= 0">
+                  {{ variantVsMasterRatioPercent() }}% del maestro
+                  ({{ totalAssignedStock() }}/{{ masterProductSizeStock() }})
+                </p>
+              }
+
+              @if (remainingStock() !== 0) {
+                <div
+                  class="mt-3 rounded-lg px-3 py-2 text-center text-xs font-medium"
+                  [class.bg-amber-50]="remainingStock() > 0"
+                  [class.text-amber-800]="remainingStock() > 0"
+                  [class.bg-red-50]="remainingStock() < 0"
+                  [class.text-red-700]="remainingStock() < 0">
+                  @if (remainingStock() > 0) {
+                    Faltan {{ remainingStock() }} uds. por asignar.
+                  } @else {
+                    Sobran {{ remainingStock() * -1 }} uds. respecto al maestro.
+                  }
+                </div>
+              }
+            </div>
+
+            <dl class="mt-4 grid grid-cols-2 gap-3 border-t border-gray-100 pt-4">
+              <div>
+                <dt class="text-xs text-gray-500">Variantes activas</dt>
+                <dd class="text-lg font-semibold tabular-nums text-gray-900">
+                  {{ activeVariantCount() }}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-xs text-gray-500">Marcadas</dt>
+                <dd class="text-lg font-semibold tabular-nums text-gray-900">
+                  {{ attachedCount() }}
+                </dd>
+              </div>
+            </dl>
+          }
+
+          <p class="mt-4 text-xs leading-relaxed text-gray-500">
+            El stock maestro proviene del servidor. Marca la casilla
+            <strong class="font-medium text-gray-700">Variante</strong>, asigna
+            unidades y guarda. Stock <strong class="font-medium text-gray-700">0</strong>
+            indica agotado.
+          </p>
+        </section>
+      }
+    </aside>
+
+    <!-- Main: colors table -->
+    <main class="lg:col-span-8">
+      @if (!selectedSize()) {
+        <div
+          class="flex min-h-[20rem] flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 px-6 py-16 text-center">
+          <svg
+            class="h-12 w-12 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+          </svg>
+          <h3 class="mt-4 text-sm font-semibold text-gray-900">
+            Selecciona una talla
+          </h3>
+          <p class="mt-1 max-w-sm text-sm text-gray-500">
+            Elige una talla del panel izquierdo para ver y gestionar sus variantes de color.
+          </p>
+        </div>
+      } @else if (catalogColorsPending()) {
+        <div class="flex items-center justify-center rounded-xl border border-gray-200 bg-white py-20 shadow-sm">
+          <div class="flex flex-col items-center gap-3">
+            <svg
+              class="h-10 w-10 animate-spin text-sky-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <p class="text-sm text-gray-600">Cargando colores…</p>
+          </div>
+        </div>
+      } @else {
+        <!-- Toolbar -->
+        <div
+          class="mb-4 flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
+          <div class="relative flex-1">
+            <label for="color-jump" class="sr-only">Ir a color</label>
+            <svg
+              class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              #colorJumpInput
+              id="color-jump"
+              type="search"
+              autocomplete="off"
+              role="combobox"
+              [attr.aria-expanded]="colorJumpOpen()"
+              aria-controls="color-jump-listbox"
+              class="block w-full rounded-lg border-0 py-2.5 pl-10 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-600"
+              placeholder="Ir a color… Enter para ubicar"
+              [ngModel]="colorJumpSearch()"
+              (ngModelChange)="onColorJumpInput($event)"
+              (focus)="onColorJumpFocus()"
+              (blur)="onColorJumpBlur()"
+              (keydown)="onColorJumpKeydown($event)" />
+
+            @if (colorJumpOpen() && colorJumpSuggestions().length) {
+              <ul
+                id="color-jump-listbox"
+                role="listbox"
+                class="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
+                @for (color of colorJumpSuggestions(); track color.id) {
+                  <li role="option">
+                    <button
+                      type="button"
+                      class="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                      (mousedown)="selectJumpColor(color)">
+                      <span
+                        class="h-5 w-5 shrink-0 rounded-md ring-1 ring-inset ring-gray-200"
+                        [style.background-color]="colorSwatchStyle(color)"
+                        aria-hidden="true"></span>
+                      <span class="truncate">{{ color.description }}</span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+
+          <div
+            class="inline-flex rounded-lg bg-gray-100 p-1"
+            role="group"
+            aria-label="Filtrar colores">
+            <button
+              type="button"
+              class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+              [class.bg-white]="isFilterActive('all')"
+              [class.text-gray-900]="isFilterActive('all')"
+              [class.shadow-sm]="isFilterActive('all')"
+              [class.text-gray-600]="!isFilterActive('all')"
+              [class.hover:text-gray-900]="!isFilterActive('all')"
+              (click)="setFilterStatus('all')">
+              Todos
+            </button>
+            <button
+              type="button"
+              class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+              [class.bg-white]="isFilterActive('active')"
+              [class.text-gray-900]="isFilterActive('active')"
+              [class.shadow-sm]="isFilterActive('active')"
+              [class.text-gray-600]="!isFilterActive('active')"
+              [class.hover:text-gray-900]="!isFilterActive('active')"
+              (click)="setFilterStatus('active')">
+              Con stock
+            </button>
+            <button
+              type="button"
+              class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+              [class.bg-white]="isFilterActive('inactive')"
+              [class.text-gray-900]="isFilterActive('inactive')"
+              [class.shadow-sm]="isFilterActive('inactive')"
+              [class.text-gray-600]="!isFilterActive('inactive')"
+              [class.hover:text-gray-900]="!isFilterActive('inactive')"
+              (click)="setFilterStatus('inactive')">
+              Agotado
+            </button>
+          </div>
+        </div>
+
+        @if (!isStockBalanced()) {
+          <div
+            class="mb-4 flex gap-3 rounded-xl border-l-4 border-amber-400 bg-gradient-to-r from-amber-50 to-white p-4 shadow-sm"
+            role="status">
+            <svg
+              class="mt-0.5 h-5 w-5 shrink-0 text-amber-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div class="text-sm text-gray-700">
+              <p class="font-semibold text-amber-900">
+                La suma de variantes no coincide con el stock maestro.
+              </p>
+              <p class="mt-1">
+                Variantes: <strong>{{ totalAssignedStock() }}</strong> · Maestro:
+                <strong>{{ masterProductSizeStock() }}</strong>.
+                Usa <strong>Guardar</strong> para enviar los cambios de todas las filas marcadas.
+              </p>
+            </div>
+          </div>
+        }
+
+        @if (!filteredColors().length) {
+          <div class="rounded-xl border border-dashed border-gray-300 bg-gray-50 px-6 py-12 text-center">
+            <p class="text-sm font-medium text-gray-900">Sin resultados</p>
+            <p class="mt-1 text-sm text-gray-500">
+              @if (filterStatus() === 'all') {
+                No hay colores en el catálogo. Crea uno con «Nuevo color».
+              } @else {
+                Ninguna variante coincide con este filtro.
+              }
+            </p>
+          </div>
+        } @else {
+          <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th
+                      scope="col"
+                      class="w-12 px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500"
+                      title="La variante existe para esta talla">
+                      Var.
+                    </th>
+                    <th
+                      scope="col"
+                      class="hidden w-16 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 md:table-cell">
+                      #
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Color
+                    </th>
+                    <th
+                      scope="col"
+                      class="w-36 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Stock
+                    </th>
+                    <th
+                      scope="col"
+                      class="w-24 px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white">
+                  @for (color of filteredColors(); track color.id) {
+                    <tr
+                      [id]="'color-row-' + color.id"
+                      class="transition-colors"
+                      [class.bg-sky-50/40]="color.variantAttached"
+                      [class.opacity-60]="!color.variantAttached"
+                      [class.outline]="isRowHighlighted(color)"
+                      [class.outline-2]="isRowHighlighted(color)"
+                      [class.outline-sky-500]="isRowHighlighted(color)"
+                      [class.-outline-offset-2]="isRowHighlighted(color)">
+                      <td class="px-4 py-3 text-center align-top">
+                        <input
+                          type="checkbox"
+                          class="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
+                          [attr.id]="'variant-' + color.id"
+                          [attr.aria-label]="'Variante ' + color.description"
+                          [checked]="color.variantAttached"
+                          (change)="onVariantAttachedChange(color, $any($event.target).checked)" />
+                      </td>
+                      <td class="hidden whitespace-nowrap px-4 py-3 text-xs text-gray-400 md:table-cell">
+                        {{ color.id }}
+                      </td>
+                      <td class="px-4 py-3">
+                        <div class="flex items-center gap-3">
+                          <span
+                            class="h-9 w-9 shrink-0 rounded-lg ring-1 ring-inset ring-gray-200"
+                            [style.background-color]="colorSwatchStyle(color)"
+                            [attr.aria-label]="'Muestra de color ' + color.description"></span>
+                          <div class="min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                              <span
+                                class="truncate text-sm font-medium"
+                                [class.text-gray-900]="!(color.variantAttached && color.stock === 0)"
+                                [class.text-gray-400]="color.variantAttached && color.stock === 0">
+                                {{ color.description }}
+                              </span>
+                              @if (color.variantAttached && color.stock === 0) {
+                                <span
+                                  class="inline-flex rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/20">
+                                  Agotado
+                                </span>
+                              }
+                            </div>
+                            @if (color.hash ?? color.value) {
+                              <p class="truncate text-xs text-gray-400">
+                                {{ color.hash ?? color.value }}
+                              </p>
+                            }
+                          </div>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3">
+                        <div class="flex items-center gap-1">
+                          <input
+                            type="number"
+                            min="0"
+                            step="1"
+                            inputmode="numeric"
+                            placeholder="0"
+                            class="block w-full min-w-[4.5rem] rounded-lg border-0 py-2 px-3 text-center text-sm font-semibold tabular-nums text-gray-900 ring-1 ring-inset focus:ring-2 focus:ring-inset focus:ring-sky-600 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
+                            [class.ring-gray-300]="!(color.variantAttached && color.stock === 0)"
+                            [class.ring-red-200]="color.variantAttached && color.stock === 0"
+                            [class.bg-red-50]="color.variantAttached && color.stock === 0"
+                            [disabled]="!color.variantAttached"
+                            [attr.aria-label]="'Stock de ' + color.description"
+                            [(ngModel)]="color.stock"
+                            (ngModelChange)="onStockChange(color)" />
+                          <span class="shrink-0 text-xs text-gray-400">uds</span>
+                        </div>
+                      </td>
+                      <td class="whitespace-nowrap px-4 py-3 text-right">
+                        <div class="flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            class="rounded-lg p-2 transition-colors"
+                            [class.text-sky-500]="!color.isExists"
+                            [class.hover:bg-sky-50]="!color.isExists"
+                            [class.text-gray-400]="color.isExists"
+                            [class.hover:bg-gray-100]="color.isExists"
+                            [title]="color.isExists ? 'Actualizar stock' : 'Asignar stock'"
+                            [disabled]="saving() || !color.variantAttached"
+                            (click)="saveColorVariant(color)">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M5 13l4 4L19 7" />
+                            </svg>
+                          </button>
+                          @if (color.variantAttached && color.isExists) {
+                            <button
+                              type="button"
+                              class="rounded-lg p-2 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                              title="Quitar variante"
+                              [disabled]="saving()"
+                              (click)="removeColorVariant(color)">
+                              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                  stroke-linecap="round"
+                                  stroke-linejoin="round"
+                                  stroke-width="2"
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      }
+    </main>
+  </div>
+</div>
+
+<!-- Confirm dialog -->
+<app-confirm-dialog
+  [open]="confirmOpen()"
+  [title]="confirmState()?.title ?? 'Confirmar'"
+  [message]="confirmState()?.message ?? ''"
+  [confirmLabel]="confirmState()?.confirmLabel ?? 'Confirmar'"
+  [loading]="confirmLoading()"
+  variant="danger"
+  (confirmed)="onConfirmDialog()"
+  (cancelled)="onCancelDialog()" />
+
+<!-- Create color modal -->
+@if (createModalOpen()) {
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="create-color-title"
+    (click)="closeCreateColorModal()">
+    <div
+      class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+      (click)="$event.stopPropagation()">
+      <h2 id="create-color-title" class="text-lg font-semibold text-gray-900">
+        Nuevo color
+      </h2>
+      <p class="mt-1 text-sm text-gray-500">
+        Agrega un color al catálogo para usarlo en variantes.
+      </p>
+
+      <div class="mt-5 space-y-4">
+        <div>
+          <label for="new-color-name" class="block text-sm font-medium text-gray-700">
+            Nombre
+          </label>
+          <input
+            id="new-color-name"
+            type="text"
+            class="mt-1 block w-full rounded-lg border-0 py-2.5 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
+            placeholder="Ej. Azul marino"
+            [ngModel]="newColorDescription()"
+            (ngModelChange)="newColorDescription.set($event)" />
+        </div>
+
+        <div>
+          <label for="new-color-hash" class="block text-sm font-medium text-gray-700">
+            Color
+          </label>
+          <div class="mt-1 flex items-center gap-3">
+            <input
+              id="new-color-hash"
+              type="color"
+              class="h-11 w-14 cursor-pointer rounded-lg border border-gray-200 bg-white p-1"
+              [ngModel]="newColorHash()"
+              (ngModelChange)="newColorHash.set($event)" />
+            <input
+              type="text"
+              class="block flex-1 rounded-lg border-0 py-2.5 px-3 font-mono text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
+              [ngModel]="newColorHash()"
+              (ngModelChange)="newColorHash.set($event)" />
+            <span
+              class="h-11 w-11 shrink-0 rounded-lg ring-1 ring-inset ring-gray-200"
+              [style.background-color]="newColorHash()"
+              aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-6 flex justify-end gap-3">
+        <app-button
+          type="button"
+          variant="secondary"
+          [disabled]="creatingColor()"
+          (clicked)="closeCreateColorModal()">
+          Cancelar
+        </app-button>
+        <app-button
+          type="button"
+          variant="primary"
+          [loading]="creatingColor()"
+          [disabled]="creatingColor()"
+          (clicked)="saveNewColor()">
+          Guardar color
+        </app-button>
+      </div>
+    </div>
+  </div>
+}

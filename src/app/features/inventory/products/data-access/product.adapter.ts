@@ -4,6 +4,7 @@ import {
   ProductVariantInventory,
   ProductSize,
   ProductColor,
+  ProductColorVariantRow,
   ProductMediaItem,
   Gender,
   Warehouse,
@@ -36,14 +37,50 @@ function adaptProductVariantInventory(
   };
 }
 
+function readStock(value: unknown): number {
+  if (value === null || value === undefined || value === '') {
+    return 0;
+  }
+  const n = Number(value);
+  if (!Number.isFinite(n)) {
+    return 0;
+  }
+  return Math.max(0, Math.trunc(n));
+}
+
 export function adaptProductColor(raw: unknown): ProductColor {
   const r = raw as Record<string, unknown>;
+  const hash =
+    r['hash'] != null && `${r['hash']}`.trim()
+      ? readString(r['hash'])
+      : r['value'] != null && `${r['value']}`.trim()
+        ? readString(r['value'])
+        : undefined;
+
   return {
     id: readNumber(r['id']),
     description: readString(r['description']),
+    hash,
     value: r['value'] ? readString(r['value']) : undefined,
-    price: r['price'] ? readNumber(r['price']) : undefined,
+    stock: r['stock'] !== undefined ? readStock(r['stock']) : undefined,
+    productSizeId:
+      r['productSizeId'] != null && r['productSizeId'] !== ''
+        ? readNumber(r['productSizeId'])
+        : undefined,
+    isExists:
+      r['isExists'] !== undefined ? readBoolean(r['isExists']) : undefined,
+    price: r['price'] != null ? readNumber(r['price']) : undefined,
     inventory: adaptProductVariantInventory(r['inventory']),
+  };
+}
+
+export function adaptProductColorVariantRow(raw: unknown): ProductColorVariantRow {
+  const color = adaptProductColor(raw);
+  const isExists = !!color.isExists;
+  return {
+    ...color,
+    stock: readStock(color.stock),
+    variantAttached: isExists,
   };
 }
 

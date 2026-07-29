@@ -56,12 +56,6 @@ export class ProductStepperComponent implements OnInit {
         disabled: isNew,
       },
       {
-        label: 'Ecommerce',
-        route: `/inventories/products/${id}/ecommerce`,
-        icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z',
-        disabled: isNew,
-      },
-      {
         label: 'Historial',
         route: `/inventories/products/${id}/history`,
         icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z',
@@ -93,7 +87,7 @@ export class ProductStepperComponent implements OnInit {
     this.productId.set(idParam ? Number(idParam) : null);
 
     const url = this.router.url;
-    const stepMatch = url.match(/\/products\/(?:new|(\d+)\/(general|sizes|colors|ecommerce|history))/);
+    const stepMatch = url.match(/\/products\/(?:new|(\d+)\/(general|sizes|colors|history))/);
 
     if (!stepMatch) {
       this.currentStepIndex.set(0);
@@ -101,7 +95,7 @@ export class ProductStepperComponent implements OnInit {
     }
 
     const stepName = url.includes('/new') ? 'general' : stepMatch[2];
-    const stepNames = ['general', 'sizes', 'colors', 'ecommerce', 'history'];
+    const stepNames = ['general', 'sizes', 'colors', 'history'];
     const index = stepNames.indexOf(stepName);
     this.currentStepIndex.set(index >= 0 ? index : 0);
   }

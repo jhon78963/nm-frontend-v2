@@ -59,14 +59,6 @@ export const routes: Routes = [
         data: { breadcrumb: 'Colores' },
       },
       {
-        path: 'ecommerce',
-        loadComponent: () =>
-          import('./components/product-ecommerce/product-ecommerce.component').then(
-            (m) => m.ProductEcommerceComponent,
-          ),
-        data: { breadcrumb: 'Ecommerce' },
-      },
-      {
         path: 'history',
         loadComponent: () =>
           import('./components/product-history/product-history.component').then(

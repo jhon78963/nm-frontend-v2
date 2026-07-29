@@ -177,10 +177,6 @@ export class ProductsListComponent implements OnInit {
     this.router.navigate([`/inventories/products/${id}/colors`]);
   }
 
-  protected openEcommerce(id: number): void {
-    this.router.navigate([`/inventories/products/${id}/ecommerce`]);
-  }
-
   protected openKardex(id: number): void {
     this.router.navigate([`/inventories/products/${id}/kardex`]);
   }
