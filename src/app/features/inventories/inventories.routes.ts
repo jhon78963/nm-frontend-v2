@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { createPlaceholderRoute } from '../../core/routing/feature-placeholder.component';
 
 const routes: Routes = [
   {
@@ -25,10 +24,7 @@ const routes: Routes = [
   {
     path: 'purchase',
     data: { breadcrumb: 'Compras' },
-    children: [
-      createPlaceholderRoute('Compras', ''),
-      createPlaceholderRoute('Nueva compra', 'register'),
-    ],
+    loadChildren: () => import('../inventory/purchase/purchase.routes'),
   },
   { path: '', redirectTo: 'products', pathMatch: 'full' },
 ];
