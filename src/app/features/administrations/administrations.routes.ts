@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { createPlaceholderRoute } from '../../core/routing/feature-placeholder.component';
 
 const routes: Routes = [
   {
@@ -26,7 +25,11 @@ const routes: Routes = [
     loadChildren: () =>
       import('./warehouses/warehouses.routes'),
   },
-  createPlaceholderRoute('Historial', 'action-logs'),
+  {
+    path: 'action-logs',
+    data: { breadcrumb: 'Historial' },
+    loadChildren: () => import('./action-logs/action-logs.routes'),
+  },
   { path: '', redirectTo: 'roles', pathMatch: 'full' },
 ];
 
