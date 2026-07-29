@@ -236,8 +236,9 @@
                     [id]="'pay-method-' + i"
                     class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-50"
                     [disabled]="!isEditable()"
-                    [value]="pay.method"
-                    (change)="updatePaymentMethod(i, $any($event.target).value)"
+                    [ngModel]="pay.method"
+                    [ngModelOptions]="{ standalone: true }"
+                    (ngModelChange)="updatePaymentMethod(i, $event)"
                   >
                     @for (option of paymentMethodOptions; track option.value) {
                       <option [value]="option.value">{{ option.label }}</option>

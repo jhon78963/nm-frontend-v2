@@ -12,6 +12,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormGroup,
+  FormsModule,
   ReactiveFormsModule,
 } from '@angular/forms';
 import { AlertComponent } from '../../../../../../shared/ui/alert/alert.component';
@@ -43,6 +44,7 @@ interface PaymentRow extends SalePayment {
   selector: 'app-sale-form',
   imports: [
     ReactiveFormsModule,
+    FormsModule,
     AlertComponent,
     ButtonComponent,
     ConfirmDialogComponent,
@@ -403,7 +405,7 @@ export class SaleFormComponent implements OnInit {
         {
           localId: crypto.randomUUID(),
           method: detail.paymentMethod
-            ? this.resolvePaymentMethod(detail.paymentMethod)
+            ? normalizePaymentMethod(detail.paymentMethod)
             : 'CASH',
           amount: detail.total || total,
         },
@@ -412,6 +414,7 @@ export class SaleFormComponent implements OnInit {
       this.payments.set(
         detail.payments.map((pay) => ({
           ...pay,
+          method: normalizePaymentMethod(pay.method),
           localId: crypto.randomUUID(),
         })),
       );
@@ -431,9 +434,5 @@ export class SaleFormComponent implements OnInit {
   private toApiDateTime(dateValue: string): string {
     if (!dateValue) return '';
     return `${dateValue} 12:00:00`;
-  }
-
-  private resolvePaymentMethod(value: string): PaymentMethod {
-    return normalizePaymentMethod(value);
   }
 }
