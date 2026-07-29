@@ -7,7 +7,11 @@ const routes: Routes = [
     data: { breadcrumb: 'Productos' },
     loadChildren: () => import('../inventory/products/products.routes'),
   },
-  createPlaceholderRoute('Tallas', 'sizes'),
+  {
+    path: 'sizes',
+    data: { breadcrumb: 'Tallas' },
+    loadChildren: () => import('../inventory/sizes/sizes.routes'),
+  },
   createPlaceholderRoute('Colores', 'colors'),
   {
     path: 'reconciliation',
