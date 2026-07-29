@@ -3,10 +3,15 @@ import { createPlaceholderRoute } from '../../core/routing/feature-placeholder.c
 
 const routes: Routes = [
   {
+    path: 'sales',
+    title: 'Ventas',
+    data: { breadcrumb: 'Ventas' },
+    loadChildren: () => import('./sales/sales.routes'),
+  },
+  {
     path: 'pos',
-    title: 'Punto de Venta',
-    data: { breadcrumb: 'POS' },
-    loadChildren: () => import('./sales/pos/pos.routes'),
+    redirectTo: 'sales/pos',
+    pathMatch: 'full',
   },
   {
     path: 'cash-movements',
@@ -17,7 +22,7 @@ const routes: Routes = [
       createPlaceholderRoute('Egresos Cuenta Acumulada', 'accumulated-expenses'),
     ],
   },
-  { path: '', redirectTo: 'pos', pathMatch: 'full' },
+  { path: '', redirectTo: 'sales', pathMatch: 'full' },
 ];
 
 export default routes;
