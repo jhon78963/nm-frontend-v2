@@ -44,7 +44,7 @@ export const permissionGuard: CanActivateFn = (route) => {
       }
 
       toastService.show('error', 'Acceso denegado. No tienes permisos para esta sección.');
-      return router.createUrlTree(['/administration/roles']);
+      return router.createUrlTree(['/administrations/roles']);
     }),
   );
 };

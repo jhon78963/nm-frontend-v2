@@ -1,0 +1,286 @@
+<app-confirm-dialog
+  [open]="deleteConfirmItem() !== null"
+  title="Eliminar movimiento"
+  confirmLabel="Eliminar"
+  cancelLabel="Cancelar"
+  variant="danger"
+  [loading]="deletingPaymentId() !== null"
+  (confirmed)="confirmDelete()"
+  (cancelled)="cancelDelete()"
+>
+  @if (deleteConfirmItem(); as item) {
+    <p class="mt-1 text-sm text-gray-500">
+      ¿Eliminar este registro de <strong>S/ {{ money(item.amount) }}</strong>?
+      @if (item.syncedToAdmin) {
+        También se eliminará del listado de gastos administrativos.
+      }
+    </p>
+  }
+</app-confirm-dialog>
+
+<div class="space-y-5">
+  <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <a
+        routerLink="/directories/teams"
+        class="inline-flex w-fit items-center gap-2 rounded-lg px-2 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+      >
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        Equipo
+      </a>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900">Pagos al colaborador</h1>
+        <p class="mt-0.5 text-sm text-gray-500">
+          @if (team(); as member) {
+            <span class="font-semibold text-gray-800">{{ member.name }} {{ member.surname }}</span>
+            <span class="mx-2 text-gray-300">·</span>
+          }
+          Descuentos por asistencia, balance de tiempo y movimientos del mes.
+        </p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+        (click)="goAttendance()"
+      >
+        Asistencia
+      </button>
+      <button
+        type="button"
+        class="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
+        aria-label="Mes anterior"
+        (click)="prevMonth()"
+      >
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <span class="min-w-[140px] text-center text-sm font-bold text-gray-900">{{ monthTitle() }}</span>
+      <button
+        type="button"
+        class="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
+        aria-label="Mes siguiente"
+        (click)="nextMonth()"
+      >
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+    <span class="text-sm font-semibold text-gray-800">Ámbito del resumen</span>
+    <div class="mt-3 flex flex-wrap gap-2">
+      @for (opt of periodOptions; track opt.value) {
+        <button
+          type="button"
+          class="rounded-xl px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+          [class.bg-emerald-600]="period() === opt.value"
+          [class.text-white]="period() === opt.value"
+          [class.shadow-sm]="period() === opt.value"
+          [class.bg-gray-100]="period() !== opt.value"
+          [class.text-gray-700]="period() !== opt.value"
+          (click)="onPeriodChange(opt.value)"
+        >
+          {{ opt.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="rounded-2xl border border-gray-200 bg-white p-12 text-center text-sm text-gray-500" aria-busy="true">
+      Cargando nómina…
+    </div>
+  } @else if (data(); as payroll) {
+    <div class="grid gap-5 xl:grid-cols-[360px_1fr]">
+      <div class="space-y-5">
+        <div class="overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 p-6 text-white shadow-lg">
+          <p class="text-xs font-semibold uppercase tracking-wide text-emerald-100">{{ heroTitle() }}</p>
+          <p class="mt-2 text-4xl font-bold tracking-tight">S/ {{ money(heroAmount()) }}</p>
+          @if (payroll.liquidacionPeriodo; as liq) {
+            <ul class="mt-4 space-y-1 text-xs leading-relaxed text-emerald-50/90">
+              <li>Base del periodo: S/ {{ money(liq.proporcionSalarioPeriodo) }}</li>
+              <li>Descuento asistencia: − S/ {{ money(liq.descuentoAsistenciaEnAmbito) }}</li>
+              <li>Movimientos del periodo: − S/ {{ money(liq.totalMovimientosSalida) }}</li>
+            </ul>
+          }
+        </div>
+
+        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h2 class="text-base font-semibold text-gray-900">Registrar movimiento</h2>
+          <p class="mt-1 text-xs text-gray-500">
+            Queda en la nómina del colaborador. Puedes sincronizar con gastos administrativos.
+          </p>
+
+          <form class="mt-4 space-y-4" [formGroup]="paymentForm" (submit)="$event.preventDefault(); submitPayment()">
+            <div>
+              <label for="pay-type" class="text-sm font-medium text-gray-700">Tipo</label>
+              <select id="pay-type" formControlName="type" class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                @for (opt of paymentTypeOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label for="pay-amount" class="text-sm font-medium text-gray-700">Monto (S/)</label>
+                <input id="pay-amount" type="number" min="0.01" step="0.01" formControlName="amount" class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label for="pay-method" class="text-sm font-medium text-gray-700">Medio de pago</label>
+                <select id="pay-method" formControlName="paymentMethod" class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                  @for (opt of paymentMethodOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+
+            <div class="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label for="pay-date" class="text-sm font-medium text-gray-700">Fecha de pago</label>
+                <input id="pay-date" type="date" formControlName="date" class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+              </div>
+              <div>
+                <label for="pay-accounting" class="text-sm font-medium text-gray-700">Mes contable</label>
+                <input id="pay-accounting" type="month" formControlName="accountingMonth" class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+              </div>
+            </div>
+
+            <div>
+              <label for="pay-period" class="text-sm font-medium text-gray-700">Quincena de cierre</label>
+              <select id="pay-period" formControlName="payrollPeriod" class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                @for (opt of payrollQuincenaOptions; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div>
+              <label for="pay-desc" class="text-sm font-medium text-gray-700">Descripción</label>
+              <textarea id="pay-desc" rows="2" formControlName="description" class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+            </div>
+
+            <div>
+              <label for="pay-voucher" class="text-sm font-medium text-gray-700">Comprobante (opcional)</label>
+              <input id="pay-voucher" type="file" accept="image/*,.pdf" multiple class="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-emerald-700" (change)="onVoucherSelected($event)" />
+            </div>
+
+            <label class="flex items-start gap-2 text-sm text-gray-600">
+              <input type="checkbox" formControlName="syncCashMovement" class="mt-1 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
+              Reflejar también en Finanzas → Gastos administrativos
+            </label>
+
+            <button
+              type="submit"
+              class="w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+              [disabled]="savingPayment()"
+            >
+              {{ savingPayment() ? 'Guardando…' : 'Registrar movimiento' }}
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div class="space-y-5">
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          @for (card of [
+            { label: 'Salario base', value: payroll.estimates.salarioBase },
+            { label: 'Desc. asistencia (mes)', value: payroll.estimates.descuentoAsistenciaMesCompleto },
+            { label: 'Estimado fin de mes', value: payroll.estimates.estimadoAPagarFinMes },
+            { label: 'Valor día', value: payroll.rates.dailyRate }
+          ]; track card.label) {
+            <div class="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+              <p class="text-xs font-medium text-gray-500">{{ card.label }}</p>
+              <p class="mt-1 text-lg font-bold text-gray-900">S/ {{ money(card.value) }}</p>
+            </div>
+          }
+        </div>
+
+        <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h2 class="text-base font-semibold text-gray-900">Asistencia en el periodo</h2>
+          <div class="mt-4 grid gap-3 sm:grid-cols-2">
+            <div class="rounded-xl bg-gray-50 p-3 text-sm">
+              <p class="text-gray-500">Faltas equivalentes</p>
+              <p class="font-semibold text-gray-900">{{ payroll.attendanceVista.faltasEquivalentes }}</p>
+            </div>
+            <div class="rounded-xl bg-gray-50 p-3 text-sm">
+              <p class="text-gray-500">Descuento por ausencias</p>
+              <p class="font-semibold text-red-600">− S/ {{ money(payroll.attendanceVista.descuentoPorAusencias) }}</p>
+            </div>
+            <div class="rounded-xl bg-gray-50 p-3 text-sm">
+              <p class="text-gray-500">Descuento por tiempo no cumplido</p>
+              <p class="font-semibold text-red-600">− S/ {{ money(payroll.attendanceVista.descuentoPorTiempoNoCumplido) }}</p>
+            </div>
+            <div class="rounded-xl bg-gray-50 p-3 text-sm">
+              <p class="text-gray-500">Saldo neto de tiempo</p>
+              <p class="font-semibold text-gray-900">{{ splitTime(payroll.attendanceVista.saldoTiempoNetoMagnitud) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <div class="border-b border-gray-100 px-5 py-4">
+            <h2 class="text-base font-semibold text-gray-900">Movimientos del periodo</h2>
+          </div>
+          @if (payroll.paymentItems.length === 0) {
+            <p class="px-5 py-10 text-center text-sm text-gray-500">No hay movimientos registrados en este periodo.</p>
+          } @else {
+            <div class="overflow-x-auto">
+              <table class="w-full min-w-[640px] text-sm">
+                <thead>
+                  <tr class="border-b border-gray-100 bg-gray-50/70">
+                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Fecha</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Tipo</th>
+                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Quincena</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Monto</th>
+                    <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500"></th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                  @for (item of payroll.paymentItems; track item.id) {
+                    <tr class="hover:bg-gray-50/60">
+                      <td class="px-5 py-3 text-gray-700">{{ formatDate(item.date.slice(0, 10)) }}</td>
+                      <td class="px-5 py-3">
+                        <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset" [class]="paymentTypeClass(item.type)">
+                          {{ item.typeLabel }}
+                        </span>
+                        @if (item.syncedToAdmin) {
+                          <span class="ml-1 text-[10px] text-gray-400">· Caja admin</span>
+                        }
+                      </td>
+                      <td class="px-5 py-3 text-gray-600">{{ item.payrollPeriodLabel }}</td>
+                      <td class="px-5 py-3 text-right font-semibold text-gray-900">S/ {{ money(item.amount) }}</td>
+                      <td class="px-5 py-3 text-right">
+                        <button
+                          type="button"
+                          class="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                          [attr.aria-label]="'Eliminar movimiento de S/ ' + money(item.amount)"
+                          [disabled]="deletingPaymentId() === item.id"
+                          (click)="openDeleteConfirm(item)"
+                        >
+                          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+</div>

@@ -70,7 +70,7 @@ export class LoginComponent {
           return;
         }
 
-        void this.router.navigate(['/administration/roles']);
+        void this.router.navigate(['/administrations/roles']);
       },
       error: (error: unknown) => {
         this.isLoading.set(false);

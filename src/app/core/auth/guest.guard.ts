@@ -24,7 +24,7 @@ export const guestGuard: CanActivateFn = () => {
         return router.createUrlTree(['/change-password']);
       }
 
-      return router.createUrlTree(['/administration/roles']);
+      return router.createUrlTree(['/administrations/roles']);
     }),
   );
 };

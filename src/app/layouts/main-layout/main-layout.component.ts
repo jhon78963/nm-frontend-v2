@@ -36,19 +36,19 @@ export class MainLayoutComponent implements OnInit {
     {
       label: 'Administración',
       items: [
-        { label: 'Roles y permisos', route: '/administration/roles', permission: 'role.getAll' },
-        { label: 'Usuarios', route: '/administration/users', permission: 'user.getAll' },
-        { label: 'Clientes (tenants)', route: '/administration/tenants', permission: 'tenant.getAll' },
-        { label: 'Tiendas (warehouses)', route: '/administration/warehouses', permission: 'warehouse.getAll' },
-        { label: 'Historial de acciones', route: '/administration/action-logs', permission: 'audit.getAll' },
+        { label: 'Roles y permisos', route: '/administrations/roles', permission: 'role.getAll' },
+        { label: 'Usuarios', route: '/administrations/users', permission: 'user.getAll' },
+        { label: 'Clientes (tenants)', route: '/administrations/tenants', permission: 'tenant.getAll' },
+        { label: 'Tiendas (warehouses)', route: '/administrations/warehouses', permission: 'warehouse.getAll' },
+        { label: 'Historial de acciones', route: '/administrations/action-logs', permission: 'audit.getAll' },
       ],
     },
     {
       label: 'Directorio',
       items: [
-        { label: 'Equipo', route: '/directory/team', permissions: ['team.getAll', 'team.get'] },
-        { label: 'Clientes', route: '/directory/customers', permissions: ['customer.getAll', 'customer.get'] },
-        { label: 'Proveedores', route: '/directory/vendors', permissions: ['vendor.getAll', 'vendor.get'] },
+        { label: 'Equipo', route: '/directories/teams', permissions: ['team.getAll', 'team.get'] },
+        { label: 'Clientes', route: '/directories/customers', permissions: ['customer.getAll', 'customer.get'] },
+        { label: 'Proveedores', route: '/directories/vendors', permissions: ['vendor.getAll', 'vendor.get'] },
       ],
     },
     {
@@ -57,7 +57,7 @@ export class MainLayoutComponent implements OnInit {
         { label: 'Productos', route: '/inventories/products', permissions: ['product.getAll', 'product.get'] },
         { label: 'Tallas', route: '/inventories/sizes', permissions: ['size.getAll', 'size.get'] },
         { label: 'Colores', route: '/inventories/colors', permissions: ['color.getAll', 'color.get'] },
-        { label: 'Actualizar inventario', route: '/inventories/reconciliation', permission: 'inventoryReconciliation.search' },
+        { label: 'Actualizar inventario', route: '/inventories/reconciliations', permission: 'inventoryReconciliation.search' },
       ],
     },
     {
@@ -70,23 +70,23 @@ export class MainLayoutComponent implements OnInit {
     {
       label: 'Compras',
       items: [
-        { label: 'Lista', route: '/inventories/purchase', permissions: ['purchase.getAll', 'purchase.get'] },
-        { label: 'Registro', route: '/inventories/purchase/register', permission: 'purchase.registerBulk' },
+        { label: 'Lista', route: '/inventories/purchases', permissions: ['purchase.getAll', 'purchase.get'] },
+        { label: 'Registro', route: '/inventories/purchases/register', permission: 'purchase.registerBulk' },
       ],
     },
     {
-      label: 'Ventas',
+      label: 'Finanzas',
       items: [
-        { label: 'POS', route: '/finance/sales/pos', permission: 'pos.checkout' },
-        { label: 'Ventas', route: '/finance/sales', permissions: ['sale.getAll', 'sale.get'] },
-        { label: 'Caja', route: '/finance/cash-movements', permission: 'cashflow.getDaily' },
+        { label: 'POS', route: '/finances/pos', permission: 'pos.checkout' },
+        { label: 'Ventas', route: '/finances/sales', permissions: ['sale.getAll', 'sale.get'] },
+        { label: 'Caja', route: '/finances/cash-movements', permission: 'cashflow.getDaily' },
       ],
     },
     {
       label: 'Gastos',
       items: [
-        { label: 'Gastos Administrativos', route: '/finance/cash-movements/admin-expenses', permission: 'cashflow.getAdminMonthlyReport' },
-        { label: 'Egresos Cuenta Acumulada', route: '/finance/cash-movements/accumulated-expenses', permission: 'cashflow.getAccumulatedExpensesReport' },
+        { label: 'Gastos Administrativos', route: '/expenses/admin-expenses', permission: 'cashflow.getAdminMonthlyReport' },
+        { label: 'Egresos Cuenta Acumulada', route: '/expenses/accumulated-expenses', permission: 'cashflow.getAccumulatedExpensesReport' },
       ],
     },
     {
@@ -94,7 +94,7 @@ export class MainLayoutComponent implements OnInit {
       items: [
         { label: 'Reportes', route: '/reports', permission: 'report.index' },
         { label: 'Productos (inventario)', route: '/reports/products', permission: 'report.products' },
-        { label: 'Resumen Financiero', route: '/financial-summary', permission: 'financialSummary.getSummary' },
+        { label: 'Resumen Financiero', route: '/financial-summaries', permission: 'financialSummary.getSummary' },
       ],
     },
   ];

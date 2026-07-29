@@ -4,27 +4,38 @@ const routes: Routes = [
   {
     path: 'products',
     data: { breadcrumb: 'Productos' },
-    loadChildren: () => import('../inventory/products/products.routes'),
+    loadChildren: () => import('./products/products.routes'),
   },
   {
     path: 'sizes',
     data: { breadcrumb: 'Tallas' },
-    loadChildren: () => import('../inventory/sizes/sizes.routes'),
+    loadChildren: () => import('./sizes/sizes.routes'),
   },
   {
     path: 'colors',
     data: { breadcrumb: 'Colores' },
-    loadChildren: () => import('../inventory/colors/colors.routes'),
+    loadChildren: () => import('./colors/colors.routes'),
   },
   {
-    path: 'reconciliation',
+    path: 'reconciliations',
     data: { breadcrumb: 'Actualizar inventario' },
-    loadChildren: () => import('../inventory/reconciliation/reconciliation.routes'),
+    loadChildren: () => import('./reconciliations/reconciliations.routes'),
+  },
+  {
+    path: 'purchases',
+    data: { breadcrumb: 'Compras' },
+    loadChildren: () => import('./purchases/purchases.routes'),
+  },
+  // Compatibilidad
+  {
+    path: 'reconciliation',
+    redirectTo: 'reconciliations',
+    pathMatch: 'prefix',
   },
   {
     path: 'purchase',
-    data: { breadcrumb: 'Compras' },
-    loadChildren: () => import('../inventory/purchase/purchase.routes'),
+    redirectTo: 'purchases',
+    pathMatch: 'prefix',
   },
   { path: '', redirectTo: 'products', pathMatch: 'full' },
 ];

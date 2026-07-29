@@ -1,0 +1,712 @@
+<div class="space-y-6 pb-28 lg:pb-32">
+  <!-- Header bar -->
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      @if (isEditMode()) {
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900">
+          Editar compra #{{ editingPurchaseId() }}
+        </h1>
+        <p class="mt-0.5 text-sm text-gray-500">
+          Revisa y ajusta las líneas cargadas. Los cambios se aplican al inventario.
+        </p>
+      } @else {
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900">Registrar nueva compra</h1>
+        <p class="mt-0.5 text-sm text-gray-500">
+          Cabecera, constructor de ítems y detalle antes de registrar el ingreso.
+        </p>
+      }
+    </div>
+    <div class="flex flex-wrap gap-2">
+      @if (isEditMode()) {
+        <app-button type="button" variant="secondary" (clicked)="goBackToDetail()">
+          Volver al detalle
+        </app-button>
+      }
+      <a
+        routerLink="/inventories/purchases"
+        class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+      >
+        Listado de compras
+      </a>
+    </div>
+  </div>
+
+  <!-- Step indicators -->
+  @if (!isEditMode()) {
+    <nav aria-label="Pasos del registro de compra" class="rounded-xl border border-emerald-100 bg-emerald-50/60 p-4">
+      <ol class="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        @for (step of [
+          { n: 1, label: 'Cabecera' },
+          { n: 2, label: 'Constructor' },
+          { n: 3, label: 'Detalle' },
+          { n: 4, label: 'Registrar' }
+        ]; track step.n) {
+          <li class="flex items-center gap-2.5">
+            <span
+              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-sm font-bold text-white"
+              aria-hidden="true"
+            >{{ step.n }}</span>
+            <span class="text-sm font-semibold text-emerald-900">{{ step.label }}</span>
+          </li>
+        }
+      </ol>
+    </nav>
+  }
+
+  @if (loadingPurchase()) {
+    <div
+      class="flex flex-col items-center justify-center rounded-xl border border-gray-200 bg-white py-20 shadow-sm"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <svg class="h-10 w-10 animate-spin text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      <p class="mt-3 text-sm text-gray-600">Cargando compra…</p>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
+      <!-- Step 1: Cabecera -->
+      <section class="xl:col-span-4" aria-labelledby="purchase-header-title">
+        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h2 id="purchase-header-title" class="text-base font-semibold text-gray-900">
+            @if (isEditMode()) {
+              Cabecera de compra
+            } @else {
+              1. Cabecera de compra
+            }
+          </h2>
+
+          <form [formGroup]="header" class="mt-4 space-y-4">
+            <div class="relative">
+              <label for="supplierName" class="mb-1.5 block text-sm font-medium text-gray-700">
+                Proveedor
+              </label>
+              <input
+                id="supplierName"
+                type="text"
+                formControlName="supplierName"
+                autocomplete="off"
+                placeholder="Buscar proveedor o escribir nombre libre"
+                class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                (input)="onSupplierInput($event)"
+                (focus)="onSupplierFocus()"
+                (blur)="closeVendorDropdown()"
+              />
+              @if (vendorDropdownOpen() && vendorResults().length > 0) {
+                <ul
+                  class="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
+                  role="listbox"
+                  aria-label="Resultados de proveedores"
+                >
+                  @for (vendor of vendorResults(); track vendor.id) {
+                    <li role="option">
+                      <button
+                        type="button"
+                        class="w-full px-3 py-2.5 text-left text-sm transition-colors hover:bg-emerald-50"
+                        (mousedown)="$event.preventDefault(); selectVendor(vendor)"
+                      >
+                        <span class="font-medium text-gray-900">{{ vendor.name }}</span>
+                        @if (vendor.phone) {
+                          <span class="mt-0.5 block text-xs text-gray-500">{{ vendor.phone }}</span>
+                        }
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+              @if (vendorSearching()) {
+                <p class="mt-1 text-xs text-gray-500">Buscando proveedores…</p>
+              }
+              <p class="mt-1.5 text-xs leading-relaxed text-gray-500">
+                Elegí de la lista o escribí el nombre: al registrar se enlaza o crea el proveedor automáticamente.
+              </p>
+            </div>
+
+            <app-input
+              label="Nota de venta / boleta (opcional)"
+              formControlName="documentNote"
+            />
+
+            <app-date-input
+              label="Fecha de registro"
+              formControlName="registeredAt"
+            />
+
+            <app-select
+              label="Almacén"
+              placeholder="Selecciona almacén"
+              [options]="warehouseOptions()"
+              formControlName="warehouseId"
+            />
+
+            <div>
+              <label for="payment-method" class="mb-1.5 block text-sm font-medium text-gray-700">
+                Método de pago
+              </label>
+              <select
+                id="payment-method"
+                class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                [value]="selectedPaymentMethod()"
+                (change)="onPaymentMethodChange(($any($event.target).value))"
+              >
+                @for (method of paymentMethods; track method.value) {
+                  <option [value]="method.value">{{ method.label }}</option>
+                }
+              </select>
+            </div>
+            <p class="-mt-2 text-xs text-gray-500">
+              El egreso se registrará en la Cuenta Acumulada según el método elegido.
+            </p>
+
+            <app-alert
+              variant="info"
+              message="El pago de esta compra se debitará automáticamente de su Cuenta Acumulada para no afectar la caja del mes."
+            />
+
+            <div>
+              <label for="purchase-vouchers" class="mb-1.5 block text-sm font-medium text-gray-700">
+                Comprobantes (PDF o imagen)
+              </label>
+              <input
+                id="purchase-vouchers"
+                type="file"
+                accept="image/*,.pdf"
+                multiple
+                class="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-emerald-700"
+                (change)="onVoucherSelected($event)"
+              />
+              @if (voucherFiles().length > 0) {
+                <p class="mt-1.5 text-xs text-emerald-700">
+                  {{ voucherFiles().length }} archivo(s) seleccionado(s)
+                </p>
+              }
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Step 2: Constructor -->
+      <section class="xl:col-span-8" aria-labelledby="purchase-builder-title">
+        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h2 id="purchase-builder-title" class="text-base font-semibold text-gray-900">
+            @if (isEditMode()) {
+              Agregar productos
+            } @else {
+              2. Constructor de ítem
+            }
+          </h2>
+
+          <div class="mt-4 space-y-4">
+            @if (isEditingLine()) {
+              <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950" role="status">
+                Estás corrigiendo una fila quitada del detalle. Al pulsar
+                <strong>Agregar a la tabla</strong> se vuelve a incorporar con los cambios.
+              </div>
+            }
+
+            <div>
+              <span class="mb-2 block text-sm font-medium text-gray-700">Origen del producto</span>
+              <div class="inline-flex rounded-xl border border-gray-200 bg-gray-50 p-1">
+                @for (opt of productSourceOptions; track opt.value) {
+                  <button
+                    type="button"
+                    class="rounded-lg px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    [class.bg-white]="useExistingProduct() === opt.value"
+                    [class.text-emerald-800]="useExistingProduct() === opt.value"
+                    [class.shadow-sm]="useExistingProduct() === opt.value"
+                    [class.text-gray-600]="useExistingProduct() !== opt.value"
+                    (click)="toggleProductSource(opt.value)"
+                  >
+                    {{ opt.label }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            @if (useExistingProduct()) {
+              <div class="relative">
+                <span class="mb-1.5 block text-sm font-medium text-gray-700">Buscar producto</span>
+                @if (selectedProduct(); as product) {
+                  <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate font-semibold text-emerald-900">{{ product.name }}</p>
+                      <p class="text-xs text-emerald-700">ID {{ product.id }} · {{ product.gender }}</p>
+                    </div>
+                    <button
+                      type="button"
+                      class="shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium text-emerald-800 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                      (click)="clearProductSelection()"
+                    >
+                      Limpiar
+                    </button>
+                  </div>
+                } @else {
+                  <input
+                    type="search"
+                    autocomplete="off"
+                    placeholder="Escribe al menos 2 caracteres…"
+                    class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    (input)="onProductSearchInput($event)"
+                    (blur)="closeProductDropdown()"
+                  />
+                  @if (productDropdownOpen() && productResults().length > 0) {
+                    <ul
+                      class="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
+                      role="listbox"
+                      aria-label="Resultados de productos"
+                    >
+                      @for (item of productResults(); track item.id) {
+                        <li role="option">
+                          <button
+                            type="button"
+                            class="w-full px-3 py-2.5 text-left text-sm transition-colors hover:bg-emerald-50"
+                            (mousedown)="$event.preventDefault(); onProductPicked(item)"
+                          >
+                            <span class="font-medium text-gray-900">{{ item.name }}</span>
+                            <span class="mt-0.5 block text-xs text-gray-500">
+                              ID {{ item.id }} · {{ item.gender }}
+                            </span>
+                          </button>
+                        </li>
+                      }
+                    </ul>
+                  }
+                  @if (productSearching()) {
+                    <p class="mt-1 text-xs text-gray-500">Buscando productos…</p>
+                  }
+                }
+              </div>
+            }
+
+            @if (!useExistingProduct()) {
+              <app-alert
+                variant="info"
+                message="Tallas nuevas van en catalogUpserts. Para colores, elegí del catálogo global si ya existen; activá «Color nuevo» solo si vas a crear uno que no está en la base."
+              />
+            }
+
+            @if (useExistingProduct() && !selectedProduct()) {
+              <div class="rounded-xl border border-emerald-200 bg-emerald-50/50 px-4 py-3 text-sm leading-relaxed text-emerald-950">
+                <strong>Paso 1:</strong> buscá y elegí un producto existente arriba. Hasta entonces no se configuran tallas, colores ni precios.
+              </div>
+            } @else {
+              <form [formGroup]="lineDraft" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <div class="space-y-4">
+                  @if (!useExistingProduct()) {
+                    <app-input label="Nombre del producto" formControlName="newProductName" />
+                    <app-select
+                      label="Género"
+                      placeholder="Selecciona"
+                      [options]="genderOptions()"
+                      formControlName="newProductGenderId"
+                    />
+                  }
+
+                  <app-select
+                    label="Tipo de talla"
+                    placeholder="Selecciona tipo (ej. Adulto letras…)"
+                    [options]="sizeTypeOptions()"
+                    formControlName="selectedSizeTypeId"
+                  />
+
+                  <label class="flex cursor-pointer items-center gap-2.5 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      formControlName="sizeNewToggle"
+                      class="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                      (change)="onSizeNewToggleChange()"
+                    />
+                    Talla no figura en el catálogo (texto libre)
+                  </label>
+
+                  @if (!lineDraft.get('sizeNewToggle')?.value) {
+                    <app-select
+                      label="Talla del catálogo"
+                      placeholder="Primero elige tipo de talla"
+                      [options]="catalogSizeOptions()"
+                      formControlName="selectedSizeId"
+                    />
+                  } @else {
+                    <app-input
+                      label="Descripción de la talla nueva"
+                      formControlName="newSizeDescription"
+                    />
+                    <p class="-mt-2 text-xs text-gray-500">
+                      Se usará el tipo de talla seleccionado arriba al crear la talla en el sistema.
+                    </p>
+                  }
+                </div>
+
+                <div class="space-y-4">
+                  <div class="rounded-xl border border-gray-200 bg-gray-50/80 p-4">
+                    <h3 class="text-sm font-semibold text-gray-900">Talla — Precios y código de barras</h3>
+                    <div class="mt-3 space-y-3">
+                      <app-input label="Código de barras (EAN / SKU)" formControlName="barcode" />
+                      <app-money-input label="Precio compra" formControlName="purchasePrice" />
+                      <app-money-input label="Precio venta" formControlName="salePrice" />
+                      <app-money-input label="Precio venta mín." formControlName="minSalePrice" />
+                    </div>
+                  </div>
+
+                  <div class="rounded-xl border border-gray-200 p-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <h3 class="text-sm font-semibold text-gray-900">Colores — Stock</h3>
+                      <label class="flex cursor-pointer items-center gap-2 text-xs text-gray-600">
+                        <input
+                          type="checkbox"
+                          formControlName="useColorVariant"
+                          class="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                          (change)="onUseColorVariantChange()"
+                        />
+                        Variantes por color
+                      </label>
+                    </div>
+
+                    @if (lineDraft.get('useColorVariant')?.value) {
+                      @if (draftColorQueue.length > 0) {
+                        <div class="mt-3 overflow-x-auto rounded-lg border border-gray-200">
+                          <table class="min-w-full text-sm">
+                            <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                              <tr>
+                                <th class="px-3 py-2">Color</th>
+                                <th class="px-3 py-2 text-right">Cantidad</th>
+                                <th class="px-3 py-2 w-10"></th>
+                              </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                              @for (group of draftColorQueue.controls; track group; let i = $index) {
+                                <tr [formGroup]="group">
+                                  <td class="px-3 py-2 font-medium text-gray-900">
+                                    {{ group.get('displayLabel')?.value }}
+                                  </td>
+                                  <td class="px-3 py-2 text-right">
+                                    <input
+                                      type="number"
+                                      formControlName="quantity"
+                                      min="1"
+                                      class="w-20 rounded-lg border border-gray-300 px-2 py-1 text-right text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    />
+                                  </td>
+                                  <td class="px-3 py-2">
+                                    <button
+                                      type="button"
+                                      class="rounded p-1 text-red-600 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                                      aria-label="Quitar variante"
+                                      (click)="removeDraftVariant(i)"
+                                    >
+                                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                      </svg>
+                                    </button>
+                                  </td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+                        <p class="mt-2 text-right text-xs text-gray-600">
+                          Suma: <strong class="text-gray-900">{{ draftColorsQuantitySum() }} ud.</strong>
+                        </p>
+                      } @else {
+                        <p class="mt-3 text-sm text-gray-500">
+                          Buscá un color abajo: al elegirlo se agrega con cantidad 1 (editá la cifra en la tabla).
+                        </p>
+                      }
+
+                      @if (canPickExistingColors()) {
+                        <label class="mt-3 flex cursor-pointer items-center gap-2 text-sm text-gray-700">
+                          <input
+                            type="checkbox"
+                            formControlName="colorNewToggle"
+                            class="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                          />
+                          Color nuevo en el sistema (nombre y hex)
+                        </label>
+                      }
+
+                      @if (showColorCatalogPick()) {
+                        <div class="relative mt-3">
+                          <label for="color-search" class="mb-1.5 block text-sm font-medium text-gray-700">
+                            Buscar color del catálogo
+                          </label>
+                          <input
+                            id="color-search"
+                            type="search"
+                            autocomplete="off"
+                            placeholder="Ej. Rojo — Enter o clic para agregar (cantidad 1)"
+                            class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            [value]="colorCatalogSearch()"
+                            (input)="onColorSearchInput($event)"
+                            (keydown)="onColorSearchKeydown($event)"
+                            (focus)="onColorSearchFocus()"
+                            (blur)="colorDropdownOpen.set(false)"
+                          />
+                          @if (colorDropdownOpen() && filteredColorsForPicker().length > 0) {
+                            <ul
+                              class="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
+                              role="listbox"
+                            >
+                              @for (opt of filteredColorsForPicker(); track opt.id) {
+                                <li role="option">
+                                  <button
+                                    type="button"
+                                    class="flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:bg-emerald-50"
+                                    (mousedown)="$event.preventDefault(); selectCatalogColor(opt)"
+                                  >
+                                    <span>{{ opt.description }}</span>
+                                    @if (useExistingProduct() && opt.isExists) {
+                                      <span class="text-xs text-gray-500">Ya en esta talla</span>
+                                    } @else if (useExistingProduct()) {
+                                      <span class="text-xs text-emerald-600">Sin variante en esta talla</span>
+                                    }
+                                  </button>
+                                </li>
+                              }
+                            </ul>
+                          }
+                        </div>
+                      }
+
+                      @if (showNewColorFields()) {
+                        <div class="mt-3 space-y-3">
+                          <app-input label="Nombre del color (crear en catálogo)" formControlName="newColorDescription" />
+                          <app-input label="Hash / hex (opcional)" formControlName="newColorHash" placeholder="#RRGGBB" />
+                          <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
+                            <div class="flex-1">
+                              <label for="variant-qty" class="mb-1.5 block text-sm font-medium text-gray-700">
+                                Cantidad para esta variante
+                              </label>
+                              <input
+                                id="variant-qty"
+                                type="number"
+                                formControlName="variantQuantity"
+                                min="1"
+                                class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                              />
+                            </div>
+                            <app-button type="button" variant="secondary" (clicked)="addDraftVariant()">
+                              Agregar color nuevo
+                            </app-button>
+                          </div>
+                        </div>
+                      }
+                    } @else {
+                      <div class="mt-3">
+                        <label for="size-only-qty" class="mb-1.5 block text-sm font-medium text-gray-700">
+                          Cantidad a ingresar (solo talla)
+                        </label>
+                        <input
+                          id="size-only-qty"
+                          type="number"
+                          formControlName="sizeOnlyQuantity"
+                          min="1"
+                          class="w-full max-w-xs rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        />
+                      </div>
+                    }
+                  </div>
+                </div>
+              </form>
+
+              <button
+                type="button"
+                class="mt-2 w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+                (click)="addLine()"
+              >
+                Agregar a la tabla
+              </button>
+            }
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 3: Detalle -->
+      <section class="xl:col-span-12" aria-labelledby="purchase-lines-title">
+        <div class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h2 id="purchase-lines-title" class="text-base font-semibold text-gray-900">
+            @if (isEditMode()) {
+              Líneas de compra
+            } @else {
+              3. Detalle de la compra
+            }
+          </h2>
+
+          <div class="mt-4 overflow-x-auto rounded-xl border border-gray-200">
+            <table class="min-w-[42rem] w-full text-sm">
+              <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <tr>
+                  <th class="px-4 py-3">Producto</th>
+                  <th class="px-4 py-3">Talla</th>
+                  <th class="px-4 py-3">Barcode</th>
+                  <th class="px-4 py-3">Precios</th>
+                  <th class="px-4 py-3">Colores y cantidades</th>
+                  <th class="px-4 py-3 text-right">Subtotal</th>
+                  <th class="px-4 py-3 w-24"></th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                @if (lines.length === 0) {
+                  <tr>
+                    <td colspan="7" class="px-4 py-10 text-center text-gray-500">
+                      Aún no hay filas. Arma talla + variantes y pulsa «Agregar a la tabla».
+                    </td>
+                  </tr>
+                }
+                @for (row of lines.controls; track row; let i = $index) {
+                  <tr [formGroup]="row" class="align-top hover:bg-emerald-50/30">
+                    <td class="px-4 py-3 font-medium text-gray-900">{{ row.get('productName')?.value }}</td>
+                    <td class="px-4 py-3 text-gray-700">{{ row.get('sizeLabel')?.value }}</td>
+                    <td class="min-w-[8rem] px-4 py-3">
+                      <input
+                        formControlName="barcode"
+                        class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </td>
+                    <td class="min-w-[12rem] px-4 py-3">
+                      <div class="space-y-2">
+                        <app-money-input label="Compra" formControlName="purchasePrice" />
+                        <app-money-input label="Venta" formControlName="salePrice" />
+                        <app-money-input label="Mín." formControlName="minSalePrice" />
+                      </div>
+                    </td>
+                    <td class="min-w-[14rem] px-4 py-3">
+                      <ul class="space-y-2">
+                        @for (colorGroup of lineColors(row).controls; track trackLineColorKey(colorGroup); let ci = $index) {
+                          <li
+                            [formGroup]="colorGroup"
+                            class="flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 p-2"
+                          >
+                            <span class="min-w-0 flex-1 text-sm font-medium text-gray-900">
+                              {{ colorGroup.get('displayLabel')?.value }}
+                            </span>
+                            <input
+                              type="number"
+                              formControlName="quantity"
+                              min="1"
+                              class="w-16 rounded-lg border border-gray-300 px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            />
+                            <button
+                              type="button"
+                              class="rounded p-1 text-red-600 hover:bg-red-50 disabled:opacity-40"
+                              [disabled]="lineColors(row).length <= 1"
+                              aria-label="Quitar variante de color"
+                              (click)="removeLineColorVariant(i, ci)"
+                            >
+                              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </li>
+                        }
+                      </ul>
+                      <p class="mt-2 text-xs leading-relaxed text-gray-500">{{ colorsSummaryText(row) }}</p>
+                    </td>
+                    <td class="px-4 py-3 text-right font-semibold tabular-nums text-gray-900">
+                      {{ formatMoney(row.get('subtotal')?.value ?? 0) }}
+                    </td>
+                    <td class="px-4 py-3">
+                      <div class="flex gap-1">
+                        <button
+                          type="button"
+                          class="rounded-lg p-2 text-gray-600 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+                          title="Editar en constructor"
+                          aria-label="Editar línea en constructor"
+                          (click)="editLine(i)"
+                        >
+                          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          class="rounded-lg p-2 text-red-600 hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                          title="Eliminar línea"
+                          aria-label="Eliminar línea"
+                          (click)="removeLine(i)"
+                        >
+                          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Step 4: Mobile totals (non-sticky) -->
+    <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm lg:hidden" aria-labelledby="purchase-mobile-total">
+      <h2 id="purchase-mobile-total" class="text-base font-semibold text-gray-900">4. Totales y registro</h2>
+      <div class="mt-4 flex flex-col gap-3">
+        <p class="text-lg text-gray-700">
+          Total estimado:
+          <span class="font-bold text-emerald-700">{{ formatMoney(totalEstimated()) }}</span>
+        </p>
+        @if (isEditMode()) {
+          <app-button type="button" variant="secondary" (clicked)="goBackToDetail()">
+            Volver al detalle
+          </app-button>
+          <app-alert
+            variant="info"
+            message="Modo edición: agrega o modifica líneas. Los cambios se aplican automáticamente al inventario."
+          />
+        } @else {
+          <app-button type="button" variant="secondary" (clicked)="resetAll()">
+            Limpiar todo
+          </app-button>
+          <app-button type="button" [loading]="submitting()" (clicked)="registerPurchase()">
+            Registrar ingreso de mercadería
+          </app-button>
+        }
+      </div>
+    </section>
+  }
+</div>
+
+<!-- Sticky summary footer (desktop) -->
+@if (!loadingPurchase()) {
+  <div
+    class="fixed bottom-0 left-0 right-0 z-30 hidden border-t border-gray-200 bg-white/95 px-6 py-4 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] backdrop-blur-sm lg:block"
+    role="region"
+    aria-label="Resumen y registro"
+  >
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-4">
+      <div>
+        <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Total estimado</p>
+        <p class="text-2xl font-bold tabular-nums text-emerald-700">{{ formatMoney(totalEstimated()) }}</p>
+        <p class="text-xs text-gray-500">{{ lines.length }} línea(s) en el detalle</p>
+      </div>
+      <div class="flex items-center gap-3">
+        @if (isEditMode()) {
+          <app-button type="button" variant="secondary" (clicked)="goBackToDetail()">
+            Volver al detalle
+          </app-button>
+        } @else {
+          <app-button type="button" variant="secondary" (clicked)="resetAll()">
+            Limpiar todo
+          </app-button>
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+            [disabled]="submitting()"
+            (click)="registerPurchase()"
+          >
+            @if (submitting()) {
+              <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+            }
+            Registrar ingreso de mercadería
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+}

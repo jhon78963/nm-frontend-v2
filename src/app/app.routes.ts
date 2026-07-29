@@ -30,10 +30,10 @@ export const routes: Routes = [
       ),
     children: [
       {
-        path: 'administration',
+        path: 'administrations',
         title: 'Administración',
         data: { breadcrumb: 'Administración' },
-        loadChildren: () => import('./features/administration/administration.routes'),
+        loadChildren: () => import('./features/administrations/administrations.routes'),
       },
       {
         path: 'inventories',
@@ -54,46 +54,103 @@ export const routes: Routes = [
         loadChildren: () => import('./features/reports/reports.routes'),
       },
       {
-        path: 'directory',
+        path: 'directories',
         title: 'Directorio',
         data: { breadcrumb: 'Directorio' },
-        loadChildren: () => import('./features/directory/directory.routes'),
+        loadChildren: () => import('./features/directories/directories.routes'),
       },
       {
-        path: 'sales/pos',
-        redirectTo: 'finance/sales/pos',
+        path: 'finances',
+        title: 'Finanzas',
+        data: { breadcrumb: 'Finanzas' },
+        loadChildren: () => import('./features/finances/finances.routes'),
+      },
+      {
+        path: 'expenses',
+        title: 'Gastos',
+        data: { breadcrumb: 'Gastos' },
+        loadChildren: () => import('./features/expenses/expenses.routes'),
+      },
+      {
+        path: 'financial-summaries',
+        title: 'Resumen Financiero',
+        data: { breadcrumb: 'Resumen Financiero' },
+        loadChildren: () => import('./features/financial-summaries/financial-summaries.routes'),
+      },
+      // Compatibilidad con rutas anteriores
+      {
+        path: 'administration',
+        redirectTo: 'administrations',
+        pathMatch: 'prefix',
+      },
+      {
+        path: 'directory',
+        redirectTo: 'directories',
+        pathMatch: 'prefix',
+      },
+      {
+        path: 'finance',
+        redirectTo: 'finances',
+        pathMatch: 'prefix',
+      },
+      {
+        path: 'financial-summary',
+        redirectTo: 'financial-summaries',
         pathMatch: 'full',
       },
       {
         path: 'sales',
-        redirectTo: 'finance/sales',
+        redirectTo: 'finances/sales',
         pathMatch: 'full',
       },
       {
-        path: 'finance/pos',
-        redirectTo: 'finance/sales/pos',
+        path: 'pos',
+        redirectTo: 'finances/pos',
         pathMatch: 'full',
       },
       {
-        path: 'finance',
-        title: 'Módulo Financiero',
-        data: { breadcrumb: 'Módulo Financiero' },
-        loadChildren: () => import('./features/finance/finance.routes'),
+        path: 'cash-movements',
+        redirectTo: 'finances/cash-movements',
+        pathMatch: 'full',
       },
       {
-        path: 'financial-summary',
-        title: 'Resumen Financiero',
-        data: { breadcrumb: 'Resumen Financiero' },
-        loadChildren: () => import('./features/financial-summary/financial-summary.routes'),
+        path: 'sales/pos',
+        redirectTo: 'finances/pos',
+        pathMatch: 'full',
+      },
+      {
+        path: 'finances/expenses',
+        redirectTo: 'expenses',
+        pathMatch: 'full',
+      },
+      {
+        path: 'finances/expenses/admin-expenses',
+        redirectTo: 'expenses/admin-expenses',
+        pathMatch: 'full',
+      },
+      {
+        path: 'finances/expenses/accumulated-expenses',
+        redirectTo: 'expenses/accumulated-expenses',
+        pathMatch: 'full',
+      },
+      {
+        path: 'finances/cash-movements/admin-expenses',
+        redirectTo: 'expenses/admin-expenses',
+        pathMatch: 'full',
+      },
+      {
+        path: 'finances/cash-movements/accumulated-expenses',
+        redirectTo: 'expenses/accumulated-expenses',
+        pathMatch: 'full',
       },
       {
         path: 'dashboard',
-        redirectTo: 'administration/roles',
+        redirectTo: 'administrations/roles',
         pathMatch: 'full',
       },
       {
         path: '',
-        redirectTo: 'administration/roles',
+        redirectTo: 'administrations/roles',
         pathMatch: 'full',
       },
     ],
@@ -105,7 +162,7 @@ export const routes: Routes = [
   },
   {
     path: 'notfound',
-    loadChildren: () => import('./features/notfound/notfound.routes'),
+    loadChildren: () => import('./features/not-found-pages/not-found-pages.routes'),
   },
   {
     path: '**',
