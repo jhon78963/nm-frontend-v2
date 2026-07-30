@@ -14,6 +14,12 @@ import {
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import {
+  DataTableComponent,
+  DataTableColumn,
+  DataTableEmptyState,
+  DataTablePagination,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -27,6 +33,7 @@ import { TenantFormComponent } from '../tenant-form/tenant-form.component';
     ReactiveFormsModule,
     TenantFormComponent,
     ConfirmDialogComponent,
+    DataTableComponent,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -82,6 +89,32 @@ export class TenantsListComponent implements OnInit {
     pages.push(total);
     return pages;
   });
+
+  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+    if (this.totalPages() <= 1) return null;
+    return {
+      currentPage: this.page(),
+      totalPages: this.totalPages(),
+      pageSize: this.limit(),
+      totalItems: this.total(),
+      pages: this.paginationPages(),
+    };
+  });
+
+  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+    icon: undefined as never,
+    title: 'Aún no hay clientes registrados',
+    description: 'Registra el primer cliente para comenzar a operar.',
+    actionLabel: 'Nuevo cliente',
+  }));
+
+  protected readonly tableColumns = signal<DataTableColumn<Tenant>[]>([
+    { key: 'tenant', label: 'Cliente', align: 'left' },
+    { key: 'ruc', label: 'RUC', align: 'left' },
+    { key: 'contact', label: 'Contacto', align: 'left' },
+    { key: 'status', label: 'Estado', align: 'left' },
+    { key: 'actions', label: 'Acciones', align: 'right', width: '100px' },
+  ]);
 
   ngOnInit(): void {
     this.loadTenants();

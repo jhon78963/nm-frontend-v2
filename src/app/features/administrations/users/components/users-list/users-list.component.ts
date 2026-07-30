@@ -14,6 +14,12 @@ import {
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import {
+  DataTableComponent,
+  DataTableColumn,
+  DataTableEmptyState,
+  DataTablePagination,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -29,6 +35,7 @@ import { UserPasswordResetComponent } from '../user-password-reset/user-password
     UserFormComponent,
     UserPasswordResetComponent,
     ConfirmDialogComponent,
+    DataTableComponent,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -87,6 +94,32 @@ export class UsersListComponent implements OnInit {
     pages.push(total);
     return pages;
   });
+
+  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+    if (this.totalPages() <= 1) return null;
+    return {
+      currentPage: this.page(),
+      totalPages: this.totalPages(),
+      pageSize: this.limit(),
+      totalItems: this.total(),
+      pages: this.paginationPages(),
+    };
+  });
+
+  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+    icon: undefined as never,
+    title: 'Aún no hay usuarios registrados',
+    description: 'Crea el primero haciendo clic en «Nuevo usuario».',
+    actionLabel: 'Nuevo usuario',
+  }));
+
+  protected readonly tableColumns = signal<DataTableColumn<User>[]>([
+    { key: 'user', label: 'Usuario', align: 'left' },
+    { key: 'fullName', label: 'Nombre completo', align: 'left' },
+    { key: 'role', label: 'Rol', align: 'left' },
+    { key: 'status', label: 'Estado', align: 'left' },
+    { key: 'actions', label: 'Acciones', align: 'right', width: '120px' },
+  ]);
 
   ngOnInit(): void {
     this.loadUsers();

@@ -14,6 +14,12 @@ import {
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import {
+  DataTableComponent,
+  DataTableColumn,
+  DataTableEmptyState,
+  DataTablePagination,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -30,6 +36,7 @@ const FILTER_STORAGE_KEY = 'colors_filter_state_v2';
     ReactiveFormsModule,
     ColorFormComponent,
     ConfirmDialogComponent,
+    DataTableComponent,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -85,6 +92,32 @@ export class ColorsListComponent implements OnInit {
     pages.push(total);
     return pages;
   });
+
+  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+    if (this.totalPages() <= 1) return null;
+    return {
+      currentPage: this.page(),
+      totalPages: this.totalPages(),
+      pageSize: this.limit(),
+      totalItems: this.total(),
+      pages: this.paginationPages(),
+    };
+  });
+
+  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+    icon: undefined as never,
+    title: 'Aún no hay colores registrados',
+    description: 'Crea el primer color para usarlo en productos y variantes.',
+    actionLabel: 'Nuevo color',
+  }));
+
+  protected readonly tableColumns = signal<DataTableColumn<Color>[]>([
+    { key: 'id', label: '#', align: 'left', width: '64px', className: 'w-16' },
+    { key: 'color', label: 'Color', align: 'left' },
+    { key: 'sample', label: 'Muestra', align: 'left' },
+    { key: 'hex', label: 'Hex', align: 'left' },
+    { key: 'actions', label: 'Acciones', align: 'right', width: '100px' },
+  ]);
 
   ngOnInit(): void {
     this.restoreFilters();

@@ -14,6 +14,12 @@ import {
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import {
+  DataTableComponent,
+  DataTableColumn,
+  DataTableEmptyState,
+  DataTablePagination,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -39,6 +45,7 @@ const SIZE_TYPE_BADGE_CLASSES = [
     ReactiveFormsModule,
     SizeFormComponent,
     ConfirmDialogComponent,
+    DataTableComponent,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -113,6 +120,41 @@ export class SizesListComponent implements OnInit {
     if (this.selectedSizeTypeIds().length > 0) count += 1;
     return count;
   });
+
+  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+    if (this.totalPages() <= 1) return null;
+    return {
+      currentPage: this.page(),
+      totalPages: this.totalPages(),
+      pageSize: this.limit(),
+      totalItems: this.total(),
+      pages: this.paginationPages(),
+    };
+  });
+
+  protected readonly emptyState = computed<DataTableEmptyState>(() => {
+    if (this.hasActiveFilters()) {
+      return {
+        icon: undefined as never,
+        title: 'Sin resultados con los filtros actuales',
+        description: 'Prueba con otro término o tipo de talla.',
+        actionLabel: 'Limpiar filtros',
+      };
+    }
+    return {
+      icon: undefined as never,
+      title: 'Aún no hay tallas registradas',
+      description: 'Crea la primera talla para usarla en productos y POS.',
+      actionLabel: 'Nueva talla',
+    };
+  });
+
+  protected readonly tableColumns = signal<DataTableColumn<Size>[]>([
+    { key: 'id', label: '#', align: 'left', width: '64px', className: 'w-16' },
+    { key: 'size', label: 'Talla', align: 'left' },
+    { key: 'type', label: 'Tipo', align: 'left' },
+    { key: 'actions', label: 'Acciones', align: 'right', width: '100px' },
+  ]);
 
   ngOnInit(): void {
     this.restoreFilters();
@@ -280,6 +322,14 @@ export class SizesListComponent implements OnInit {
   protected sizeInitial(description: string): string {
     const trimmed = description.trim();
     return trimmed ? trimmed.charAt(0).toUpperCase() : '?';
+  }
+
+  protected onEmptyAction(): void {
+    if (this.hasActiveFilters()) {
+      this.clearFilters();
+    } else {
+      this.openCreate();
+    }
   }
 
   private restoreFilters(): void {
