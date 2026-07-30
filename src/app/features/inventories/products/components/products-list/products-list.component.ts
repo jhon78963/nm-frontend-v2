@@ -18,6 +18,12 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import {
+  DataTableComponent,
+  DataTableColumn,
+  DataTableEmptyState,
+  DataTablePagination,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -31,6 +37,7 @@ import { Product, Gender } from '../../models/product.model';
     CommonModule,
     ReactiveFormsModule,
     ConfirmDialogComponent,
+    DataTableComponent,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -94,7 +101,7 @@ export class ProductsListComponent implements OnInit {
     return pages;
   });
 
-  protected readonly paginationData = computed(() => {
+  protected readonly paginationData = computed<DataTablePagination | null>(() => {
     if (this.totalPages() <= 1) return null;
     return {
       currentPage: this.page(),
@@ -105,7 +112,20 @@ export class ProductsListComponent implements OnInit {
     };
   });
 
-  protected readonly Math = Math;
+  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+    icon: undefined as never,
+    title: 'Aún no hay productos registrados',
+    description: 'Crea el primer producto para comenzar a gestionar tu inventario.',
+    actionLabel: 'Nuevo producto',
+  }));
+
+  protected readonly tableColumns = signal<DataTableColumn<Product>[]>([
+    { key: 'id', label: '#', align: 'left', width: '80px', className: 'w-20' },
+    { key: 'name', label: 'Nombre', align: 'left' },
+    { key: 'gender', label: 'Género', align: 'left', width: '128px', className: 'w-32' },
+    { key: 'stock', label: 'Stock', align: 'right', width: '112px', className: 'w-28' },
+    { key: 'actions', label: 'Acciones', align: 'right', width: '320px', className: 'w-80' },
+  ]);
 
   ngOnInit(): void {
     this.loadProducts();
