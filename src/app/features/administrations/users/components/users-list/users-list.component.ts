@@ -52,8 +52,8 @@ export class UsersListComponent implements OnInit {
   protected readonly passwordResetOpen = signal(false);
   protected readonly passwordResetUser = signal<User | null>(null);
 
-  protected readonly deleteConfirmId = signal<number | null>(null);
-  protected readonly deleting = signal(false);
+  protected readonly disableConfirmId = signal<number | null>(null);
+  protected readonly disabling = signal(false);
 
   protected readonly searchForm = new FormGroup({
     search: new FormControl('', { nonNullable: true }),
@@ -61,8 +61,8 @@ export class UsersListComponent implements OnInit {
 
   protected readonly currentSearch = signal('');
 
-  protected readonly deleteTargetLabel = computed(() => {
-    const id = this.deleteConfirmId();
+  protected readonly disableTargetLabel = computed(() => {
+    const id = this.disableConfirmId();
     if (id === null) return '';
     const user = this.users().find((u) => u.id === id);
     return user ? `${user.username} (${user.name} ${user.surname})` : '';
@@ -148,36 +148,33 @@ export class UsersListComponent implements OnInit {
     this.passwordResetOpen.set(true);
   }
 
-  protected openDeleteConfirm(id: number): void {
-    this.deleteConfirmId.set(id);
+  protected openDisableConfirm(id: number): void {
+    this.disableConfirmId.set(id);
   }
 
-  protected cancelDelete(): void {
-    this.deleteConfirmId.set(null);
+  protected cancelDisable(): void {
+    this.disableConfirmId.set(null);
   }
 
-  protected confirmDelete(): void {
-    const id = this.deleteConfirmId();
+  protected confirmDisable(): void {
+    const id = this.disableConfirmId();
     if (id === null) return;
 
-    this.deleting.set(true);
+    this.disabling.set(true);
     this.userService
       .delete(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {
-          this.deleteConfirmId.set(null);
-          this.deleting.set(false);
-          this.toastService.show('success', 'Usuario eliminado correctamente.');
-          if (this.users().length === 1 && this.page() > 1) {
-            this.page.update((p) => p - 1);
-          }
+          this.disableConfirmId.set(null);
+          this.disabling.set(false);
+          this.toastService.show('success', 'Usuario deshabilitado correctamente.');
           this.loadUsers();
         },
         error: () => {
-          this.deleting.set(false);
-          this.deleteConfirmId.set(null);
-          this.toastService.show('error', 'No se pudo eliminar el usuario.');
+          this.disabling.set(false);
+          this.disableConfirmId.set(null);
+          this.toastService.show('error', 'No se pudo deshabilitar el usuario.');
         },
       });
   }

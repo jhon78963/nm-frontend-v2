@@ -33,7 +33,7 @@ const ACTION_LABELS: Record<string, ActionLogLabel> = {
   'user.viewed':         { label: 'Detalle de usuario consultado', tone: 'neutral' },
   'user.created':        { label: 'Usuario creado',                tone: 'create'  },
   'user.updated':        { label: 'Usuario actualizado',           tone: 'update'  },
-  'user.deleted':        { label: 'Usuario eliminado',             tone: 'delete'  },
+  'user.deleted':        { label: 'Usuario deshabilitado',             tone: 'delete'  },
   'user.password_reset': { label: 'Contraseña restablecida',       tone: 'update'  },
 
   // Pagos de colaboradores

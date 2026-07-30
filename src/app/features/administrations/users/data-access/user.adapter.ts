@@ -19,6 +19,7 @@ export function adaptUser(raw: unknown): User {
     role: r.role ?? r.roles?.[0],
     tenantId: r.tenantId,
     warehouseId: r.warehouseId,
+    isEnabled: r.isEnabled ?? true,
   };
 }
 

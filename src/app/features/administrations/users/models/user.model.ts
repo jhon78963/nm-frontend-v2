@@ -9,6 +9,7 @@ export interface User {
   role?: string;
   tenantId: number;
   warehouseId: number;
+  isEnabled: boolean;
 }
 
 export interface UserListResponse {
