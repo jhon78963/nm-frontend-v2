@@ -27,10 +27,10 @@
   </div>
 
   <!-- Barra de filtros y búsqueda -->
-  <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-900/5">
-    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+  <div class="rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-900/5 sm:p-5">
+    <div class="flex flex-col gap-4 xl:flex-row xl:items-center">
       <!-- Búsqueda -->
-      <div class="flex-1">
+      <div class="w-full min-w-0 xl:flex-1">
         <form [formGroup]="filterForm" class="relative">
           <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
             <svg
@@ -67,10 +67,34 @@
         </form>
       </div>
 
-      <!-- Filtros y acciones -->
-      <div class="flex flex-wrap items-center gap-2">
-        <!-- TODO: Agregar filtro de género -->
-        
+      <!-- Filtro por género -->
+      @if (genders().length > 0) {
+        <div
+          class="flex shrink-0 flex-wrap items-center gap-1 rounded-xl bg-gray-50 p-1 ring-1 ring-gray-200/80"
+          role="group"
+          aria-label="Filtrar por género">
+          @for (gender of genders(); track gender.id) {
+            <button
+              type="button"
+              class="rounded-lg px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-1"
+              [class.bg-white]="isGenderSelected(gender.id)"
+              [class.text-sky-700]="isGenderSelected(gender.id)"
+              [class.shadow-sm]="isGenderSelected(gender.id)"
+              [class.ring-1]="isGenderSelected(gender.id)"
+              [class.ring-sky-200]="isGenderSelected(gender.id)"
+              [class.text-gray-600]="!isGenderSelected(gender.id)"
+              [class.hover:bg-white/80]="!isGenderSelected(gender.id)"
+              [class.hover:text-gray-900]="!isGenderSelected(gender.id)"
+              [attr.aria-pressed]="isGenderSelected(gender.id)"
+              (click)="toggleGender(gender.id)">
+              {{ gender.description }}
+            </button>
+          }
+        </div>
+      }
+
+      <!-- Acciones -->
+      <div class="flex flex-wrap items-center gap-2 xl:shrink-0">
         <button
           type="button"
           (click)="clearFilters()"
@@ -150,13 +174,13 @@
     [data]="products()"
     [loading]="loading()"
     [emptyState]="emptyState()"
-    [emptySearch]="currentSearch()"
+    [emptySearch]="tableEmptySearch()"
     [pagination]="paginationData()"
     [theme]="'sky'"
     [minWidth]="'800px'"
     [ariaLabel]="'Lista de productos'"
     (emptyAction)="openCreate()"
-    (clearSearch)="clearSearch()"
+    (clearSearch)="clearFilters()"
     (pageChange)="goToPage($event)"
   >
     <ng-template #emptyIcon>

@@ -99,10 +99,9 @@ export class CashRegisterComponent implements OnInit {
     this.filteredExpenses().reduce((sum, item) => sum + item.amount, 0),
   );
 
-  protected readonly filteredFinalBalance = computed(() => {
-    const opening = this.report().summary.openingBalance;
-    return opening + this.filteredTotalIncomes() - this.filteredTotalExpenses();
-  });
+  protected readonly filteredFinalBalance = computed(
+    () => this.filteredTotalIncomes() - this.filteredTotalExpenses(),
+  );
 
   protected readonly deleteLabel = computed(() => {
     const item = this.deleteTarget();

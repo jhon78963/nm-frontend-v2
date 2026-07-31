@@ -112,6 +112,17 @@ export class ProductsListComponent implements OnInit {
     };
   });
 
+  protected readonly hasActiveFilters = computed(
+    () =>
+      this.currentSearch().trim().length > 0 ||
+      this.selectedGenderIds().length > 0,
+  );
+
+  protected readonly tableEmptySearch = computed(() => {
+    if (!this.hasActiveFilters()) return '';
+    return this.currentSearch().trim() || 'los filtros seleccionados';
+  });
+
   protected readonly emptyState = computed<DataTableEmptyState>(() => ({
     icon: undefined as never,
     title: 'Aún no hay productos registrados',
@@ -271,6 +282,18 @@ export class ProductsListComponent implements OnInit {
     this.selectedGenderIds.set(ids);
     this.page.set(1);
     this.loadProducts();
+  }
+
+  protected toggleGender(id: number): void {
+    const current = this.selectedGenderIds();
+    const next = current.includes(id)
+      ? current.filter((genderId) => genderId !== id)
+      : [...current, id];
+    this.handleGenderSelection(next);
+  }
+
+  protected isGenderSelected(id: number): boolean {
+    return this.selectedGenderIds().includes(id);
   }
 
   protected exportProducts(): void {
