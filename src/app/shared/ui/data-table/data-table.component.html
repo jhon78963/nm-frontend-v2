@@ -1,4 +1,4 @@
-<div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+<div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
   @if (loading()) {
     <div aria-label="Cargando datos…" aria-busy="true">
       @for (i of [1,2,3,4,5]; track i) {
@@ -83,7 +83,7 @@
       }
     </div>
   } @else {
-    <div class="overflow-x-auto overflow-y-visible">
+    <div class="overflow-y-visible">
       <table class="w-full text-sm" [style.min-width]="minWidth()" [attr.aria-label]="ariaLabel()">
         @if (columns().length > 0) {
           <thead>

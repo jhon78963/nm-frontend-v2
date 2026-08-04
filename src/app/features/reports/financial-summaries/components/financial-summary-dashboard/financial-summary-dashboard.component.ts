@@ -12,18 +12,23 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../../auth/data-access/auth.service';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import {
+  DataTableColumn,
+  DataTableComponent,
+  DataTableEmptyState,
+} from '../../../../../shared/ui/data-table/data-table.component';
+import {
   categoryBadgeClass,
   formatGrowthLabel,
   formatPaymentMethod,
   growthBadgeClass,
 } from '../../data-access/financial-summary.adapter';
 import { FinancialSummaryService } from '../../data-access/financial-summary.service';
-import { QuickTransactionType } from '../../models/financial-summary.model';
+import { QuickTransactionType, RecentTransaction } from '../../models/financial-summary.model';
 import { QuickTransactionFormComponent } from '../quick-transaction-form/quick-transaction-form.component';
 
 @Component({
   selector: 'app-financial-summary-dashboard',
-  imports: [DecimalPipe, RouterLink, QuickTransactionFormComponent],
+  imports: [DecimalPipe, RouterLink, QuickTransactionFormComponent, DataTableComponent],
   providers: [FinancialSummaryService],
   templateUrl: './financial-summary-dashboard.component.html',
 })
@@ -53,6 +58,20 @@ export class FinancialSummaryDashboardComponent implements OnInit {
   protected readonly growthClass = computed(() =>
     growthBadgeClass(this.cards().salesIncome.growth),
   );
+
+  protected readonly tableColumns: DataTableColumn<RecentTransaction>[] = [
+    { key: 'concept', label: 'Concepto' },
+    { key: 'category', label: 'Categoría' },
+    { key: 'date', label: 'Fecha', className: 'hidden sm:table-cell' },
+    { key: 'method', label: 'Método', className: 'hidden md:table-cell' },
+    { key: 'amount', label: 'Monto', align: 'right' },
+  ];
+
+  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+    title: 'Sin movimientos recientes',
+    description: 'No hay ventas POS ni movimientos de caja registrados.',
+    actionLabel: this.canManageCashflow() ? 'Registrar primer ingreso' : undefined,
+  }));
 
   ngOnInit(): void {
     this.loadSummary();

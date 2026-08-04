@@ -15,6 +15,11 @@ import {
   Validators,
 } from '@angular/forms';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import {
+  DataTableColumn,
+  DataTableComponent,
+  DataTableEmptyState,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { PayrollService } from '../../data-access/payroll.service';
 import { TeamService } from '../../data-access/team.service';
@@ -37,7 +42,7 @@ import {
 
 @Component({
   selector: 'app-team-payroll',
-  imports: [ReactiveFormsModule, RouterLink, ConfirmDialogComponent],
+  imports: [ReactiveFormsModule, RouterLink, ConfirmDialogComponent, DataTableComponent],
   templateUrl: './team-payroll.component.html',
 })
 export class TeamPayrollComponent implements OnInit {
@@ -111,6 +116,23 @@ export class TeamPayrollComponent implements OnInit {
     if (liq !== undefined && liq !== null) return liq;
     return this.data()?.estimates.estimadoAPagarFinMes ?? 0;
   });
+
+  protected readonly paymentItems = computed(
+    () => this.data()?.paymentItems ?? [],
+  );
+
+  protected readonly tableColumns: DataTableColumn<PayrollPaymentItem>[] = [
+    { key: 'date', label: 'Fecha' },
+    { key: 'type', label: 'Tipo' },
+    { key: 'period', label: 'Quincena' },
+    { key: 'amount', label: 'Monto', align: 'right' },
+    { key: 'actions', label: '', align: 'right', className: 'w-16' },
+  ];
+
+  protected readonly emptyState: DataTableEmptyState = {
+    title: 'Sin movimientos',
+    description: 'No hay movimientos registrados en este periodo.',
+  };
 
   ngOnInit(): void {
     this.route.paramMap

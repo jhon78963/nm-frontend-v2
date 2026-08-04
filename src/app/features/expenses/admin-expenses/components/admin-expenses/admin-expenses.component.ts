@@ -19,6 +19,11 @@ import {
 } from '../../data-access/admin-expense.adapter';
 import { AdminExpenseService } from '../../data-access/admin-expense.service';
 import { AdminExpense } from '../../models/admin-expense.model';
+import {
+  DataTableColumn,
+  DataTableComponent,
+  DataTableEmptyState,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { AdminExpenseFormComponent } from '../admin-expense-form/admin-expense-form.component';
 import { VoucherPreviewDialogComponent } from '../voucher-preview-dialog/voucher-preview-dialog.component';
 
@@ -28,6 +33,7 @@ import { VoucherPreviewDialogComponent } from '../voucher-preview-dialog/voucher
     DecimalPipe,
     AdminExpenseFormComponent,
     VoucherPreviewDialogComponent,
+    DataTableComponent,
   ],
   templateUrl: './admin-expenses.component.html',
 })
@@ -82,6 +88,35 @@ export class AdminExpensesComponent implements OnInit {
   protected readonly totalMonthly = computed(() => this.report().totalMonthlyAdmin);
 
   protected readonly expenseCount = computed(() => this.expenses().length);
+
+  protected readonly tableColumns = computed<DataTableColumn<AdminExpense>[]>(() => {
+    const columns: DataTableColumn<AdminExpense>[] = [
+      { key: 'date', label: 'Fecha pago' },
+      { key: 'period', label: 'Período' },
+      { key: 'category', label: 'Categoría' },
+      { key: 'description', label: 'Descripción' },
+      { key: 'method', label: 'Método', align: 'center' },
+      { key: 'amount', label: 'Monto', align: 'right' },
+      { key: 'voucher', label: 'Comprobante', align: 'center' },
+    ];
+
+    if (this.canUpdate()) {
+      columns.push({
+        key: 'actions',
+        label: '',
+        align: 'center',
+        className: 'w-16',
+      });
+    }
+
+    return columns;
+  });
+
+  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+    title: 'Sin gastos en este mes',
+    description: `No hay gastos administrativos registrados para ${this.formattedMonth()}.`,
+    actionLabel: this.canStore() ? 'Registrar primer gasto' : undefined,
+  }));
 
   ngOnInit(): void {
     this.loadExpenses();

@@ -22,6 +22,11 @@ import { AccumulatedExpense } from '../../models/accumulated-expense.model';
 import { AccountSetupPanelComponent } from '../account-setup-panel/account-setup-panel.component';
 import { AccumulatedExpenseFormComponent } from '../accumulated-expense-form/accumulated-expense-form.component';
 import { MonthEndTransferPanelComponent } from '../month-end-transfer-panel/month-end-transfer-panel.component';
+import {
+  DataTableColumn,
+  DataTableComponent,
+  DataTableEmptyState,
+} from '../../../../../shared/ui/data-table/data-table.component';
 
 @Component({
   selector: 'app-accumulated-expenses',
@@ -31,6 +36,7 @@ import { MonthEndTransferPanelComponent } from '../month-end-transfer-panel/mont
     MonthEndTransferPanelComponent,
     AccumulatedExpenseFormComponent,
     VoucherPreviewDialogComponent,
+    DataTableComponent,
   ],
   templateUrl: './accumulated-expenses.component.html',
 })
@@ -86,6 +92,33 @@ export class AccumulatedExpensesComponent implements OnInit {
   protected readonly totalMonthly = computed(() => this.report().totalMonthlyAccumulated);
   protected readonly expenseCount = computed(() => this.expenses().length);
   protected readonly isAccountInitialized = computed(() => this.account().isInitialized);
+
+  protected readonly tableColumns = computed<DataTableColumn<AccumulatedExpense>[]>(() => {
+    const columns: DataTableColumn<AccumulatedExpense>[] = [
+      { key: 'date', label: 'Fecha' },
+      { key: 'description', label: 'Descripción' },
+      { key: 'method', label: 'Método', align: 'center' },
+      { key: 'amount', label: 'Monto', align: 'right' },
+      { key: 'voucher', label: 'Comprobante', align: 'center' },
+    ];
+
+    if (this.canUpdate()) {
+      columns.push({
+        key: 'actions',
+        label: '',
+        align: 'center',
+        className: 'w-16',
+      });
+    }
+
+    return columns;
+  });
+
+  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+    title: 'Sin egresos en este mes',
+    description: `No hay movimientos de Cuenta Acumulada en ${this.formattedMonth()}.`,
+    actionLabel: this.canStore() ? 'Registrar egreso' : undefined,
+  }));
 
   ngOnInit(): void {
     this.loadAccountSettings();

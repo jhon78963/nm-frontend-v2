@@ -227,58 +227,53 @@
           </div>
         </div>
 
-        <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <div class="border-b border-gray-100 px-5 py-4">
-            <h2 class="text-base font-semibold text-gray-900">Movimientos del periodo</h2>
-          </div>
-          @if (payroll.paymentItems.length === 0) {
-            <p class="px-5 py-10 text-center text-sm text-gray-500">No hay movimientos registrados en este periodo.</p>
-          } @else {
-            <div class="overflow-x-auto">
-              <table class="w-full min-w-[640px] text-sm">
-                <thead>
-                  <tr class="border-b border-gray-100 bg-gray-50/70">
-                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Fecha</th>
-                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Tipo</th>
-                    <th class="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Quincena</th>
-                    <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Monto</th>
-                    <th class="px-5 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500"></th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                  @for (item of payroll.paymentItems; track item.id) {
-                    <tr class="hover:bg-gray-50/60">
-                      <td class="px-5 py-3 text-gray-700">{{ formatDate(item.date.slice(0, 10)) }}</td>
-                      <td class="px-5 py-3">
-                        <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset" [class]="paymentTypeClass(item.type)">
-                          {{ item.typeLabel }}
-                        </span>
-                        @if (item.syncedToAdmin) {
-                          <span class="ml-1 text-[10px] text-gray-400">· Caja admin</span>
-                        }
-                      </td>
-                      <td class="px-5 py-3 text-gray-600">{{ item.payrollPeriodLabel }}</td>
-                      <td class="px-5 py-3 text-right font-semibold text-gray-900">S/ {{ money(item.amount) }}</td>
-                      <td class="px-5 py-3 text-right">
-                        <button
-                          type="button"
-                          class="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-                          [attr.aria-label]="'Eliminar movimiento de S/ ' + money(item.amount)"
-                          [disabled]="deletingPaymentId() === item.id"
-                          (click)="openDeleteConfirm(item)"
-                        >
-                          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                            <polyline points="3 6 5 6 21 6"/>
-                            <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                          </svg>
-                        </button>
-                      </td>
-                    </tr>
+        <div>
+          <h2 class="mb-4 text-base font-semibold text-gray-900">Movimientos del periodo</h2>
+
+          <app-data-table
+            [columns]="tableColumns"
+            [data]="paymentItems()"
+            [emptyState]="emptyState"
+            [theme]="'emerald'"
+            [minWidth]="'640px'"
+            [ariaLabel]="'Movimientos de nómina del periodo'"
+          >
+            <ng-template #emptyIcon>
+              <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </ng-template>
+
+            <ng-template #rowTemplate let-item let-index="index">
+              <tr class="hover:bg-gray-50/60">
+                <td class="px-6 py-4 text-gray-700">{{ formatDate(item.date.slice(0, 10)) }}</td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset" [class]="paymentTypeClass(item.type)">
+                    {{ item.typeLabel }}
+                  </span>
+                  @if (item.syncedToAdmin) {
+                    <span class="ml-1 text-[10px] text-gray-400">· Caja admin</span>
                   }
-                </tbody>
-              </table>
-            </div>
-          }
+                </td>
+                <td class="px-6 py-4 text-gray-600">{{ item.payrollPeriodLabel }}</td>
+                <td class="px-6 py-4 text-right font-semibold text-gray-900">S/ {{ money(item.amount) }}</td>
+                <td class="px-6 py-4 text-right">
+                  <button
+                    type="button"
+                    class="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                    [attr.aria-label]="'Eliminar movimiento de S/ ' + money(item.amount)"
+                    [disabled]="deletingPaymentId() === item.id"
+                    (click)="openDeleteConfirm(item)"
+                  >
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                      <polyline points="3 6 5 6 21 6"/>
+                      <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            </ng-template>
+          </app-data-table>
         </div>
       </div>
     </div>
