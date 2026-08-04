@@ -38,6 +38,11 @@ interface ConfirmState {
   action: () => void;
 }
 
+interface ColorFieldSnapshot {
+  stock: number;
+  isExists: boolean;
+}
+
 const SELECTED_SIZE_KEY = 'selectedSize';
 
 @Component({
@@ -74,6 +79,9 @@ export class ProductColorsComponent implements OnInit {
   protected readonly newColorHash = signal('#000000');
 
   private readonly panelStockSourceEpoch = signal(0);
+  private readonly colorRevisionEpoch = signal(0);
+  private readonly selectedColorIds = signal<Set<number>>(new Set());
+  private readonly initialColorSnapshots = new Map<number, ColorFieldSnapshot>();
   private readonly colorJumpInputRef = viewChild<ElementRef<HTMLInputElement>>('colorJumpInput');
 
   protected readonly filteredSizeOptions = computed(() => {
@@ -87,20 +95,28 @@ export class ProductColorsComponent implements OnInit {
     );
   });
 
-  protected readonly attachedColors = computed(() =>
-    this.colors().filter((color) => color.variantAttached),
+  protected readonly selectedColors = computed(() =>
+    this.colors().filter((color) => this.selectedColorIds().has(color.id)),
   );
 
-  protected readonly removableAttachedColors = computed(() =>
-    this.attachedColors().filter((color) => !!color.isExists),
+  protected readonly removableSelectedColors = computed(() =>
+    this.selectedColors().filter((color) => !!color.isExists),
   );
+
+  protected readonly linkedColors = computed(() => {
+    this.colorRevisionEpoch();
+    this.selectedColorIds();
+    return this.colors().filter((color) => this.isColorLinked(color));
+  });
 
   protected readonly totalAssignedStock = computed(() => {
+    this.colorRevisionEpoch();
+    this.selectedColorIds();
     if (this.catalogColorsPending()) {
       return 0;
     }
     return this.colors().reduce((acc, color) => {
-      if (!color.variantAttached) {
+      if (!this.isColorLinked(color)) {
         return acc;
       }
       return acc + (Number(color.stock) || 0);
@@ -175,26 +191,41 @@ export class ProductColorsComponent implements OnInit {
   });
 
   protected readonly filteredColors = computed(() => {
+    this.colorRevisionEpoch();
+    this.selectedColorIds();
     const status = this.filterStatus();
-    return this.colors()
-      .filter((color) => {
-        const stockNum = Number(color.stock) || 0;
-        if (status === 'all') {
-          return true;
-        }
-        if (status === 'active') {
-          return !!color.variantAttached && stockNum > 0;
-        }
-        return !!color.variantAttached && stockNum === 0;
-      })
-      .sort((a, b) => {
-        const wa = Number(a.stock) || 0;
-        const wb = Number(b.stock) || 0;
-        const aa = a.variantAttached && wa > 0 ? 1 : 0;
-        const bb = b.variantAttached && wb > 0 ? 1 : 0;
-        return bb - aa;
-      });
+    return this.colors().filter((color) => {
+      const stockNum = Number(color.stock) || 0;
+      const linked = this.isColorLinked(color);
+      if (status === 'all') {
+        return true;
+      }
+      if (status === 'active') {
+        return linked && stockNum > 0;
+      }
+      return linked && stockNum === 0;
+    });
   });
+
+  protected readonly dirtyColorCount = computed(() => {
+    this.colorRevisionEpoch();
+    return this.colors().filter((color) => this.isColorDirty(color)).length;
+  });
+
+  protected readonly hasPendingWork = computed(
+    () => this.dirtyColorCount() > 0 || this.selectedCount() > 0,
+  );
+
+  protected readonly showBalanceWarning = computed(
+    () => !this.catalogColorsPending() && !this.isStockBalanced() && this.hasPendingWork(),
+  );
+
+  protected readonly showReadyToSaveBanner = computed(
+    () =>
+      !this.catalogColorsPending() &&
+      this.isStockBalanced() &&
+      this.dirtyColorCount() > 0,
+  );
 
   protected readonly colorJumpSuggestions = computed(() => {
     const q = this.colorJumpSearch().trim().toLowerCase();
@@ -211,10 +242,10 @@ export class ProductColorsComponent implements OnInit {
       .slice(0, 60);
   });
 
-  protected readonly attachedCount = computed(() => this.attachedColors().length);
+  protected readonly selectedCount = computed(() => this.selectedColorIds().size);
   protected readonly activeVariantCount = computed(
     () =>
-      this.attachedColors().filter((color) => (Number(color.stock) || 0) > 0)
+      this.linkedColors().filter((color) => (Number(color.stock) || 0) > 0)
         .length,
   );
 
@@ -253,6 +284,7 @@ export class ProductColorsComponent implements OnInit {
     this.persistSelectedSizeSnapshot();
     this.catalogColorsPending.set(true);
     this.colors.set([]);
+    this.clearColorSelection();
     this.bumpPanelStockSourceEpoch();
     this.loadColors(sid);
   }
@@ -265,40 +297,55 @@ export class ProductColorsComponent implements OnInit {
     return this.filterStatus() === status;
   }
 
-  protected onVariantAttachedChange(
-    color: ProductColorVariantRow,
-    nextChecked: boolean,
-  ): void {
-    if (nextChecked) {
-      color.variantAttached = true;
-      color.stock = Math.max(0, Math.trunc(Number(color.stock) || 0));
-      this.colors.update((rows) => [...rows]);
-      return;
-    }
-
-    if (color.isExists) {
-      color.variantAttached = true;
-      this.colors.update((rows) => [...rows]);
-      this.openConfirm({
-        title: 'Quitar variante de color',
-        message: `"${color.description}" ya está enlazado a esta talla. ¿Eliminar esta variante? Se eliminará la relación en el servidor.`,
-        confirmLabel: 'Sí, eliminar',
-        action: () => this.detachVariantWithApi(color),
-      });
-      return;
-    }
-
-    color.variantAttached = false;
-    this.colors.update((rows) => [...rows]);
+  protected isColorSelected(color: ProductColorVariantRow): boolean {
+    return this.selectedColorIds().has(color.id);
   }
 
-  protected onStockChange(color: ProductColorVariantRow): void {
+  protected isColorDirty(color: ProductColorVariantRow): boolean {
+    return !this.isColorAtInitialValues(color);
+  }
+
+  protected toggleColorSelection(
+    color: ProductColorVariantRow,
+    checked: boolean,
+  ): void {
+    if (checked) {
+      this.markColorSelected(color.id);
+      this.bumpColorRevisionEpoch();
+      return;
+    }
+
+    this.unmarkColorSelected(color.id);
+    if (!color.isExists) {
+      const snapshot = this.initialColorSnapshots.get(color.id);
+      this.patchColorRow(color.id, { stock: snapshot?.stock ?? 0 });
+    } else {
+      this.bumpColorRevisionEpoch();
+    }
+  }
+
+  protected onStockChange(
+    color: ProductColorVariantRow,
+    rawStock: number | string | null | undefined,
+  ): void {
     const stockNum = Math.max(
       0,
-      Math.trunc(Number(color.stock === '' as unknown ? 0 : color.stock) || 0),
+      Math.trunc(Number(rawStock === '' || rawStock == null ? 0 : rawStock) || 0),
     );
-    color.stock = stockNum;
-    this.colors.update((currentColors) => [...currentColors]);
+    this.patchColorRow(color.id, { stock: stockNum });
+
+    const updated = this.colors().find((row) => row.id === color.id);
+    if (!updated) {
+      return;
+    }
+
+    if (this.isColorAtInitialValues(updated)) {
+      this.unmarkColorSelected(updated.id);
+    } else {
+      this.markColorSelected(updated.id);
+    }
+
+    this.bumpColorRevisionEpoch();
   }
 
   protected onColorJumpInput(value: string): void {
@@ -388,12 +435,15 @@ export class ProductColorsComponent implements OnInit {
   }
 
   protected saveAllSelectedColors(): void {
-    const targets = this.attachedColors().filter(
-      (color) => !!color.productSizeId && color.variantAttached === true,
-    );
+    const targets = this.selectedColors().filter((color) => !!color.productSizeId);
 
     if (!targets.length) {
-      this.toastService.show('error', 'No hay variantes marcadas para guardar.');
+      this.toastService.show(
+        'error',
+        targets.length === 0 && this.selectedColors().length > 0
+          ? 'No hay vínculo producto–talla; guarde primero la talla en inventario.'
+          : 'No hay variantes seleccionadas para guardar.',
+      );
       return;
     }
 
@@ -419,30 +469,29 @@ export class ProductColorsComponent implements OnInit {
         complete: () => {
           this.saving.set(false);
           this.toastService.show('success', 'Cambios de color guardados.');
-          this.reloadCurrentColors();
+          this.markColorsSavedLocally(targets);
         },
         error: () => {
           this.saving.set(false);
           this.toastService.show('error', 'No se pudieron guardar todos los colores.');
-          this.reloadCurrentColors();
         },
       });
   }
 
   protected deleteAllSelectedColors(): void {
-    const removable = this.removableAttachedColors();
+    const removable = this.removableSelectedColors();
     if (!removable.length) {
       this.toastService.show(
         'error',
-        'No hay variantes guardadas para eliminar (solo están pendientes sin guardar).',
+        'Selecciona variantes guardadas para remover. Las pendientes sin guardar se descartan al desmarcar.',
       );
       return;
     }
 
     this.openConfirm({
-      title: 'Quitar todas las variantes enlazadas',
+      title: 'Quitar variantes seleccionadas',
       message: `Se eliminarán ${removable.length} variante(s) de color de esta talla. ¿Continuar?`,
-      confirmLabel: 'Sí, quitar todas',
+      confirmLabel: 'Sí, quitar seleccionadas',
       action: () => this.executeBulkRemove(removable),
     });
   }
@@ -468,12 +517,11 @@ export class ProductColorsComponent implements OnInit {
       next: () => {
         this.saving.set(false);
         this.toastService.show('success', 'Stock de color actualizado.');
-        this.reloadCurrentColors();
+        this.markColorsSavedLocally([color]);
       },
       error: () => {
         this.saving.set(false);
         this.toastService.show('error', 'Error al guardar la variante.');
-        this.reloadCurrentColors();
       },
     });
   }
@@ -514,7 +562,7 @@ export class ProductColorsComponent implements OnInit {
   protected canSaveAll(): boolean {
     return (
       !!this.selectedSize() &&
-      this.attachedColors().length > 0 &&
+      this.selectedColorIds().size > 0 &&
       this.isStockBalanced() &&
       !this.catalogColorsPending() &&
       !this.saving()
@@ -524,11 +572,73 @@ export class ProductColorsComponent implements OnInit {
   protected canRemoveAll(): boolean {
     return (
       !!this.selectedSize() &&
-      this.removableAttachedColors().length > 0 &&
-      this.isStockBalanced() &&
+      this.removableSelectedColors().length > 0 &&
       !this.catalogColorsPending() &&
       !this.saving()
     );
+  }
+
+  protected isColorLinked(color: ProductColorVariantRow): boolean {
+    if (color.isExists) {
+      return true;
+    }
+    if (this.isColorSelected(color)) {
+      return true;
+    }
+    return (Number(color.stock) || 0) > 0;
+  }
+
+  private clearColorSelection(): void {
+    this.selectedColorIds.set(new Set());
+    this.initialColorSnapshots.clear();
+  }
+
+  private syncColorSnapshots(rows: ProductColorVariantRow[]): void {
+    this.initialColorSnapshots.clear();
+    this.selectedColorIds.set(new Set());
+    for (const color of rows) {
+      this.initialColorSnapshots.set(color.id, this.captureColorSnapshot(color));
+    }
+    this.bumpColorRevisionEpoch();
+  }
+
+  private markColorRemovedLocally(color: ProductColorVariantRow): void {
+    this.markColorsRemovedLocally([color]);
+  }
+
+  private captureColorSnapshot(color: ProductColorVariantRow): ColorFieldSnapshot {
+    return {
+      stock: Math.max(0, Math.trunc(Number(color.stock) || 0)),
+      isExists: !!color.isExists,
+    };
+  }
+
+  private isColorAtInitialValues(color: ProductColorVariantRow): boolean {
+    const snapshot = this.initialColorSnapshots.get(color.id);
+    if (!snapshot) {
+      return true;
+    }
+    const stock = Math.max(0, Math.trunc(Number(color.stock) || 0));
+    return stock === snapshot.stock && !!color.isExists === snapshot.isExists;
+  }
+
+  private markColorSelected(colorId: number): void {
+    this.selectedColorIds.update((ids) => {
+      const next = new Set(ids);
+      next.add(colorId);
+      return next;
+    });
+  }
+
+  private unmarkColorSelected(colorId: number): void {
+    this.selectedColorIds.update((ids) => {
+      if (!ids.has(colorId)) {
+        return ids;
+      }
+      const next = new Set(ids);
+      next.delete(colorId);
+      return next;
+    });
   }
 
   private openConfirm(state: Omit<ConfirmState, 'action'> & { action: () => void }): void {
@@ -589,6 +699,7 @@ export class ProductColorsComponent implements OnInit {
           }
 
           this.colors.set(rows);
+          this.syncColorSnapshots(rows);
           this.catalogColorsPending.set(false);
           this.syncSizesProductSizeMeta(sid);
         },
@@ -599,6 +710,92 @@ export class ProductColorsComponent implements OnInit {
           }
         },
       });
+  }
+
+  private markColorsSavedLocally(colors: ProductColorVariantRow[]): void {
+    if (!colors.length) {
+      return;
+    }
+
+    const savedIds = new Set(colors.map((color) => color.id));
+    this.colors.update((rows) =>
+      rows.map((row) => {
+        if (!savedIds.has(row.id)) {
+          return row;
+        }
+        const saved = colors.find((color) => color.id === row.id) ?? row;
+        const stock = Math.max(0, Math.trunc(Number(saved.stock) || 0));
+        return {
+          ...row,
+          stock,
+          isExists: true,
+          variantAttached: true,
+        };
+      }),
+    );
+
+    for (const color of colors) {
+      const row = this.colors().find((item) => item.id === color.id);
+      if (row) {
+        this.initialColorSnapshots.set(color.id, this.captureColorSnapshot(row));
+      }
+      this.unmarkColorSelected(color.id);
+    }
+
+    this.bumpColorRevisionEpoch();
+    this.refreshMasterStockFromServer();
+  }
+
+  private markColorsRemovedLocally(colors: ProductColorVariantRow[]): void {
+    if (!colors.length) {
+      return;
+    }
+
+    const removedIds = new Set(colors.map((color) => color.id));
+    this.colors.update((rows) =>
+      rows.map((row) => {
+        if (!removedIds.has(row.id)) {
+          return row;
+        }
+        return {
+          ...row,
+          stock: 0,
+          isExists: false,
+          variantAttached: false,
+        };
+      }),
+    );
+
+    for (const color of colors) {
+      const row = this.colors().find((item) => item.id === color.id);
+      if (row) {
+        this.initialColorSnapshots.set(color.id, this.captureColorSnapshot(row));
+      }
+      this.unmarkColorSelected(color.id);
+    }
+
+    this.bumpColorRevisionEpoch();
+    this.refreshMasterStockFromServer();
+  }
+
+  private patchColorRow(
+    colorId: number,
+    patch: Partial<ProductColorVariantRow>,
+  ): void {
+    this.colors.update((rows) =>
+      rows.map((row) => (row.id === colorId ? { ...row, ...patch } : row)),
+    );
+  }
+
+  private bumpColorRevisionEpoch(): void {
+    this.colorRevisionEpoch.update((value) => value + 1);
+  }
+
+  private refreshMasterStockFromServer(): void {
+    const sizeId = this.selectedSize()?.id;
+    if (sizeId != null) {
+      this.syncSizesProductSizeMeta(Number(sizeId));
+    }
   }
 
   private reloadCurrentColors(): void {
@@ -726,6 +923,7 @@ export class ProductColorsComponent implements OnInit {
     this.catalogColorsPending.set(false);
     this.selectedSize.set(null);
     this.colors.set([]);
+    this.clearColorSelection();
     localStorage.removeItem(SELECTED_SIZE_KEY);
     this.bumpPanelStockSourceEpoch();
   }
@@ -745,11 +943,11 @@ export class ProductColorsComponent implements OnInit {
         next: () => {
           this.finishConfirm();
           this.toastService.show('success', 'Variante de color eliminada.');
-          this.reloadCurrentColors();
+          this.markColorRemovedLocally(color);
         },
         error: () => {
           this.finishConfirm();
-          this.reloadCurrentColors();
+          this.toastService.show('error', 'No se pudo eliminar la variante.');
         },
       });
   }
@@ -768,12 +966,11 @@ export class ProductColorsComponent implements OnInit {
         complete: () => {
           this.finishConfirm();
           this.toastService.show('success', 'Colores removidos.');
-          this.reloadCurrentColors();
+          this.markColorsRemovedLocally(toRemove);
         },
         error: () => {
           this.finishConfirm();
           this.toastService.show('error', 'No se pudieron remover todos los colores.');
-          this.reloadCurrentColors();
         },
       });
   }
