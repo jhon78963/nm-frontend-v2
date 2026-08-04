@@ -71,13 +71,7 @@ export class AuthService {
   }
 
   login(credentials: LoginRequest): Observable<AuthUser> {
-    const csrf$ = this.csrfTokenService.getToken()
-      ? of(this.csrfTokenService.getToken()!)
-      : this.fetchCsrfHandshake().pipe(
-          tap((token) => this.csrfTokenService.setToken(token)),
-        );
-
-    return csrf$.pipe(
+    return this.csrfTokenService.ensureToken().pipe(
       switchMap(() =>
         this.http.post<AuthUser | { data: AuthUser }>(
           `${environment.apiUrl}/auth/login`,
@@ -92,7 +86,7 @@ export class AuthService {
 
   getMe(): Observable<AuthUser> {
     return this.http
-      .post<AuthUser | { data: AuthUser }>(`${environment.apiUrl}/auth/me`, {})
+      .get<AuthUser | { data: AuthUser }>(`${environment.apiUrl}/auth/me`)
       .pipe(map((response) => adaptAuthUser(response)));
   }
 
@@ -124,6 +118,10 @@ export class AuthService {
     const cachedUser = this.currentUser();
     if (cachedUser?.username?.trim()) {
       return of(cachedUser);
+    }
+
+    if (!this.hasLocalSession()) {
+      return of(null);
     }
 
     if (!this.sessionLoadRequest$) {

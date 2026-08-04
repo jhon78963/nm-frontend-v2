@@ -1,0 +1,476 @@
+<div class="flex min-h-[calc(100dvh-8rem)] flex-col bg-slate-50">
+  <header class="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur-sm">
+    <div class="mx-auto max-w-7xl px-4 py-4 sm:px-6">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div class="min-w-0">
+          <div class="flex items-center gap-3">
+            <div
+              class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white shadow-lg shadow-violet-200"
+              aria-hidden="true"
+            >
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 00-2.455 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+              </svg>
+            </div>
+            <div>
+              <h1 class="text-xl font-bold tracking-tight text-gray-900 sm:text-2xl">
+                Asistente IA
+              </h1>
+              <p class="mt-0.5 text-sm text-gray-500">
+                Optimización de precios y predicción de demanda para tu inventario
+              </p>
+            </div>
+          </div>
+
+          <nav class="mt-3 flex flex-wrap gap-2" aria-label="Reportes relacionados">
+            <a
+              routerLink="/inventories/products"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+            >
+              Catálogo de productos
+            </a>
+            <a
+              routerLink="/inventories/purchases/register"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+            >
+              Registrar compra
+            </a>
+            <a
+              routerLink="/reports"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 transition-colors hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+            >
+              Reportes gerenciales
+            </a>
+          </nav>
+        </div>
+      </div>
+
+      <div
+        class="mt-4 flex gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-gray-100 p-1"
+        role="tablist"
+        aria-label="Tipo de predicción"
+      >
+        <button
+          type="button"
+          role="tab"
+          class="min-w-[140px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+          [class.bg-white]="activeTab() === 'price'"
+          [class.text-violet-700]="activeTab() === 'price'"
+          [class.shadow-sm]="activeTab() === 'price'"
+          [class.text-gray-600]="activeTab() !== 'price'"
+          [class.hover:text-gray-900]="activeTab() !== 'price'"
+          [attr.aria-selected]="activeTab() === 'price'"
+          (click)="setActiveTab('price')"
+        >
+          Optimizar precio
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="min-w-[140px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+          [class.bg-white]="activeTab() === 'demand'"
+          [class.text-violet-700]="activeTab() === 'demand'"
+          [class.shadow-sm]="activeTab() === 'demand'"
+          [class.text-gray-600]="activeTab() !== 'demand'"
+          [class.hover:text-gray-900]="activeTab() !== 'demand'"
+          [attr.aria-selected]="activeTab() === 'demand'"
+          (click)="setActiveTab('demand')"
+        >
+          Predicción de demanda
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">
+    <section
+      class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6"
+      aria-labelledby="product-search-heading"
+    >
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div class="min-w-0">
+          <h2 id="product-search-heading" class="text-base font-semibold text-gray-900">
+            Producto a analizar
+          </h2>
+          <p class="mt-1 text-sm text-gray-500">
+            Busca y selecciona un producto. Los datos se cargan automáticamente desde tu inventario y ventas.
+          </p>
+        </div>
+
+        @if (selectedProduct()) {
+          <button
+            type="button"
+            class="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+            (click)="clearSelectedProduct()"
+          >
+            Limpiar selección
+          </button>
+        }
+      </div>
+
+      <div class="relative mt-4">
+        <label for="ai-product-search" class="sr-only">Buscar producto</label>
+        <input
+          id="ai-product-search"
+          type="search"
+          autocomplete="off"
+          placeholder="Escribe al menos 2 caracteres…"
+          class="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 transition-colors placeholder:text-gray-400 focus:border-violet-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20"
+          [value]="productQuery()"
+          (input)="onProductSearchInput($event)"
+          (focus)="openProductDropdown()"
+          (blur)="closeProductDropdown()"
+        />
+
+        @if (productDropdownOpen() && productResults().length > 0) {
+          <ul
+            class="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white py-1 shadow-xl"
+            role="listbox"
+            aria-label="Resultados de productos"
+          >
+            @for (item of productResults(); track item.id) {
+              <li role="option">
+                <button
+                  type="button"
+                  class="w-full px-4 py-3 text-left text-sm transition-colors hover:bg-violet-50 focus-visible:bg-violet-50 focus-visible:outline-none"
+                  (mousedown)="$event.preventDefault(); onProductPicked(item)"
+                >
+                  <span class="font-medium text-gray-900">{{ item.name }}</span>
+                  <span class="mt-0.5 block text-xs text-gray-500">
+                    ID {{ item.id }} · {{ item.gender }} · Stock {{ item.stock }} ·
+                    Venta S/ {{ item.salePrice | number: '1.2-2' }}
+                  </span>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+
+        @if (productSearching()) {
+          <p class="mt-2 text-xs text-gray-500" aria-live="polite">Buscando productos…</p>
+        }
+      </div>
+
+      @if (contextLoading()) {
+        <div class="mt-4 flex items-center gap-3 rounded-xl border border-violet-100 bg-violet-50/60 px-4 py-5" aria-live="polite">
+          <svg class="h-5 w-5 animate-spin text-violet-600" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <p class="text-sm text-violet-800">Cargando datos del producto desde la base de datos…</p>
+        </div>
+      } @else if (contextError()) {
+        <div class="mt-4">
+          <app-alert variant="error" [message]="contextError()!" />
+        </div>
+      } @else if (productContext(); as context) {
+        <div class="mt-4 grid grid-cols-2 gap-3 rounded-xl border border-violet-100 bg-violet-50/60 p-4 sm:grid-cols-3 lg:grid-cols-6">
+          <div>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-violet-500">ID</p>
+            <p class="mt-0.5 text-sm font-semibold text-gray-900">{{ context.productId }}</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-violet-500">Categoría</p>
+            <p class="mt-0.5 text-sm font-semibold text-gray-900">{{ context.category }}</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-violet-500">Costo</p>
+            <p class="mt-0.5 text-sm font-semibold text-gray-900">
+              @if (context.canViewCost) {
+                S/ {{ context.currentCost | number: '1.2-2' }}
+              } @else {
+                Sin permiso
+              }
+            </p>
+          </div>
+          <div>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-violet-500">Precio actual</p>
+            <p class="mt-0.5 text-sm font-semibold text-gray-900">S/ {{ context.salePrice | number: '1.2-2' }}</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-violet-500">Ventas (30 días)</p>
+            <p class="mt-0.5 text-sm font-semibold text-gray-900">{{ context.salesLastMonth }} uds.</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-violet-500">Stock</p>
+            <p class="mt-0.5 text-sm font-semibold text-gray-900">{{ context.currentStock }} uds.</p>
+          </div>
+        </div>
+      } @else {
+        <div class="mt-4 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-5 text-center text-sm text-gray-500">
+          Selecciona un producto para cargar sus datos y habilitar el análisis con IA.
+        </div>
+      }
+    </section>
+
+    <div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
+      @if (activeTab() === 'price') {
+        <section
+          class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6"
+          role="tabpanel"
+          aria-label="Optimización de precio"
+        >
+          <div class="mb-5">
+            <h2 class="text-lg font-semibold text-gray-900">Optimización de precio</h2>
+            <p class="mt-1 text-sm text-gray-500">
+              El motor usa costo, categoría y ventas de los últimos 30 días desde tu base de datos.
+            </p>
+          </div>
+
+          @if (productContext(); as context) {
+            @if (!context.canViewCost) {
+              <app-alert
+                variant="warning"
+                message="No tienes permiso para ver costos de compra. Solicita el permiso product.view_purchase_price para usar esta función."
+              />
+            } @else if (context.currentCost <= 0) {
+              <app-alert
+                variant="warning"
+                message="Este producto no tiene costo de compra registrado. Actualízalo en el catálogo antes de calcular."
+              />
+            }
+          }
+
+          @if (priceError()) {
+            <div class="mb-4">
+              <app-alert variant="error" [message]="priceError()!" />
+            </div>
+          }
+
+          <app-button
+            [disabled]="!canSubmitPrice()"
+            [loading]="priceLoading()"
+            (clicked)="submitPriceOptimization()"
+          >
+            Calcular precio sugerido
+          </app-button>
+        </section>
+
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+          <div class="mb-5">
+            <h2 class="text-lg font-semibold text-gray-900">Resultado</h2>
+            <p class="mt-1 text-sm text-gray-500">
+              Comparación entre el precio actual y la recomendación del modelo.
+            </p>
+          </div>
+
+          @if (priceLoading()) {
+            <div class="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-gray-200 bg-gray-50 py-16" aria-live="polite">
+              <svg class="h-8 w-8 animate-spin text-violet-600" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <p class="text-sm text-gray-500">Analizando datos del producto…</p>
+            </div>
+          } @else if (priceResult(); as result) {
+            <div class="space-y-4">
+              <div class="rounded-2xl bg-gradient-to-br from-violet-600 to-indigo-700 p-5 text-white shadow-lg">
+                <p class="text-xs font-semibold uppercase tracking-wider text-violet-200">
+                  Precio sugerido
+                </p>
+                <p class="mt-1 text-3xl font-bold tracking-tight">
+                  S/ {{ result.suggestedPrice | number: '1.2-2' }}
+                </p>
+                @if (priceDelta() != null && priceDeltaPercent() != null) {
+                  <p class="mt-2 text-sm text-violet-100">
+                    @if (priceDelta()! > 0) {
+                      +S/ {{ priceDelta()! | number: '1.2-2' }} (+{{ priceDeltaPercent()! | number: '1.1-1' }}%) vs precio actual
+                    } @else if (priceDelta()! < 0) {
+                      S/ {{ priceDelta()! | number: '1.2-2' }} ({{ priceDeltaPercent()! | number: '1.1-1' }}%) vs precio actual
+                    } @else {
+                      Sin cambio respecto al precio actual
+                    }
+                  </p>
+                }
+              </div>
+
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Precio mínimo viable</p>
+                  <p class="mt-1 text-xl font-bold text-gray-900">S/ {{ result.minimumPrice | number: '1.2-2' }}</p>
+                  <p class="mt-1 text-xs text-gray-500">Costo + 80% margen mínimo retail</p>
+                </div>
+                <div class="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                  <p class="text-xs font-semibold uppercase tracking-wider text-emerald-600">Margen sobre costo</p>
+                  <p class="mt-1 text-xl font-bold text-emerald-800">+{{ result.markupOverCostPercent | number: '1.1-1' }}%</p>
+                  <p class="mt-1 text-xs text-emerald-700">Ganancia bruta sugerida por unidad</p>
+                </div>
+              </div>
+
+              @if (result.recommendationSummary) {
+                <app-alert variant="info" [message]="result.recommendationSummary" />
+              }
+
+              <app-alert
+                variant="info"
+                message="Usa esta sugerencia como referencia. Valida márgenes, promociones activas y estrategia comercial antes de actualizar el precio en catálogo."
+              />
+            </div>
+          } @else {
+            <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50 py-16 text-center">
+              <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-100 text-violet-600" aria-hidden="true">
+                <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
+                </svg>
+              </div>
+              <p class="mt-4 text-sm font-medium text-gray-700">Aún no hay resultado</p>
+              <p class="mt-1 max-w-xs text-xs text-gray-500">
+                Selecciona un producto y pulsa «Calcular precio sugerido».
+              </p>
+            </div>
+          }
+        </section>
+      }
+
+      @if (activeTab() === 'demand') {
+        <section
+          class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6"
+          role="tabpanel"
+          aria-label="Predicción de demanda"
+        >
+          <div class="mb-5">
+            <h2 class="text-lg font-semibold text-gray-900">Predicción de demanda</h2>
+            <p class="mt-1 text-sm text-gray-500">
+              Stock actual desde inventario. Solo ajusta el horizonte de proyección si lo necesitas.
+            </p>
+          </div>
+
+          <div class="mb-5">
+            <label for="horizon-days" class="mb-1.5 block text-sm font-medium text-gray-700">
+              Horizonte de proyección (días)
+            </label>
+            <input
+              id="horizon-days"
+              type="number"
+              min="1"
+              max="365"
+              class="w-full max-w-xs rounded-xl border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 transition-colors focus:border-violet-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+              [disabled]="!productContext() || demandLoading()"
+              [value]="horizonDays()"
+              (input)="updateHorizonDays($any($event.target).value)"
+            />
+            <p class="mt-1.5 text-xs text-gray-500">Predeterminado: 30 días. Rango: 1–365.</p>
+          </div>
+
+          @if (demandError()) {
+            <div class="mb-4">
+              <app-alert variant="error" [message]="demandError()!" />
+            </div>
+          }
+
+          <app-button
+            [disabled]="!canSubmitDemand()"
+            [loading]="demandLoading()"
+            (clicked)="submitDemandPrediction()"
+          >
+            Predecir demanda
+          </app-button>
+        </section>
+
+        <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+          <div class="mb-5">
+            <h2 class="text-lg font-semibold text-gray-900">Resultado</h2>
+            <p class="mt-1 text-sm text-gray-500">
+              Proyección de ventas y cantidad sugerida para la próxima compra.
+            </p>
+          </div>
+
+          @if (demandLoading()) {
+            <div class="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-gray-200 bg-gray-50 py-16" aria-live="polite">
+              <svg class="h-8 w-8 animate-spin text-violet-600" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+              <p class="text-sm text-gray-500">Proyectando demanda…</p>
+            </div>
+          } @else if (demandResult(); as result) {
+            <div class="space-y-4">
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div class="rounded-xl border border-indigo-200 bg-indigo-50 p-4">
+                  <p class="text-xs font-semibold uppercase tracking-wider text-indigo-600">Ventas proyectadas</p>
+                  <p class="mt-1 text-2xl font-bold text-indigo-900">{{ result.projectedSales }}</p>
+                  <p class="mt-1 text-xs text-indigo-700">Unidades en {{ horizonDays() }} días</p>
+                </div>
+
+                <div
+                  class="rounded-xl border p-4"
+                  [class.border-emerald-200]="restockUrgency() === 'ok'"
+                  [class.bg-emerald-50]="restockUrgency() === 'ok'"
+                  [class.border-amber-200]="restockUrgency() === 'medium'"
+                  [class.bg-amber-50]="restockUrgency() === 'medium'"
+                  [class.border-red-200]="restockUrgency() === 'high'"
+                  [class.bg-red-50]="restockUrgency() === 'high'"
+                >
+                  <p
+                    class="text-xs font-semibold uppercase tracking-wider"
+                    [class.text-emerald-600]="restockUrgency() === 'ok'"
+                    [class.text-amber-600]="restockUrgency() === 'medium'"
+                    [class.text-red-600]="restockUrgency() === 'high'"
+                  >
+                    Compra sugerida
+                  </p>
+                  <p
+                    class="mt-1 text-2xl font-bold"
+                    [class.text-emerald-900]="restockUrgency() === 'ok'"
+                    [class.text-amber-900]="restockUrgency() === 'medium'"
+                    [class.text-red-900]="restockUrgency() === 'high'"
+                  >
+                    {{ result.suggestedPurchaseQuantity }}
+                  </p>
+                  <p
+                    class="mt-1 text-xs"
+                    [class.text-emerald-700]="restockUrgency() === 'ok'"
+                    [class.text-amber-700]="restockUrgency() === 'medium'"
+                    [class.text-red-700]="restockUrgency() === 'high'"
+                  >
+                    @switch (restockUrgency()) {
+                      @case ('ok') { Stock suficiente para el horizonte }
+                      @case ('medium') { Considera reponer pronto }
+                      @case ('high') { Alta prioridad de restock }
+                    }
+                  </p>
+                </div>
+              </div>
+
+              @if (productContext(); as context) {
+                <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+                  <p class="text-xs font-semibold uppercase tracking-wider text-gray-400">Stock actual</p>
+                  <p class="mt-1 text-lg font-semibold text-gray-900">{{ context.currentStock }} unidades</p>
+                </div>
+              }
+
+              @if (result.suggestedPurchaseQuantity > 0) {
+                <a
+                  routerLink="/inventories/purchases/register"
+                  class="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm font-semibold text-violet-700 transition-colors hover:bg-violet-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+                >
+                  Ir a registrar compra
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </a>
+              }
+
+              <app-alert
+                variant="info"
+                message="La predicción usa el historial del motor de IA. Ajusta el horizonte según tu ciclo de compras y temporada comercial."
+              />
+            </div>
+          } @else {
+            <div class="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50 py-16 text-center">
+              <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-100 text-indigo-600" aria-hidden="true">
+                <svg class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                </svg>
+              </div>
+              <p class="mt-4 text-sm font-medium text-gray-700">Aún no hay proyección</p>
+              <p class="mt-1 max-w-xs text-xs text-gray-500">
+                Selecciona un producto y pulsa «Predecir demanda».
+              </p>
+            </div>
+          }
+        </section>
+      }
+    </div>
+  </main>
+</div>

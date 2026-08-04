@@ -1,5 +1,5 @@
 import { Injector, inject, Injectable } from '@angular/core';
-import { defer, Observable, of, tap } from 'rxjs';
+import { defer, Observable, of, shareReplay, tap } from 'rxjs';
 import { AuthService } from '../../features/auth/data-access/auth.service';
 
 @Injectable({ providedIn: 'root' })
@@ -34,6 +34,7 @@ export class CsrfTokenService {
         tap((token) => {
           this.token = token;
         }),
+        shareReplay({ bufferSize: 1, refCount: false }),
       );
     }
 

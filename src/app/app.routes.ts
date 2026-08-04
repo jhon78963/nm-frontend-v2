@@ -72,6 +72,12 @@ export const routes: Routes = [
         loadChildren: () => import('./features/expenses/expenses.routes'),
       },
       {
+        path: 'ai',
+        title: 'Asistente IA',
+        data: { breadcrumb: 'Asistente IA' },
+        loadChildren: () => import('./features/ai/ai.routes'),
+      },
+      {
         path: 'financial-summaries',
         redirectTo: 'reports/financial-summaries',
         pathMatch: 'full',

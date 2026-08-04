@@ -30,21 +30,19 @@
           </p>
           <ul class="space-y-1">
             @for (item of group.items ?? []; track item.route) {
+              @let active = isNavActive(item, group.items ?? []);
               <li>
                 <a
                   [routerLink]="item.route"
-                  routerLinkActive
-                  #navLink="routerLinkActive"
-                  [routerLinkActiveOptions]="{ exact: true }"
                   class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900"
-                  [class.bg-orange-50]="navLink.isActive"
-                  [class.text-orange-600]="navLink.isActive"
-                  [attr.aria-current]="navLink.isActive ? 'page' : null"
+                  [class.bg-orange-50]="active"
+                  [class.text-orange-600]="active"
+                  [attr.aria-current]="active ? 'page' : null"
                   (click)="closeMobileMenu()"
                 >
                   <span
                     class="h-1.5 w-1.5 shrink-0 rounded-full bg-gray-300"
-                    [class.bg-orange-500]="navLink.isActive"
+                    [class.bg-orange-500]="active"
                     aria-hidden="true"
                   ></span>
                   {{ item.label }}

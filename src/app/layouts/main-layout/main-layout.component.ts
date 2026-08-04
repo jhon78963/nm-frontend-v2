@@ -1,6 +1,6 @@
 import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { buildBreadcrumbPaths } from '../../core/navigation/breadcrumb.util';
 import { AuthService } from '../../features/auth/data-access/auth.service';
@@ -19,7 +19,7 @@ export interface NavItem {
 
 @Component({
   selector: 'app-main-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, BreadcrumbComponent],
+  imports: [RouterOutlet, RouterLink, BreadcrumbComponent],
   templateUrl: './main-layout.component.html',
 })
 export class MainLayoutComponent implements OnInit {
@@ -31,6 +31,7 @@ export class MainLayoutComponent implements OnInit {
   protected readonly isProfileMenuOpen = signal(false);
   protected readonly breadcrumbPaths = signal<BreadcrumbPath[]>([]);
   protected readonly sessionReady = signal(false);
+  protected readonly currentUrl = signal(this.router.url);
 
   private readonly allNavItems: NavItem[] = [
     {
@@ -95,6 +96,7 @@ export class MainLayoutComponent implements OnInit {
         { label: 'Reportes', route: '/reports', permission: 'report.index' },
         { label: 'Productos (inventario)', route: '/reports/products', permission: 'report.products' },
         { label: 'Resumen Financiero', route: '/reports/financial-summaries', permission: 'financialSummary.getSummary' },
+        { label: 'Asistente IA', route: '/ai', permissions: ['product.get', 'product.getAll'] },
       ],
     },
   ];
@@ -120,6 +122,7 @@ export class MainLayoutComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
+        this.currentUrl.set(this.router.url);
         this.breadcrumbPaths.set(
           buildBreadcrumbPaths(this.router.routerState.snapshot.root),
         );
@@ -184,5 +187,26 @@ export class MainLayoutComponent implements OnInit {
     }
 
     return true;
+  }
+
+  protected isNavActive(item: NavItem, siblings: NavItem[]): boolean {
+    const route = item.route;
+    if (!route) {
+      return false;
+    }
+
+    const url = this.currentUrl().split('?')[0];
+    const matchesRoute = (candidate: string): boolean =>
+      url === candidate || url.startsWith(`${candidate}/`);
+
+    if (!matchesRoute(route)) {
+      return false;
+    }
+
+    const bestMatch = siblings
+      .filter((sibling) => sibling.route && matchesRoute(sibling.route))
+      .sort((a, b) => b.route!.length - a.route!.length)[0];
+
+    return bestMatch?.route === route;
   }
 }
