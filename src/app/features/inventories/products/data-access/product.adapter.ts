@@ -26,6 +26,19 @@ function readString(value: unknown, fallback = ''): string {
   return value == null ? fallback : String(value);
 }
 
+export function extractApiList(raw: unknown): unknown[] {
+  if (Array.isArray(raw)) {
+    return raw;
+  }
+
+  if (raw && typeof raw === 'object' && 'data' in raw) {
+    const data = (raw as { data?: unknown }).data;
+    return Array.isArray(data) ? data : [];
+  }
+
+  return [];
+}
+
 function readBoolean(value: unknown, fallback = false): boolean {
   if (typeof value === 'boolean') return value;
   return fallback;

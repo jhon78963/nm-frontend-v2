@@ -20,6 +20,14 @@ import {
   SizeType,
 } from '../../models/product.model';
 
+interface SizeFieldSnapshot {
+  barcode: string;
+  stock: number | null;
+  purchasePrice: number | null;
+  salePrice: number | null;
+  minSalePrice: number | null;
+}
+
 @Component({
   selector: 'app-product-sizes',
   imports: [FormsModule, RouterLink, ButtonComponent],
@@ -40,6 +48,8 @@ export class ProductSizesComponent implements OnInit {
   protected readonly sizeTypes = signal<SizeType[]>([]);
   protected readonly selectedSizeTypeIds = signal<number[]>([1]);
   protected readonly selectedSizes = signal<ProductSize[]>([]);
+
+  private readonly initialSizeSnapshots = new Map<number, SizeFieldSnapshot>();
 
   ngOnInit(): void {
     const id = this.route.parent?.snapshot.paramMap.get('id');
@@ -96,6 +106,10 @@ export class ProductSizesComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (sizes) => {
+          this.initialSizeSnapshots.clear();
+          for (const size of sizes) {
+            this.initialSizeSnapshots.set(size.id, this.captureSizeSnapshot(size));
+          }
           this.sizes.set(sizes);
           this.selectedSizes.set([]);
           this.loading.set(false);
@@ -146,25 +160,24 @@ export class ProductSizesComponent implements OnInit {
   }
 
   protected onSizeFieldChange(size: ProductSize): void {
-    if (size.isExists) {
-      return;
-    }
-
-    const isEmpty =
-      !size.barcode?.toString().trim() &&
-      (size.stock == null || `${size.stock}`.trim() === '') &&
-      (size.purchasePrice == null || `${size.purchasePrice}`.trim() === '') &&
-      (size.salePrice == null || `${size.salePrice}`.trim() === '') &&
-      (size.minSalePrice == null || `${size.minSalePrice}`.trim() === '');
-
-    if (isEmpty) {
+    if (this.isSizeAtInitialValues(size)) {
       this.selectedSizes.update((items) => items.filter((s) => s.id !== size.id));
       return;
     }
 
+    this.markSizeSelected(size);
+  }
+
+  protected markSizeSelected(size: ProductSize): void {
     if (!this.isSizeSelected(size)) {
       this.selectedSizes.update((items) => [...items, size]);
     }
+  }
+
+  protected someSelected(): boolean {
+    const selected = this.selectedSizes().length;
+    const total = this.sizes().length;
+    return selected > 0 && selected < total;
   }
 
   protected saveAllSelectedSizes(): void {
@@ -310,5 +323,40 @@ export class ProductSizesComponent implements OnInit {
       minSalePrice:
         size.minSalePrice != null ? Number(size.minSalePrice) : undefined,
     };
+  }
+
+  private captureSizeSnapshot(size: ProductSize): SizeFieldSnapshot {
+    return {
+      barcode: (size.barcode ?? '').toString().trim(),
+      stock: this.normalizeNullableNumber(size.stock),
+      purchasePrice: this.normalizeNullableNumber(size.purchasePrice),
+      salePrice: this.normalizeNullableNumber(size.salePrice),
+      minSalePrice: this.normalizeNullableNumber(size.minSalePrice),
+    };
+  }
+
+  private isSizeAtInitialValues(size: ProductSize): boolean {
+    const initial = this.initialSizeSnapshots.get(size.id);
+    if (!initial) {
+      return true;
+    }
+
+    const current = this.captureSizeSnapshot(size);
+    return (
+      current.barcode === initial.barcode &&
+      current.stock === initial.stock &&
+      current.purchasePrice === initial.purchasePrice &&
+      current.salePrice === initial.salePrice &&
+      current.minSalePrice === initial.minSalePrice
+    );
+  }
+
+  private normalizeNullableNumber(value: unknown): number | null {
+    if (value == null || `${value}`.trim() === '') {
+      return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 }
