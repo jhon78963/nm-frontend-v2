@@ -19,6 +19,12 @@ export interface AiProductContext {
   currentStock: number;
   salePrice: number;
   canViewCost: boolean;
+  productAgeDays: number;
+  daysSinceLastSale: number;
+  totalSalesAllTime: number;
+  isDeadStock: boolean;
+  deadStockTier: string;
+  deadStockLabel: string;
 }
 
 export interface PriceOptimizationResult {

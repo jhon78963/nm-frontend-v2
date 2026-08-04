@@ -1,7 +1,10 @@
 import {
+  ColorPurchaseSuggestion,
+  ProductInventoryAi,
   ProductInventoryColor,
   ProductInventoryItem,
   ProductInventorySize,
+  ProductsInventoryAiSummary,
   ProductsInventoryTableRow,
 } from '../models/products-inventory.model';
 
@@ -47,6 +50,34 @@ function adaptSize(raw: unknown): ProductInventorySize {
   };
 }
 
+function adaptAi(raw: unknown): ProductInventoryAi | undefined {
+  if (!raw || typeof raw !== 'object') {
+    return undefined;
+  }
+
+  const r = raw as Record<string, unknown>;
+
+  return {
+    suggestedPrice: toNullableNumber(r['suggested_price'] ?? r['suggestedPrice']),
+    suggestedMinPrice: toNullableNumber(
+      r['suggested_min_price'] ?? r['minimum_price'] ?? r['suggestedMinPrice'],
+    ),
+    suggestedPurchaseQuantity: toNullableNumber(
+      r['suggested_purchase_quantity'] ?? r['suggestedPurchaseQuantity'],
+    ),
+    projectedSales: toNullableNumber(r['projected_sales'] ?? r['projectedSales']),
+    isDeadStock: Boolean(r['is_dead_stock'] ?? r['isDeadStock']),
+    priceError:
+      r['price_error'] != null && r['price_error'] !== ''
+        ? String(r['price_error'])
+        : null,
+    demandError:
+      r['demand_error'] != null && r['demand_error'] !== ''
+        ? String(r['demand_error'])
+        : null,
+  };
+}
+
 export function adaptProductInventoryItem(raw: unknown): ProductInventoryItem {
   const r = raw as Record<string, unknown>;
   const sizesRaw = r['sizes'];
@@ -55,14 +86,38 @@ export function adaptProductInventoryItem(raw: unknown): ProductInventoryItem {
     id: toNumber(r['id']),
     name: String(r['name'] ?? ''),
     sizes: Array.isArray(sizesRaw) ? sizesRaw.map(adaptSize) : [],
+    ai: adaptAi(r['ai']),
   };
 }
 
 export function adaptProductsInventoryList(raw: unknown): ProductInventoryItem[] {
-  const envelope = raw as { data?: unknown[]; success?: boolean };
-  const data = envelope?.data ?? (Array.isArray(raw) ? raw : []);
+  const envelope = raw as { data?: unknown[] | { products?: unknown[] }; success?: boolean };
+  const nested = envelope?.data;
 
-  return Array.isArray(data) ? data.map(adaptProductInventoryItem) : [];
+  if (nested && typeof nested === 'object' && !Array.isArray(nested) && 'products' in nested) {
+    const products = (nested as { products?: unknown[] }).products;
+    return Array.isArray(products) ? products.map(adaptProductInventoryItem) : [];
+  }
+
+  const data = Array.isArray(nested) ? nested : Array.isArray(raw) ? raw : [];
+
+  return data.map(adaptProductInventoryItem);
+}
+
+export function adaptProductsInventoryAiSummary(raw: unknown): ProductsInventoryAiSummary | null {
+  const envelope = raw as {
+    data?: { ai_summary?: Record<string, unknown> };
+  };
+  const summary = envelope?.data?.ai_summary;
+  if (!summary) {
+    return null;
+  }
+
+  return {
+    processed: toNumber(summary['processed']),
+    errors: toNumber(summary['errors']),
+    deadStockCount: toNumber(summary['dead_stock_count'] ?? summary['deadStockCount']),
+  };
 }
 
 export function formatColorsSummary(colors: ProductInventoryColor[]): string {
@@ -72,13 +127,35 @@ export function formatColorsSummary(colors: ProductInventoryColor[]): string {
   return colors.map((color) => `${color.stock} ${color.color}`).join(', ');
 }
 
+export function distributeByColor(
+  colors: ProductInventoryColor[],
+  total: number,
+): ColorPurchaseSuggestion[] | null {
+  if (colors.length === 0 || total <= 0) {
+    return null;
+  }
+  const base = Math.floor(total / colors.length);
+  const remainder = total - base * colors.length;
+  return colors.map((c, i) => ({
+    color: c.color,
+    quantity: base + (i < remainder ? 1 : 0),
+  }));
+}
+
 export function buildProductsInventoryTableRows(
   products: ProductInventoryItem[],
 ): ProductsInventoryTableRow[] {
   const rows: ProductsInventoryTableRow[] = [];
 
   for (const product of products) {
-    rows.push({ kind: 'product', name: product.name });
+    const isDeadStock = product.ai?.isDeadStock ?? false;
+
+    rows.push({ kind: 'product', name: product.name, isDeadStock });
+
+    const aiSuggestedPrice = product.ai?.suggestedPrice ?? null;
+    const aiSuggestedMinPrice = product.ai?.suggestedMinPrice ?? null;
+    const aiSuggestedPurchase = product.ai?.suggestedPurchaseQuantity ?? null;
+    const aiPriceError = product.ai?.priceError ?? null;
 
     if (product.sizes.length === 0) {
       rows.push({
@@ -92,6 +169,12 @@ export function buildProductsInventoryTableRows(
         colorsSummary: '—',
         colorsStockSum: null,
         stockMismatch: false,
+        aiSuggestedPrice,
+        aiSuggestedMinPrice,
+        aiSuggestedPurchase,
+        colorPurchases: null,
+        aiPriceError,
+        isDeadStock,
       });
       continue;
     }
@@ -114,6 +197,12 @@ export function buildProductsInventoryTableRows(
         colorsSummary: formatColorsSummary(size.colors),
         colorsStockSum,
         stockMismatch,
+        aiSuggestedPrice,
+        aiSuggestedMinPrice,
+        aiSuggestedPurchase,
+        colorPurchases: distributeByColor(size.colors, aiSuggestedPurchase ?? 0),
+        aiPriceError,
+        isDeadStock,
       });
     }
   }
@@ -136,4 +225,8 @@ export function countStockMismatches(products: ProductInventoryItem[]): number {
   }
 
   return count;
+}
+
+export function countDeadStockProducts(products: ProductInventoryItem[]): number {
+  return products.filter((product) => product.ai?.isDeadStock).length;
 }

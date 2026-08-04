@@ -12,10 +12,16 @@ import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import {
   buildProductsInventoryTableRows,
+  countDeadStockProducts,
   countStockMismatches,
 } from '../../data-access/products-inventory.adapter';
 import { ProductsInventoryService } from '../../data-access/products-inventory.service';
-import { ProductInventoryItem } from '../../models/products-inventory.model';
+import {
+  ProductInventoryItem,
+  ProductsInventoryAiSummary,
+} from '../../models/products-inventory.model';
+
+const DEFAULT_HORIZON_DAYS = 30;
 
 @Component({
   selector: 'app-products-inventory-report',
@@ -32,6 +38,9 @@ export class ProductsInventoryReportComponent implements OnInit {
   protected readonly exporting = signal(false);
   protected readonly searchQuery = signal('');
   protected readonly products = signal<ProductInventoryItem[]>([]);
+  protected readonly horizonDays = signal(DEFAULT_HORIZON_DAYS);
+  protected readonly aiSummary = signal<ProductsInventoryAiSummary | null>(null);
+  protected readonly includeAi = signal(true);
 
   protected readonly filteredProducts = computed(() => {
     const query = this.searchQuery().trim().toLowerCase();
@@ -60,6 +69,9 @@ export class ProductsInventoryReportComponent implements OnInit {
   protected readonly mismatchCount = computed(() =>
     countStockMismatches(this.filteredProducts()),
   );
+  protected readonly deadStockCount = computed(() =>
+    countDeadStockProducts(this.filteredProducts()),
+  );
 
   ngOnInit(): void {
     this.loadData();
@@ -68,12 +80,32 @@ export class ProductsInventoryReportComponent implements OnInit {
   protected loadData(): void {
     this.loading.set(true);
 
+    if (this.includeAi()) {
+      this.productsInventoryService
+        .loadInventoryWithAi(this.horizonDays())
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (result) => {
+            this.products.set(result.products);
+            this.horizonDays.set(result.horizonDays);
+            this.aiSummary.set(result.aiSummary);
+            this.loading.set(false);
+          },
+          error: () => {
+            this.loading.set(false);
+            this.toastService.show('error', 'No se pudo cargar el inventario con predicciones IA.');
+          },
+        });
+      return;
+    }
+
     this.productsInventoryService
       .loadInventory()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (products) => {
           this.products.set(products);
+          this.aiSummary.set(null);
           this.loading.set(false);
         },
         error: () => {
@@ -81,6 +113,11 @@ export class ProductsInventoryReportComponent implements OnInit {
           this.toastService.show('error', 'No se pudo cargar el inventario.');
         },
       });
+  }
+
+  protected toggleIncludeAi(): void {
+    this.includeAi.update((value) => !value);
+    this.loadData();
   }
 
   protected exportPdf(): void {

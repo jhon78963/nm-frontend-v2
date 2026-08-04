@@ -16,11 +16,25 @@
             Inventario por producto
           </h1>
           <p class="mt-0.5 max-w-2xl text-sm text-gray-500">
-            Tallas, precios y stock por color. La suma de colores debe coincidir con el stock de la talla.
+            Tallas, precios y stock por color. Incluye precio sugerido y compra recomendada por IA a nivel producto.
           </p>
         </div>
 
         <div class="flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50"
+            [class.border-violet-200]="includeAi()"
+            [class.bg-violet-50]="includeAi()"
+            [class.text-violet-800]="includeAi()"
+            [class.border-gray-200]="!includeAi()"
+            [class.bg-white]="!includeAi()"
+            [class.text-gray-700]="!includeAi()"
+            [disabled]="loading()"
+            (click)="toggleIncludeAi()"
+          >
+            IA {{ includeAi() ? 'activa' : 'inactiva' }}
+          </button>
           <button
             type="button"
             class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-50"
@@ -61,7 +75,7 @@
         </div>
       </div>
 
-      <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
         <div class="rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
           <span class="block text-[10px] font-semibold uppercase tracking-wider text-gray-400">
             Productos
@@ -100,14 +114,47 @@
             {{ mismatchCount() }}
           </span>
         </div>
-        <div class="col-span-2 rounded-xl border border-indigo-100 bg-indigo-50/50 px-4 py-3 sm:col-span-1">
-          <span class="block text-[10px] font-semibold uppercase tracking-wider text-indigo-400">
-            Leyenda
-          </span>
-          <span class="text-xs font-medium text-indigo-900">
-            Filas naranjas = stock talla ≠ suma colores
-          </span>
-        </div>
+        @if (includeAi()) {
+          <div
+            class="rounded-xl border px-4 py-3 shadow-sm"
+            [class.border-amber-200]="deadStockCount() > 0"
+            [class.bg-amber-50]="deadStockCount() > 0"
+            [class.border-violet-100]="deadStockCount() === 0"
+            [class.bg-violet-50/60]="deadStockCount() === 0"
+          >
+            <span
+              class="block text-[10px] font-semibold uppercase tracking-wider"
+              [class.text-amber-600]="deadStockCount() > 0"
+              [class.text-violet-500]="deadStockCount() === 0"
+            >
+              Sin vender IA
+            </span>
+            <span
+              class="font-mono text-xl font-bold tabular-nums"
+              [class.text-amber-800]="deadStockCount() > 0"
+              [class.text-violet-900]="deadStockCount() === 0"
+            >
+              {{ deadStockCount() }}
+            </span>
+          </div>
+          <div class="rounded-xl border border-violet-100 bg-violet-50/50 px-4 py-3 shadow-sm">
+            <span class="block text-[10px] font-semibold uppercase tracking-wider text-violet-400">
+              Horizonte IA
+            </span>
+            <span class="font-mono text-xl font-bold tabular-nums text-violet-900">
+              {{ horizonDays() }} d
+            </span>
+          </div>
+        } @else {
+          <div class="col-span-2 rounded-xl border border-indigo-100 bg-indigo-50/50 px-4 py-3">
+            <span class="block text-[10px] font-semibold uppercase tracking-wider text-indigo-400">
+              Leyenda
+            </span>
+            <span class="text-xs font-medium text-indigo-900">
+              Filas naranjas = stock talla ≠ suma colores
+            </span>
+          </div>
+        }
       </div>
 
       <div class="relative mt-4 max-w-md">
@@ -170,7 +217,7 @@
     } @else {
       <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div class="overflow-x-auto">
-          <table class="min-w-[52rem] w-full text-sm">
+          <table class="min-w-[60rem] w-full text-sm">
             <thead>
               <tr class="border-b border-gray-100 bg-gray-50 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
                 <th scope="col" class="px-4 py-3">Talla</th>
@@ -181,6 +228,13 @@
                 <th scope="col" class="px-4 py-3 text-center">Stock talla</th>
                 <th scope="col" class="px-4 py-3">Colores</th>
                 <th scope="col" class="px-4 py-3 text-center">Stock colores</th>
+                @if (includeAi()) {
+                  <th scope="col" class="bg-violet-50 px-4 py-3 text-center text-violet-700">Precio IA</th>
+                  <th scope="col" class="bg-violet-50 px-4 py-3 text-center text-violet-700">Precio mín. IA</th>
+                  <th scope="col" class="bg-violet-50 px-4 py-3 text-center text-violet-700">
+                    Compra IA ({{ horizonDays() }}d)
+                  </th>
+                }
               </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -188,10 +242,19 @@
                 @if (row.kind === 'product') {
                   <tr>
                     <td
-                      colspan="8"
-                      class="bg-indigo-50 px-4 py-2.5 text-sm font-bold text-gray-900"
+                      [attr.colspan]="includeAi() ? 11 : 8"
+                      class="px-4 py-2.5 text-sm font-bold"
+                      [class.bg-indigo-50]="!row.isDeadStock"
+                      [class.bg-amber-50]="row.isDeadStock"
+                      [class.text-gray-900]="!row.isDeadStock"
+                      [class.text-amber-900]="row.isDeadStock"
                     >
                       {{ row.name }}
+                      @if (row.isDeadStock) {
+                        <span class="ml-2 rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
+                          Sin vender
+                        </span>
+                      }
                     </td>
                   </tr>
                 } @else {
@@ -244,6 +307,43 @@
                         —
                       }
                     </td>
+                    @if (includeAi()) {
+                      <td class="bg-violet-50/40 px-4 py-2 text-center font-mono tabular-nums text-violet-900">
+                        @if (row.aiSuggestedPrice !== null) {
+                          S/ {{ row.aiSuggestedPrice | number: '1.2-2' }}
+                        } @else if (row.aiPriceError) {
+                          <span class="text-xs text-gray-400" [title]="row.aiPriceError">N/A</span>
+                        } @else {
+                          —
+                        }
+                      </td>
+                      <td class="bg-violet-50/40 px-4 py-2 text-center font-mono tabular-nums text-violet-700">
+                        @if (row.aiSuggestedMinPrice !== null) {
+                          S/ {{ row.aiSuggestedMinPrice | number: '1.2-2' }}
+                        } @else if (row.aiPriceError) {
+                          <span class="text-xs text-gray-400">N/A</span>
+                        } @else {
+                          —
+                        }
+                      </td>
+                      <td
+                        class="bg-violet-50/40 px-4 py-2 text-center font-mono font-semibold tabular-nums"
+                        [class.text-violet-900]="!row.isDeadStock"
+                        [class.text-amber-700]="row.isDeadStock"
+                      >
+                        @if (row.colorPurchases !== null && row.colorPurchases.length > 0) {
+                          <span class="flex flex-col items-center gap-0.5 text-xs font-normal">
+                            @for (cp of row.colorPurchases; track cp.color) {
+                              <span>{{ cp.color }}: <strong>{{ cp.quantity }} u.</strong></span>
+                            }
+                          </span>
+                        } @else if (row.aiSuggestedPurchase !== null) {
+                          {{ row.aiSuggestedPurchase }} u.
+                        } @else {
+                          —
+                        }
+                      </td>
+                    }
                   </tr>
                 }
               }

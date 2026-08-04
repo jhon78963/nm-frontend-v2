@@ -164,7 +164,7 @@
           <app-alert variant="error" [message]="contextError()!" />
         </div>
       } @else if (productContext(); as context) {
-        <div class="mt-4 grid grid-cols-2 gap-3 rounded-xl border border-violet-100 bg-violet-50/60 p-4 sm:grid-cols-3 lg:grid-cols-6">
+        <div class="mt-4 grid grid-cols-2 gap-3 rounded-xl border border-violet-100 bg-violet-50/60 p-4 sm:grid-cols-3 lg:grid-cols-4">
           <div>
             <p class="text-[10px] font-semibold uppercase tracking-wider text-violet-500">ID</p>
             <p class="mt-0.5 text-sm font-semibold text-gray-900">{{ context.productId }}</p>
@@ -195,7 +195,26 @@
             <p class="text-[10px] font-semibold uppercase tracking-wider text-violet-500">Stock</p>
             <p class="mt-0.5 text-sm font-semibold text-gray-900">{{ context.currentStock }} uds.</p>
           </div>
+          <div>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-violet-500">Antigüedad</p>
+            <p class="mt-0.5 text-sm font-semibold text-gray-900">{{ context.productAgeDays }} días</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-violet-500">Sin venta</p>
+            <p class="mt-0.5 text-sm font-semibold text-gray-900">{{ context.daysSinceLastSale }} días</p>
+          </div>
+          <div>
+            <p class="text-[10px] font-semibold uppercase tracking-wider text-violet-500">Ventas totales</p>
+            <p class="mt-0.5 text-sm font-semibold text-gray-900">{{ context.totalSalesAllTime }} uds.</p>
+          </div>
         </div>
+
+        @if (context.isDeadStock) {
+          <div class="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+            <p class="text-xs font-semibold uppercase tracking-wider text-amber-700">Producto atacado</p>
+            <p class="mt-1 text-sm text-amber-900">{{ context.deadStockLabel }}</p>
+          </div>
+        }
       } @else {
         <div class="mt-4 rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-5 text-center text-sm text-gray-500">
           Selecciona un producto para cargar sus datos y habilitar el análisis con IA.
@@ -213,7 +232,7 @@
           <div class="mb-5">
             <h2 class="text-lg font-semibold text-gray-900">Optimización de precio</h2>
             <p class="mt-1 text-sm text-gray-500">
-              El motor usa costo, categoría y ventas de los últimos 30 días desde tu base de datos.
+              El motor usa costo, categoría, ventas, antigüedad y señales de atacasco desde tu base de datos.
             </p>
           </div>
 

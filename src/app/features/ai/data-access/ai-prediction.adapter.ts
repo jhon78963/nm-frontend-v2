@@ -62,6 +62,12 @@ export function adaptAiProductContext(raw: unknown): AiProductContext {
     currentStock: readNumber(record['currentStock'] ?? record['current_stock']),
     salePrice: readNumber(record['salePrice'] ?? record['sale_price']),
     canViewCost: readBoolean(record['canViewCost'] ?? record['can_view_cost'], true),
+    productAgeDays: readNumber(record['productAgeDays'] ?? record['product_age_days']),
+    daysSinceLastSale: readNumber(record['daysSinceLastSale'] ?? record['days_since_last_sale']),
+    totalSalesAllTime: readNumber(record['totalSalesAllTime'] ?? record['total_sales_all_time']),
+    isDeadStock: readBoolean(record['isDeadStock'] ?? record['is_dead_stock']),
+    deadStockTier: readString(record['deadStockTier'] ?? record['dead_stock_tier']),
+    deadStockLabel: readString(record['deadStockLabel'] ?? record['dead_stock_label']),
   };
 }
 
