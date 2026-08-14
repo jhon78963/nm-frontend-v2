@@ -78,6 +78,13 @@ export const routes: Routes = [
         loadChildren: () => import('./features/ai/ai.routes'),
       },
       {
+        path: 'profile',
+        title: 'Mi Perfil',
+        data: { breadcrumb: 'Mi Perfil' },
+        loadChildren: () =>
+          import('./features/profile/profile.routes').then((m) => m.profileRoutes),
+      },
+      {
         path: 'financial-summaries',
         redirectTo: 'reports/financial-summaries',
         pathMatch: 'full',

@@ -1,0 +1,44 @@
+<div class="tab-view">
+  <div class="tab-list" role="tablist" aria-label="Pestañas de navegación">
+    @for (tab of tabs(); track tab.id; let i = $index) {
+      <button
+        class="tab-btn"
+        [class.tab-btn--active]="isActive(tab.id)"
+        [class.tab-btn--disabled]="isTabDisabled(tab)"
+        role="tab"
+        type="button"
+        [id]="'tab-btn-' + tab.id"
+        [attr.aria-selected]="isActive(tab.id)"
+        [attr.aria-controls]="'tab-panel-' + tab.id"
+        [attr.aria-disabled]="isTabDisabled(tab) || null"
+        [attr.tabindex]="isActive(tab.id) ? 0 : -1"
+        [disabled]="isTabDisabled(tab)"
+        (click)="selectTab(tab)"
+        (keydown)="onKeydown($event, i)"
+      >
+        <span class="tab-btn-label">{{ tab.label }}</span>
+        @if (tab.badge !== undefined) {
+          <span class="tab-badge" aria-label="{{ tab.badge }} elementos">{{ tab.badge }}</span>
+        }
+      </button>
+    }
+  </div>
+
+  <div class="tab-panels">
+    @for (tab of tabs(); track tab.id) {
+      <div
+        class="tab-panel"
+        [class.tab-panel--hidden]="!isActive(tab.id)"
+        role="tabpanel"
+        [id]="'tab-panel-' + tab.id"
+        [attr.aria-labelledby]="'tab-btn-' + tab.id"
+        [attr.hidden]="!isActive(tab.id) || null"
+        [attr.tabindex]="isActive(tab.id) ? 0 : null"
+      >
+        @if (getPanel(tab.id); as panel) {
+          <ng-container [ngTemplateOutlet]="panel.template" />
+        }
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,45 @@
+@reference '../../../../tailwind.css';
+
+.phone-wrapper {
+  @apply flex w-full flex-col gap-1;
+}
+
+.phone-label {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.phone-required {
+  @apply ml-0.5 text-danger;
+}
+
+.phone-control {
+  @apply flex items-center overflow-hidden rounded-md border border-gray-300 bg-white transition-colors focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-1;
+
+  &:has(.phone-field--error) {
+    @apply border-danger focus-within:ring-danger;
+  }
+}
+
+.phone-prefix {
+  @apply shrink-0 select-none border-r border-gray-300 bg-gray-50 px-3 py-2 text-sm font-medium text-gray-500;
+}
+
+.phone-field {
+  @apply min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-gray-800 outline-none;
+
+  &:disabled {
+    @apply cursor-not-allowed;
+  }
+
+  &::placeholder {
+    @apply text-gray-400;
+  }
+}
+
+.phone-control:has(input:disabled) {
+  @apply cursor-not-allowed bg-gray-100 opacity-60;
+}
+
+.phone-error {
+  @apply m-0 text-xs text-danger;
+}

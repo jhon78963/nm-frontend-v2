@@ -1,0 +1,86 @@
+<div class="chips-wrapper">
+  @if (label()) {
+    <label class="chips-label" [for]="inputId">{{ label() }}</label>
+  }
+
+  <div
+    class="chips-control"
+    [class.chips-control--error]="!!errorMessage()"
+    [class.chips-control--disabled]="disabled()"
+    [class.chips-control--focused]="isOpen()"
+  >
+    @for (item of items(); track $index) {
+      <span class="chips-chip">
+        <span class="chips-chip-label">{{ displayItem(item) }}</span>
+        <button
+          type="button"
+          class="chips-chip-remove"
+          [attr.aria-label]="'Quitar ' + displayItem(item)"
+          [disabled]="disabled()"
+          (click)="removeItem(item)"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </span>
+    }
+
+    <div class="chips-input-wrapper">
+      <input
+        [class]="fieldClass()"
+        [id]="inputId"
+        type="text"
+        autocomplete="off"
+        role="combobox"
+        [placeholder]="items().length === 0 ? placeholder() : ''"
+        [value]="inputValue()"
+        [disabled]="disabled()"
+        [attr.aria-expanded]="showDropdown()"
+        [attr.aria-autocomplete]="'list'"
+        [attr.aria-controls]="showDropdown() ? listboxId : null"
+        [attr.aria-invalid]="errorMessage() ? true : null"
+        [attr.aria-describedby]="errorMessage() ? errorId : null"
+        (input)="onInput($event)"
+        (keydown)="onKeydown($event)"
+      />
+
+      @if (isLoading()) {
+        <span class="chips-spinner" role="status" aria-label="Cargando">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle class="chips-spinner-track" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" />
+            <path class="chips-spinner-arc" d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+          </svg>
+        </span>
+      }
+    </div>
+
+    @if (showDropdown()) {
+      <ul
+        class="chips-dropdown"
+        [id]="listboxId"
+        role="listbox"
+        [attr.aria-label]="'Resultados para ' + inputValue()"
+      >
+        @if (showNoResults()) {
+          <li class="chips-no-results" role="option" aria-disabled="true">Sin resultados</li>
+        }
+        @for (item of options(); track $index) {
+          <li
+            class="chips-option"
+            role="option"
+            tabindex="0"
+            (click)="selectOption(item)"
+            (keydown)="onOptionKeydown($event, item)"
+          >
+            {{ displayItem(item) }}
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  @if (errorMessage()) {
+    <p class="chips-error" [id]="errorId" role="alert">{{ errorMessage() }}</p>
+  }
+</div>

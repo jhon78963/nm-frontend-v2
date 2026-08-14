@@ -1,0 +1,167 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight text-gray-900">Mi perfil</h1>
+    <p class="mt-0.5 text-sm text-gray-500">
+      Actualiza tu información personal y tu contraseña.
+    </p>
+  </div>
+
+  @if (loading()) {
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2" aria-busy="true" aria-label="Cargando perfil">
+      <div class="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="mx-auto h-28 w-28 animate-pulse rounded-full bg-gray-100"></div>
+        <div class="h-10 animate-pulse rounded-xl bg-gray-100"></div>
+        <div class="h-10 animate-pulse rounded-xl bg-gray-100"></div>
+        <div class="h-10 animate-pulse rounded-xl bg-gray-100"></div>
+      </div>
+      <div class="space-y-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="h-6 w-48 animate-pulse rounded bg-gray-100"></div>
+        <div class="h-10 animate-pulse rounded-xl bg-gray-100"></div>
+        <div class="h-10 animate-pulse rounded-xl bg-gray-100"></div>
+        <div class="h-10 animate-pulse rounded-xl bg-gray-100"></div>
+      </div>
+    </div>
+  } @else if (loadError()) {
+    <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+      <app-alert variant="error" [message]="loadError()" />
+      <div class="mt-4">
+        <app-button type="button" variant="secondary" (clicked)="loadProfile()">
+          Reintentar
+        </app-button>
+      </div>
+    </div>
+  } @else {
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+      <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="profile-info-title">
+        <h2 id="profile-info-title" class="text-lg font-semibold text-gray-900">
+          Información personal
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+          Estos datos se muestran en el sistema y en tus comprobantes.
+        </p>
+
+        <div class="mt-6 flex flex-col items-center gap-2">
+          <app-avatar-upload
+            [avatarUrl]="profile()?.avatarUrl ?? null"
+            [displayName]="profileModel().name"
+            (fileSelected)="onAvatarSelected($event)"
+          />
+          @if (uploadingAvatar()) {
+            <p class="text-xs text-gray-500" role="status">Subiendo foto…</p>
+          }
+        </div>
+
+        <form class="mt-6 space-y-4" (submit)="saveProfile($event)" novalidate>
+          @if (profileError()) {
+            <app-alert variant="error" [message]="profileError()" />
+          }
+
+          <app-input
+            type="text"
+            label="Nombre"
+            placeholder="Tu nombre completo"
+            autocomplete="name"
+            [formField]="profileForm.name"
+            [errorMessage]="nameError()"
+          />
+
+          <app-input
+            type="email"
+            label="Email"
+            placeholder="tu@correo.com"
+            autocomplete="email"
+            [formField]="profileForm.email"
+            [errorMessage]="emailError()"
+          />
+
+          <app-phone-input
+            label="Teléfono"
+            placeholder="999 999 999"
+            [value]="profileModel().phone"
+            [errorMessage]="phoneError()"
+            (valueChange)="onPhoneChange($event)"
+          />
+
+          <dl class="grid grid-cols-1 gap-3 rounded-xl bg-gray-50 p-4 sm:grid-cols-3">
+            <div>
+              <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">Rol</dt>
+              <dd class="mt-1 text-sm font-medium text-gray-800">{{ profile()?.role || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">Almacén</dt>
+              <dd class="mt-1 text-sm font-medium text-gray-800">{{ profile()?.warehouse || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium uppercase tracking-wide text-gray-400">Registro</dt>
+              <dd class="mt-1 text-sm font-medium text-gray-800">{{ formattedCreatedAt() }}</dd>
+            </div>
+          </dl>
+
+          <div class="pt-2">
+            <app-button
+              type="submit"
+              variant="primary"
+              [loading]="savingProfile()"
+              [disabled]="savingProfile() || uploadingAvatar()"
+            >
+              Guardar cambios
+            </app-button>
+          </div>
+        </form>
+      </section>
+
+      <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="profile-password-title">
+        <h2 id="profile-password-title" class="text-lg font-semibold text-gray-900">
+          Cambiar contraseña
+        </h2>
+        <p class="mt-1 text-sm text-gray-500">
+          Usa al menos 8 caracteres. La nueva contraseña y su confirmación deben coincidir.
+        </p>
+
+        <form class="mt-6 space-y-4" (submit)="savePassword($event)" novalidate>
+          @if (passwordError()) {
+            <app-alert variant="error" [message]="passwordError()" />
+          }
+
+          <app-input
+            type="password"
+            label="Contraseña actual"
+            placeholder="Tu contraseña actual"
+            autocomplete="current-password"
+            [formField]="passwordForm.currentPassword"
+            [errorMessage]="currentPasswordError()"
+          />
+
+          <app-input
+            type="password"
+            label="Nueva contraseña"
+            placeholder="Mínimo 8 caracteres"
+            autocomplete="new-password"
+            [formField]="passwordForm.newPassword"
+            [errorMessage]="newPasswordError()"
+          />
+
+          <app-input
+            type="password"
+            label="Confirmar nueva contraseña"
+            placeholder="Repite la nueva contraseña"
+            autocomplete="new-password"
+            [formField]="passwordForm.newPasswordConfirmation"
+            [errorMessage]="confirmPasswordError()"
+          />
+
+          <div class="pt-2">
+            <app-button
+              type="submit"
+              variant="primary"
+              [loading]="savingPassword()"
+              [disabled]="savingPassword()"
+            >
+              Actualizar contraseña
+            </app-button>
+          </div>
+        </form>
+      </section>
+    </div>
+  }
+</div>

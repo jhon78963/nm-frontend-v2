@@ -1,0 +1,59 @@
+@reference '../../../../tailwind.css';
+
+.checkbox-wrapper {
+  @apply flex flex-col gap-1;
+}
+
+.checkbox-label {
+  @apply inline-flex cursor-pointer items-center gap-2;
+
+  &:has(input:disabled) {
+    @apply cursor-not-allowed opacity-60;
+  }
+}
+
+.checkbox-input {
+  @apply sr-only;
+}
+
+.checkbox-box {
+  @apply relative flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 border-gray-400 bg-white transition-colors;
+
+  .checkbox-input:checked + & {
+    @apply border-primary bg-primary;
+
+    &::after {
+      content: '';
+      @apply block h-2 w-1 -translate-y-px rotate-45 border-b-2 border-r-2 border-white;
+    }
+  }
+
+  .checkbox-input:indeterminate + & {
+    @apply border-primary bg-primary;
+
+    &::after {
+      content: '';
+      @apply block h-0.5 w-2 bg-white;
+    }
+  }
+
+  .checkbox-input:focus-visible + & {
+    @apply ring-2 ring-primary ring-offset-1;
+  }
+
+  .checkbox-wrapper--error & {
+    @apply border-danger;
+  }
+
+  .checkbox-input:checked + .checkbox-wrapper--error & {
+    @apply border-danger bg-danger;
+  }
+}
+
+.checkbox-text {
+  @apply text-sm text-gray-800;
+}
+
+.checkbox-error {
+  @apply m-0 text-xs text-danger;
+}

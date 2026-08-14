@@ -175,6 +175,15 @@ export class AuthService {
     );
   }
 
+  patchCurrentUser(patch: Partial<AuthUser>): void {
+    const current = this.currentUser();
+    if (!current) {
+      return;
+    }
+
+    this.setUserData({ ...current, ...patch });
+  }
+
   clearLocalSession(): void {
     this.currentUser.set(null);
     this.sessionLoadRequest$ = undefined;

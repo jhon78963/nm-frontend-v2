@@ -1,0 +1,75 @@
+<div class="ac-wrapper">
+  @if (label()) {
+    <label class="ac-label" [for]="inputId">{{ label() }}</label>
+  }
+
+  <div class="ac-control">
+    <input
+      [class]="fieldClass()"
+      [id]="inputId"
+      type="text"
+      autocomplete="off"
+      role="combobox"
+      [placeholder]="placeholder()"
+      [value]="inputValue()"
+      [disabled]="disabled()"
+      [attr.aria-expanded]="showDropdown()"
+      [attr.aria-autocomplete]="'list'"
+      [attr.aria-controls]="showDropdown() ? listboxId : null"
+      [attr.aria-invalid]="errorMessage() ? true : null"
+      [attr.aria-describedby]="errorMessage() ? errorId : null"
+      (input)="onInput($event)"
+      (keydown)="onKeydown($event)"
+    />
+
+    <div class="ac-actions">
+      @if (isLoading()) {
+        <span class="ac-spinner" role="status" aria-label="Cargando resultados">
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle class="ac-spinner-track" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" />
+            <path class="ac-spinner-arc" d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+          </svg>
+        </span>
+      } @else if (inputValue()) {
+        <button
+          type="button"
+          class="ac-clear-btn"
+          aria-label="Limpiar búsqueda"
+          (click)="clearInput()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      }
+    </div>
+
+    @if (showDropdown()) {
+      <ul
+        class="ac-dropdown"
+        [id]="listboxId"
+        role="listbox"
+        [attr.aria-label]="'Resultados para ' + inputValue()"
+      >
+        @if (showNoResults()) {
+          <li class="ac-no-results" role="option" aria-disabled="true">Sin resultados</li>
+        }
+        @for (item of options(); track $index) {
+          <li
+            class="ac-option"
+            role="option"
+            tabindex="0"
+            (click)="selectOption(item)"
+            (keydown)="onOptionKeydown($event, item)"
+          >
+            {{ displayItem(item) }}
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  @if (errorMessage()) {
+    <p class="ac-error" [id]="errorId" role="alert">{{ errorMessage() }}</p>
+  }
+</div>

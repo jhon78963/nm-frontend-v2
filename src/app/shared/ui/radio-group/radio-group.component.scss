@@ -1,0 +1,54 @@
+@reference '../../../../tailwind.css';
+
+.radio-group {
+  @apply flex flex-col gap-1.5;
+}
+
+.radio-group-label {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.radio-list {
+  @apply flex flex-col gap-2;
+
+  &--horizontal {
+    @apply flex-row flex-wrap gap-4;
+  }
+}
+
+.radio-item {
+  @apply inline-flex cursor-pointer items-center gap-2;
+
+  &--disabled {
+    @apply cursor-not-allowed opacity-60;
+  }
+}
+
+.radio-input {
+  @apply sr-only;
+}
+
+.radio-circle {
+  @apply relative flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 border-gray-400 bg-white transition-colors;
+
+  .radio-input:checked + & {
+    @apply border-primary;
+
+    &::after {
+      content: '';
+      @apply block h-2 w-2 rounded-full bg-primary;
+    }
+  }
+
+  .radio-input:focus-visible + & {
+    @apply ring-2 ring-primary ring-offset-1;
+  }
+}
+
+.radio-text {
+  @apply text-sm text-gray-800;
+}
+
+.radio-error {
+  @apply m-0 text-xs text-danger;
+}

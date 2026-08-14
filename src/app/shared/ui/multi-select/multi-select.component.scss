@@ -1,0 +1,124 @@
+@reference '../../../../tailwind.css';
+
+.ms-wrapper {
+  @apply relative flex w-full flex-col gap-1;
+}
+
+.ms-label {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.ms-container {
+  @apply relative;
+}
+
+.ms-trigger {
+  @apply flex min-h-[2.375rem] w-full cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm transition-colors outline-none;
+
+  &:focus-visible,
+  &--open {
+    @apply ring-2 ring-primary ring-offset-1;
+  }
+
+  &--error {
+    @apply border-danger;
+
+    &:focus-visible {
+      @apply ring-danger;
+    }
+  }
+
+  &--disabled {
+    @apply cursor-not-allowed bg-gray-100 opacity-60;
+  }
+}
+
+.ms-chips {
+  @apply flex flex-1 flex-wrap gap-1;
+}
+
+.ms-placeholder {
+  @apply text-sm text-gray-400;
+}
+
+.ms-chip {
+  @apply inline-flex items-center gap-1 rounded-full bg-primary/10 py-0.5 pl-2.5 pr-1 text-xs font-medium text-primary;
+}
+
+.ms-chip-label {
+  @apply leading-none;
+}
+
+.ms-chip-remove {
+  @apply flex h-4 w-4 items-center justify-center rounded-full text-primary/60 outline-none transition-colors hover:bg-primary/20 hover:text-primary focus-visible:ring-1 focus-visible:ring-primary;
+
+  svg {
+    @apply h-2.5 w-2.5;
+  }
+}
+
+.ms-chevron {
+  @apply ml-auto h-4 w-4 shrink-0 text-gray-400 transition-transform;
+
+  &--open {
+    @apply rotate-180;
+  }
+}
+
+.ms-dropdown {
+  @apply absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-md border border-gray-200 bg-white shadow-lg;
+}
+
+.ms-search-wrapper {
+  @apply border-b border-gray-100 p-2;
+}
+
+.ms-search {
+  @apply w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1;
+}
+
+.ms-option-list {
+  @apply m-0 max-h-48 list-none overflow-y-auto p-1;
+}
+
+.ms-option {
+  @apply flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm text-gray-700 outline-none transition-colors;
+
+  &:hover,
+  &:focus-visible {
+    @apply bg-gray-50;
+  }
+
+  &--selected {
+    @apply bg-primary/5 font-medium text-primary;
+
+    &:hover,
+    &:focus-visible {
+      @apply bg-primary/10;
+    }
+  }
+}
+
+.ms-option-check {
+  @apply flex h-4 w-4 shrink-0 items-center justify-center rounded border border-gray-300 bg-white;
+
+  .ms-option--selected & {
+    @apply border-primary bg-primary;
+
+    svg {
+      @apply h-3 w-3 stroke-white;
+    }
+  }
+}
+
+.ms-option-label {
+  @apply leading-none;
+}
+
+.ms-no-results {
+  @apply px-3 py-2 text-sm text-gray-400;
+}
+
+.ms-error {
+  @apply m-0 text-xs text-danger;
+}

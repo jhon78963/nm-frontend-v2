@@ -1,0 +1,23 @@
+<div [class]="wrapperClass()">
+  <label class="checkbox-label" [for]="inputId">
+    <input
+      #checkboxEl
+      class="checkbox-input"
+      type="checkbox"
+      [id]="inputId"
+      [checked]="value()"
+      [disabled]="disabled()"
+      [attr.aria-invalid]="errorMessage() ? true : null"
+      [attr.aria-describedby]="errorMessage() ? errorId : null"
+      (change)="onChange($event)"
+    />
+    <span class="checkbox-box" aria-hidden="true"></span>
+    @if (label()) {
+      <span class="checkbox-text">{{ label() }}</span>
+    }
+  </label>
+
+  @if (errorMessage()) {
+    <p class="checkbox-error" [id]="errorId" role="alert">{{ errorMessage() }}</p>
+  }
+</div>

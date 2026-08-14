@@ -1,0 +1,34 @@
+<div class="phone-wrapper">
+  @if (label()) {
+    <label class="phone-label" [for]="inputId">
+      {{ label() }}
+      @if (required()) {
+        <span class="phone-required" aria-hidden="true">*</span>
+      }
+    </label>
+  }
+
+  <div class="phone-control">
+    <span class="phone-prefix" aria-label="Prefijo de país Perú">+51</span>
+    <input
+      [class]="fieldClass()"
+      [id]="inputId"
+      type="tel"
+      inputmode="numeric"
+      [placeholder]="placeholder()"
+      [value]="displayValue()"
+      [disabled]="disabled()"
+      [attr.required]="required() || null"
+      [attr.aria-required]="required() || null"
+      [attr.aria-invalid]="errorMessage() ? true : null"
+      [attr.aria-describedby]="errorMessage() ? errorId : null"
+      [attr.aria-label]="label() ? null : 'Número de teléfono'"
+      (input)="onInput($event)"
+      (keydown)="onKeydown($event)"
+    />
+  </div>
+
+  @if (errorMessage()) {
+    <p class="phone-error" [id]="errorId" role="alert">{{ errorMessage() }}</p>
+  }
+</div>

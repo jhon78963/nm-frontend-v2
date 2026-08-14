@@ -1,0 +1,49 @@
+@reference '../../../../tailwind.css';
+
+.tab-view {
+  @apply flex w-full flex-col;
+}
+
+.tab-list {
+  @apply flex border-b border-gray-200;
+}
+
+.tab-btn {
+  @apply relative inline-flex items-center gap-1.5 border-b-2 border-transparent px-4 py-2.5 text-sm font-medium text-gray-500 transition-colors outline-none;
+
+  &:hover:not(&--disabled) {
+    @apply border-gray-300 text-gray-700;
+  }
+
+  &:focus-visible {
+    @apply ring-2 ring-inset ring-primary;
+  }
+
+  &--active {
+    @apply border-primary text-primary;
+  }
+
+  &--disabled {
+    @apply cursor-not-allowed opacity-50;
+  }
+}
+
+.tab-btn-label {
+  @apply leading-none;
+}
+
+.tab-badge {
+  @apply inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-gray-200 px-1.5 text-xs font-semibold text-gray-600;
+
+  .tab-btn--active & {
+    @apply bg-primary/10 text-primary;
+  }
+}
+
+.tab-panels {
+  @apply mt-4;
+}
+
+.tab-panel {
+  @apply outline-none;
+}
