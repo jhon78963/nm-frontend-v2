@@ -1,6 +1,13 @@
 import { Routes } from '@angular/router';
-import { createPlaceholderRoute } from '../../core/routing/feature-placeholder.component';
+import { authGuard } from '../../core/auth/auth.guard';
+import { DashboardHomeComponent } from './dashboard-home.component';
 
-const routes: Routes = [createPlaceholderRoute('Home', '')];
-
-export default routes;
+export const dashboardsRoutes: Routes = [
+  {
+    path: '',
+    title: 'Inicio',
+    component: DashboardHomeComponent,
+    canActivate: [authGuard],
+    data: { breadcrumb: 'Inicio' },
+  },
+];

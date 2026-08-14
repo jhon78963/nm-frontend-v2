@@ -189,6 +189,11 @@ export class MainLayoutComponent implements OnInit {
     return true;
   }
 
+  protected isHomeActive(): boolean {
+    const url = this.currentUrl().split('?')[0];
+    return url === '/dashboard' || url === '/';
+  }
+
   protected isNavActive(item: NavItem, siblings: NavItem[]): boolean {
     const route = item.route;
     if (!route) {

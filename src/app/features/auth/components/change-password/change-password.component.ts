@@ -148,7 +148,7 @@ export class ChangePasswordComponent implements OnInit {
           'success',
           'Contraseña actualizada. Ya puedes usar el sistema.',
         );
-        void this.router.navigate(['/administrations/roles']);
+        void this.router.navigate(['/dashboard']);
       },
       error: (error: unknown) => {
         this.isLoading.set(false);

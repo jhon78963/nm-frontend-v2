@@ -157,12 +157,16 @@ export const routes: Routes = [
       },
       {
         path: 'dashboard',
-        redirectTo: 'administrations/roles',
-        pathMatch: 'full',
+        title: 'Inicio',
+        data: { breadcrumb: 'Inicio' },
+        loadChildren: () =>
+          import('./features/dashboards/dashboards.routes').then(
+            (m) => m.dashboardsRoutes,
+          ),
       },
       {
         path: '',
-        redirectTo: 'administrations/roles',
+        redirectTo: 'dashboard',
         pathMatch: 'full',
       },
     ],
