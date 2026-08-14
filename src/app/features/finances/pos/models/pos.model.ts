@@ -60,6 +60,44 @@ export interface PaymentEntry {
 export interface CheckoutResponse {
   success: boolean;
   sale_id?: number;
+  ticket_url?: string;
+  invoice_number?: string;
+  sunat_status?: string;
   message?: string | string[];
   error?: string | string[];
 }
+
+export interface ReceiptData {
+  receiptNumber: string;
+  documentType: 'boleta' | 'factura' | 'ticket';
+  date: string;
+  time: string;
+  cashierName: string;
+  warehouseName: string;
+  warehouseAddress: string;
+  warehouseRuc: string;
+  customerName: string | null;
+  customerDocument: string | null;
+  items: ReceiptItem[];
+  subtotal: number;
+  igv: number;
+  total: number;
+  payments: ReceiptPayment[];
+  change: number;
+}
+
+export interface ReceiptItem {
+  description: string;
+  size: string;
+  color: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
+export interface ReceiptPayment {
+  method: 'Efectivo' | 'Yape' | 'Tarjeta';
+  amount: number;
+}
+
+export type PrintFormat = 'thermal-80mm' | 'a4';

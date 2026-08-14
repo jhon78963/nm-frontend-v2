@@ -2,6 +2,8 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { computed, inject, Service, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
+import { AuthService } from '../../../auth/data-access/auth.service';
+import { adaptCheckoutToReceiptData } from './pos-receipt.adapter';
 import {
   CartItem,
   CheckoutResponse,
@@ -10,20 +12,22 @@ import {
   ModalState,
   PaymentEntry,
   Product,
+  ReceiptData,
 } from '../models/pos.model';
-import {
-  loadHtmlIntoIframe,
-  prepareReceiptHtmlForPrint,
-} from '../utils/receipt-print.util';
+import { ReceiptPrinter } from '../utils/receipt-printer';
 
 const DEFAULT_SERIE: Record<Exclude<DocumentType, 'TICKET_INTERNO'>, string> = {
   BOLETA: 'B001',
   FACTURA: 'F001',
 };
 
+const AUTO_PRINT_STORAGE_KEY = 'pos-auto-print';
+const DEFAULT_WAREHOUSE_NAME = 'Novedades Maritex';
+
 @Service()
 export class PosService {
   private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
   private readonly base = `${environment.apiUrl}/pos`;
 
   // ── State ─────────────────────────────────────────────────────────────────
@@ -39,6 +43,9 @@ export class PosService {
   readonly isLoading = signal(false);
   readonly documentType = signal<DocumentType>('TICKET_INTERNO');
   readonly lastSaleIdForReprint = signal<number | null>(null);
+  readonly receiptPreviewOpen = signal(false);
+  readonly pendingReceiptData = signal<ReceiptData | null>(null);
+  readonly pendingReceiptHtml = signal<string | null>(null);
 
   readonly serie = computed<string>(() => {
     const type = this.documentType();
@@ -121,6 +128,13 @@ export class PosService {
 
     this.isLoading.set(true);
 
+    const checkoutSnapshot = {
+      cart: [...this.cart()],
+      customer: this.currentCustomer(),
+      documentType: this.documentType(),
+      payments,
+    };
+
     const payload = {
       document_type: this.documentType(),
       serie: this.serie() || undefined,
@@ -149,13 +163,13 @@ export class PosService {
       );
 
       if (response?.success) {
+        const saleId = response.sale_id;
+        this.lastSaleIdForReprint.set(saleId ?? null);
         this.clearCart();
-        this.lastSaleIdForReprint.set(response.sale_id ?? null);
-        this.showToast(`Venta #${response.sale_id} registrada`, 4_000);
-        if (this.isMobileBrowser()) {
-          this.showToast('Toca «Imprimir ticket» para el comprobante.', 6_000);
-        } else if (response.sale_id) {
-          await this.printTicket(response.sale_id);
+        this.showToast(`Venta #${saleId} registrada`, 4_000);
+
+        if (saleId != null) {
+          await this.handleSuccessfulCheckout(saleId, response, checkoutSnapshot);
         }
       } else {
         const raw = response?.message ?? response?.error;
@@ -220,7 +234,6 @@ export class PosService {
     this.modalState.set({ isOpen: false, product: null, isEditing: false });
     this.toastMessage.set(null);
     this.isLoading.set(false);
-    this.lastSaleIdForReprint.set(null);
   }
 
   openAddModal(product: Product): void {
@@ -249,133 +262,159 @@ export class PosService {
     setTimeout(() => this.toastMessage.set(null), durationMs);
   }
 
-  // ── Print ─────────────────────────────────────────────────────────────────
+  // ── Receipt preview & print ───────────────────────────────────────────────
 
-  async printTicket(saleId: number, options?: { userGesture?: boolean }): Promise<void> {
-    if (options?.userGesture) {
-      await this.printTicketViaNewTab(saleId);
+  isAutoPrintEnabled(): boolean {
+    if (typeof localStorage === 'undefined') return false;
+    return localStorage.getItem(AUTO_PRINT_STORAGE_KEY) === 'true';
+  }
+
+  setAutoPrintEnabled(enabled: boolean): void {
+    if (typeof localStorage === 'undefined') return;
+    localStorage.setItem(AUTO_PRINT_STORAGE_KEY, String(enabled));
+  }
+
+  closeReceiptPreview(): void {
+    this.receiptPreviewOpen.set(false);
+    this.pendingReceiptData.set(null);
+    this.pendingReceiptHtml.set(null);
+  }
+
+  async reprintLastTicket(): Promise<void> {
+    const saleId = this.lastSaleIdForReprint();
+    if (saleId == null) return;
+
+    if (this.isMobileBrowser()) {
+      await this.printTicket(saleId, { userGesture: true });
       return;
     }
+
     try {
-      const html = await firstValueFrom(
-        this.http.get(`${this.base}/sales/${saleId}/ticket`, { responseType: 'text' }),
-      );
-      await this.printViaFullscreenIframe(prepareReceiptHtmlForPrint(html, false));
+      const html = await this.fetchTicketHtml(saleId);
+      const receiptData = this.buildFallbackReceiptData(saleId);
+      this.pendingReceiptData.set(receiptData);
+      this.pendingReceiptHtml.set(html);
+      this.receiptPreviewOpen.set(true);
+    } catch {
+      this.showToast('No se pudo cargar el ticket. Reintenta.');
+    }
+  }
+
+  async printTicket(saleId: number, options?: { userGesture?: boolean }): Promise<void> {
+    try {
+      const html = await this.fetchTicketHtml(saleId);
+      if (options?.userGesture && this.isMobileBrowser()) {
+        await this.printTicketViaNewTab(html);
+        return;
+      }
+      ReceiptPrinter.printFromHtml(html, 'thermal-80mm');
     } catch {
       this.showToast('Venta registrada. Toca «Imprimir ticket» para reintentar.');
     }
   }
 
-  async reprintLastTicket(): Promise<void> {
-    const saleId = this.lastSaleIdForReprint();
-    if (saleId != null) {
-      await this.printTicket(saleId, { userGesture: true });
+  private async handleSuccessfulCheckout(
+    saleId: number,
+    response: CheckoutResponse,
+    snapshot: {
+      cart: CartItem[];
+      customer: Customer | null;
+      documentType: DocumentType;
+      payments: PaymentEntry[];
+    },
+  ): Promise<void> {
+    const receiptData = adaptCheckoutToReceiptData({
+      saleId,
+      invoiceNumber: response.invoice_number,
+      documentType: snapshot.documentType,
+      cart: snapshot.cart,
+      customer: snapshot.customer,
+      payments: snapshot.payments,
+      cashierName: this.resolveCashierName(),
+      warehouseName: DEFAULT_WAREHOUSE_NAME,
+      warehouseAddress: '',
+      warehouseRuc: '',
+    });
+
+    const backendHtml = await this.fetchTicketHtml(saleId).catch(() => null);
+
+    if (this.shouldAutoPrint()) {
+      if (backendHtml) {
+        ReceiptPrinter.printFromHtml(backendHtml, 'thermal-80mm');
+      } else {
+        ReceiptPrinter.print(receiptData, 'thermal-80mm');
+      }
+      return;
     }
+
+    if (this.isMobileBrowser()) {
+      this.showToast('Toca «Imprimir ticket» para el comprobante.', 6_000);
+    }
+
+    this.pendingReceiptData.set(receiptData);
+    this.pendingReceiptHtml.set(backendHtml);
+    this.receiptPreviewOpen.set(true);
   }
 
-  private async printTicketViaNewTab(saleId: number): Promise<void> {
+  private shouldAutoPrint(): boolean {
+    return this.isAutoPrintEnabled() && !this.isMobileBrowser();
+  }
+
+  private resolveCashierName(): string {
+    const user = this.authService.currentUser();
+    if (!user) return 'Cajero';
+    const fullName = `${user.name} ${user.surname}`.trim();
+    return fullName || user.username;
+  }
+
+  private buildFallbackReceiptData(saleId: number): ReceiptData {
+    const now = new Date();
+    const pad = (value: number) => String(value).padStart(2, '0');
+
+    return {
+      receiptNumber: `TKT-${String(saleId).padStart(6, '0')}`,
+      documentType: 'ticket',
+      date: `${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`,
+      time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+      cashierName: this.resolveCashierName(),
+      warehouseName: DEFAULT_WAREHOUSE_NAME,
+      warehouseAddress: '',
+      warehouseRuc: '',
+      customerName: null,
+      customerDocument: null,
+      items: [],
+      subtotal: 0,
+      igv: 0,
+      total: 0,
+      payments: [],
+      change: 0,
+    };
+  }
+
+  private fetchTicketHtml(saleId: number): Promise<string> {
+    return firstValueFrom(
+      this.http.get(`${this.base}/sales/${saleId}/ticket`, { responseType: 'text' }),
+    );
+  }
+
+  private async printTicketViaNewTab(html: string): Promise<void> {
     const tab = window.open('', '_blank');
     if (!tab) {
       this.showToast('Permite ventanas emergentes o toca «Imprimir ticket» nuevamente.');
       return;
     }
-    tab.document.open();
-    tab.document.write('<!DOCTYPE html><html><body>Cargando ticket…</body></html>');
-    tab.document.close();
 
-    try {
-      const html = await firstValueFrom(
-        this.http.get(`${this.base}/sales/${saleId}/ticket`, { responseType: 'text' }),
-      );
-      const printDoc = prepareReceiptHtmlForPrint(html, true);
-      tab.document.open();
-      tab.document.write(printDoc);
-      tab.document.close();
-    } catch {
-      tab.close();
-      this.showToast('No se pudo cargar el ticket. Reintenta.');
-    }
+    tab.document.open();
+    tab.document.write(
+      ReceiptPrinter.wrapBackendHtml(html, 'thermal-80mm').replace(
+        '</body>',
+        `<script>window.addEventListener('load',function(){setTimeout(function(){window.focus();window.print();},400);});</script></body>`,
+      ),
+    );
+    tab.document.close();
   }
 
   private isMobileBrowser(): boolean {
     return /Android|webOS|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-  }
-
-  private printViaFullscreenIframe(fullHtml: string): Promise<void> {
-    return new Promise((resolve) => {
-      this.teardownPrintSession();
-
-      const suppressedNodes: Array<{ node: HTMLElement; display: string }> = [];
-
-      const suppressAppChrome = () => {
-        Array.from(document.body.children).forEach((node) => {
-          const el = node as HTMLElement;
-          if (el.id === 'pos-ticket-print-frame') return;
-          suppressedNodes.push({ node: el, display: el.style.display });
-          el.style.setProperty('display', 'none', 'important');
-        });
-        document.body.style.setProperty('overflow', 'hidden', 'important');
-        document.body.style.setProperty('background', '#ffffff', 'important');
-        document.documentElement.style.setProperty('background', '#ffffff', 'important');
-      };
-
-      const restoreAppChrome = () => {
-        suppressedNodes.forEach(({ node, display }) => {
-          node.style.display = display;
-        });
-        document.body.style.removeProperty('overflow');
-        document.body.style.removeProperty('background');
-        document.documentElement.style.removeProperty('background');
-      };
-
-      const iframe = document.createElement('iframe');
-      iframe.id = 'pos-ticket-print-frame';
-      iframe.setAttribute('title', 'Ticket de venta');
-      iframe.setAttribute(
-        'style',
-        'position:fixed;inset:0;width:100%;height:100%;border:0;margin:0;padding:0;z-index:2147483647;background:#fff',
-      );
-
-      suppressAppChrome();
-      document.body.appendChild(iframe);
-      iframe.src = 'about:blank';
-
-      let finished = false;
-      const finish = () => {
-        if (finished) return;
-        finished = true;
-        iframe.remove();
-        restoreAppChrome();
-        resolve();
-      };
-
-      iframe.onload = () => {
-        const printWindow = loadHtmlIntoIframe(iframe, fullHtml);
-        if (!printWindow) {
-          this.showToast('Toca «Imprimir ticket» para reintentar.');
-          finish();
-          return;
-        }
-        printWindow.addEventListener('afterprint', finish, { once: true });
-        requestAnimationFrame(() => {
-          setTimeout(() => {
-            try {
-              printWindow.focus();
-              printWindow.print();
-            } catch {
-              this.showToast('Toca «Imprimir ticket» para reintentar.');
-              finish();
-              return;
-            }
-            setTimeout(finish, 15_000);
-          }, 500);
-        });
-      };
-    });
-  }
-
-  private teardownPrintSession(): void {
-    document.getElementById('pos-ticket-print-frame')?.remove();
-    document.body.classList.remove('pos-printing-ticket');
   }
 }

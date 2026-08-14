@@ -13,12 +13,19 @@ import { debounceTime } from 'rxjs';
 import { AuthService } from '../../../auth/data-access/auth.service';
 import { PosFooterComponent } from '../components/pos-footer/pos-footer.component';
 import { PosHeaderComponent } from '../components/pos-header/pos-header.component';
+import { PosReceiptPreviewComponent } from '../components/pos-receipt-preview/pos-receipt-preview.component';
 import { PosSelectorComponent } from '../components/pos-selector/pos-selector.component';
 import { PosService } from '../data-access/pos.service';
 
 @Component({
   selector: 'app-pos',
-  imports: [DecimalPipe, PosHeaderComponent, PosFooterComponent, PosSelectorComponent],
+  imports: [
+    DecimalPipe,
+    PosHeaderComponent,
+    PosFooterComponent,
+    PosSelectorComponent,
+    PosReceiptPreviewComponent,
+  ],
   templateUrl: './pos.component.html',
   styleUrl: './pos.component.scss',
 })
@@ -66,7 +73,10 @@ export class PosComponent {
       this.posService.openAddModal(prod);
     }
     this.barcodeQuery.set('');
-    // Restore focus to the scanner after a modal is opened
     setTimeout(() => this.barcodeInputRef()?.nativeElement.focus(), 0);
+  }
+
+  protected onReceiptPreviewClose(): void {
+    this.posService.closeReceiptPreview();
   }
 }

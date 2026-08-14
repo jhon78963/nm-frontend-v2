@@ -253,4 +253,13 @@
 
   <!-- ── Product variant selector modal ────────────────────────────────────── -->
   <app-pos-selector />
+
+  @if (posService.pendingReceiptData(); as receiptData) {
+    <app-pos-receipt-preview
+      [receiptData]="receiptData"
+      [backendHtml]="posService.pendingReceiptHtml()"
+      [isOpen]="posService.receiptPreviewOpen()"
+      (close)="onReceiptPreviewClose()"
+    />
+  }
 </div>
