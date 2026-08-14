@@ -25,15 +25,13 @@
       </a>
     </div>
 
-    <app-button
-      type="button"
-      variant="secondary"
-      [loading]="isExporting()"
-      [disabled]="isExporting() || isLoading()"
+    <app-export-button
+      label="Exportar PDF"
+      format="pdf"
+      [isLoading]="isExporting()"
+      [disabled]="isLoading()"
       (clicked)="exportPdf()"
-    >
-      Exportar PDF
-    </app-button>
+    />
   </div>
 
   <app-tab-view

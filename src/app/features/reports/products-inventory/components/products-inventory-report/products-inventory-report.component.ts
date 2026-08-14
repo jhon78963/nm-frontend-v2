@@ -9,6 +9,9 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
+import { downloadFile } from '../../../../../core/utils/file-download.util';
+import { ExportButtonComponent } from '../../../../../shared/ui/export-button/export-button.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import {
   buildProductsInventoryTableRows,
@@ -25,7 +28,7 @@ const DEFAULT_HORIZON_DAYS = 30;
 
 @Component({
   selector: 'app-products-inventory-report',
-  imports: [DecimalPipe, RouterLink],
+  imports: [DecimalPipe, RouterLink, ExportButtonComponent],
   providers: [ProductsInventoryService],
   templateUrl: './products-inventory-report.component.html',
 })
@@ -121,24 +124,36 @@ export class ProductsInventoryReportComponent implements OnInit {
   }
 
   protected exportPdf(): void {
+    if (this.exporting()) {
+      return;
+    }
+
     this.exporting.set(true);
+    const loadingToastId = this.toastService.loading('Generando archivo...');
 
     this.productsInventoryService
       .downloadPdf()
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        finalize(() => this.exporting.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: (blob) => {
-          const url = window.URL.createObjectURL(blob);
-          const anchor = document.createElement('a');
-          anchor.href = url;
-          anchor.download = `reporte-productos-inventario-${new Date().toISOString().slice(0, 10)}.pdf`;
-          anchor.click();
-          window.URL.revokeObjectURL(url);
-          this.exporting.set(false);
+          this.toastService.dismiss(loadingToastId);
+          downloadFile(blob, {
+            filename: 'reporte-productos-inventario',
+            extension: 'pdf',
+            appendDate: true,
+          });
+          this.toastService.show('success', 'Archivo descargado', 3_000);
         },
         error: () => {
-          this.exporting.set(false);
-          this.toastService.show('error', 'No se pudo exportar el PDF.');
+          this.toastService.dismiss(loadingToastId);
+          this.toastService.show(
+            'error',
+            'Error al generar el archivo. Intenta nuevamente.',
+            5_000,
+          );
         },
       });
   }

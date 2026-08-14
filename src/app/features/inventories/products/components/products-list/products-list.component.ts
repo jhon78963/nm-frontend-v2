@@ -16,8 +16,10 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { debounceTime, distinctUntilChanged, finalize } from 'rxjs';
+import { downloadFile } from '../../../../../core/utils/file-download.util';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { ExportButtonComponent } from '../../../../../shared/ui/export-button/export-button.component';
 import {
   DataTableComponent,
   DataTableColumn,
@@ -38,6 +40,7 @@ import { Product, Gender } from '../../models/product.model';
     ReactiveFormsModule,
     ConfirmDialogComponent,
     DataTableComponent,
+    ExportButtonComponent,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -297,24 +300,36 @@ export class ProductsListComponent implements OnInit {
   }
 
   protected exportProducts(): void {
+    if (this.isExporting()) {
+      return;
+    }
+
     this.isExporting.set(true);
+    const loadingToastId = this.toastService.loading('Generando archivo...');
+
     this.productService
       .exportToExcel()
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        finalize(() => this.isExporting.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: (blob: Blob) => {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `productos_${new Date().toISOString().slice(0, 10)}.xlsx`;
-          a.click();
-          URL.revokeObjectURL(url);
-          this.isExporting.set(false);
-          this.toastService.show('success', 'Productos exportados correctamente.');
+          this.toastService.dismiss(loadingToastId);
+          downloadFile(blob, {
+            filename: 'productos',
+            extension: 'xlsx',
+            appendDate: true,
+          });
+          this.toastService.show('success', 'Archivo descargado', 3_000);
         },
         error: () => {
-          this.isExporting.set(false);
-          this.toastService.show('error', 'Error al exportar productos.');
+          this.toastService.dismiss(loadingToastId);
+          this.toastService.show(
+            'error',
+            'Error al generar el archivo. Intenta nuevamente.',
+            5_000,
+          );
         },
       });
   }

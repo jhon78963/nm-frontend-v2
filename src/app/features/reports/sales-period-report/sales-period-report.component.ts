@@ -8,6 +8,9 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
+import { downloadFile } from '../../../core/utils/file-download.util';
+import { ExportButtonComponent } from '../../../shared/ui/export-button/export-button.component';
 import { ButtonComponent } from '../../../shared/ui/button/button.component';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
 import {
@@ -20,7 +23,7 @@ import { PeriodSalesReport } from '../models/sales-report.model';
 
 @Component({
   selector: 'app-sales-period-report',
-  imports: [RouterLink, ButtonComponent],
+  imports: [RouterLink, ButtonComponent, ExportButtonComponent],
   providers: [SalesReportService],
   templateUrl: './sales-period-report.component.html',
 })
@@ -126,7 +129,7 @@ export class SalesPeriodReportComponent implements OnInit {
 
     const { from, to } = this.dateRange();
     this.isExporting.set(true);
-    this.toastService.show('info', 'Generando PDF...');
+    const loadingToastId = this.toastService.loading('Generando archivo...');
 
     this.salesReportService
       .exportPeriodPdf({
@@ -134,19 +137,26 @@ export class SalesPeriodReportComponent implements OnInit {
         to,
         warehouseId: this.selectedWarehouseId() ?? undefined,
       })
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(
+        finalize(() => this.isExporting.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
-        next: () => {
-          this.isExporting.set(false);
-          this.toastService.show('success', 'PDF listo');
+        next: (blob) => {
+          this.toastService.dismiss(loadingToastId);
+          downloadFile(blob, {
+            filename: 'reporte-ventas-periodo',
+            extension: 'pdf',
+            appendDate: true,
+          });
+          this.toastService.show('success', 'Archivo descargado', 3_000);
         },
-        error: (err: unknown) => {
-          this.isExporting.set(false);
+        error: () => {
+          this.toastService.dismiss(loadingToastId);
           this.toastService.show(
             'error',
-            typeof err === 'string'
-              ? err
-              : 'No se pudo exportar el PDF. El servidor aún no expone este endpoint.',
+            'Error al generar el archivo. Intenta nuevamente.',
+            5_000,
           );
         },
       });

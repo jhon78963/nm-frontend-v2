@@ -47,12 +47,6 @@ function appendWarehouseParams(
   return params;
 }
 
-function openPdfBlob(blob: Blob): void {
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-}
-
 @Service()
 export class SalesReportService {
   private readonly http = inject(HttpClient);
@@ -121,13 +115,7 @@ export class SalesReportService {
         params,
         responseType: 'blob',
       })
-      .pipe(
-        map((blob) => {
-          openPdfBlob(blob);
-          return blob;
-        }),
-        catchError((err) => throwError(() => extractErrorMessage(err))),
-      );
+      .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
   private exportPdf(
@@ -147,12 +135,6 @@ export class SalesReportService {
         params,
         responseType: 'blob',
       })
-      .pipe(
-        map((blob) => {
-          openPdfBlob(blob);
-          return blob;
-        }),
-        catchError((err) => throwError(() => extractErrorMessage(err))),
-      );
+      .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 }

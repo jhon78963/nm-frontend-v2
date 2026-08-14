@@ -8,8 +8,10 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { finalize } from 'rxjs';
+import { downloadFile } from '../../../core/utils/file-download.util';
 import { AuthService } from '../../auth/data-access/auth.service';
-import { ButtonComponent } from '../../../shared/ui/button/button.component';
+import { ExportButtonComponent } from '../../../shared/ui/export-button/export-button.component';
 import { TabPanelDirective } from '../../../shared/ui/tab-view/tab-panel.directive';
 import { TabViewComponent } from '../../../shared/ui/tab-view/tab-view.component';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
@@ -29,7 +31,7 @@ import { SalesMonthlyTabComponent } from './components/sales-monthly-tab/sales-m
   selector: 'app-sales-report',
   imports: [
     RouterLink,
-    ButtonComponent,
+    ExportButtonComponent,
     TabViewComponent,
     TabPanelDirective,
     SalesDailyTabComponent,
@@ -97,35 +99,44 @@ export class SalesReportComponent implements OnInit {
     }
 
     this.isExporting.set(true);
-    this.toastService.show('info', 'Generando PDF...');
+    const loadingToastId = this.toastService.loading('Generando archivo...');
 
     const warehouseId = this.selectedWarehouseId() ?? undefined;
-    const request$ =
-      this.activeTab() === 'daily'
-        ? this.salesReportService.exportDailyPdf({
-            date: this.selectedDate(),
-            warehouseId,
-          })
-        : this.salesReportService.exportMonthlyPdf({
-            ...this.selectedMonthParts(),
-            warehouseId,
-          });
+    const isDaily = this.activeTab() === 'daily';
+    const request$ = isDaily
+      ? this.salesReportService.exportDailyPdf({
+          date: this.selectedDate(),
+          warehouseId,
+        })
+      : this.salesReportService.exportMonthlyPdf({
+          ...this.selectedMonthParts(),
+          warehouseId,
+        });
 
-    request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.isExporting.set(false);
-        this.toastService.show('success', 'PDF listo');
-      },
-      error: (err: unknown) => {
-        this.isExporting.set(false);
-        this.toastService.show(
-          'error',
-          typeof err === 'string'
-            ? err
-            : 'No se pudo exportar el PDF. El servidor aún no expone este endpoint.',
-        );
-      },
-    });
+    request$
+      .pipe(
+        finalize(() => this.isExporting.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (blob) => {
+          this.toastService.dismiss(loadingToastId);
+          downloadFile(blob, {
+            filename: isDaily ? 'reporte-ventas-diario' : 'reporte-ventas-mensual',
+            extension: 'pdf',
+            appendDate: true,
+          });
+          this.toastService.show('success', 'Archivo descargado', 3_000);
+        },
+        error: () => {
+          this.toastService.dismiss(loadingToastId);
+          this.toastService.show(
+            'error',
+            'Error al generar el archivo. Intenta nuevamente.',
+            5_000,
+          );
+        },
+      });
   }
 
   private loadActiveReport(): void {
