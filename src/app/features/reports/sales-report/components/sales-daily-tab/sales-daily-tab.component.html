@@ -1,0 +1,135 @@
+<div class="space-y-6">
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div class="max-w-xs">
+      <label for="daily-report-date" class="mb-1 block text-sm font-medium text-gray-700">
+        Fecha
+      </label>
+      <input
+        id="daily-report-date"
+        type="date"
+        class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        [value]="selectedDate()"
+        (change)="onDateChange($event)"
+      />
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="space-y-4" aria-busy="true">
+      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div class="h-24 animate-pulse rounded-xl bg-gray-100"></div>
+        }
+      </div>
+      <div class="h-64 animate-pulse rounded-xl bg-gray-100"></div>
+    </div>
+  } @else if (!report()) {
+    <div class="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-10 text-center text-sm text-gray-500">
+      No hay datos para la fecha seleccionada.
+    </div>
+  } @else {
+    @if (report(); as data) {
+      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <article class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Total ventas</p>
+          <p class="mt-1 text-2xl font-bold tabular-nums text-blue-900">{{ formatMoney(data.totals.total) }}</p>
+          <p class="mt-1 text-xs text-blue-700">{{ data.totals.quantity }} transacciones</p>
+        </article>
+        <article class="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Efectivo</p>
+          <p class="mt-1 text-2xl font-bold tabular-nums text-emerald-900">{{ formatMoney(data.totals.cash) }}</p>
+        </article>
+        <article class="rounded-xl border border-violet-100 bg-violet-50 px-4 py-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-violet-700">Yape / Plin</p>
+          <p class="mt-1 text-2xl font-bold tabular-nums text-violet-900">{{ formatMoney(data.totals.yape) }}</p>
+        </article>
+        <article class="rounded-xl border border-orange-100 bg-orange-50 px-4 py-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-orange-700">Tarjeta</p>
+          <p class="mt-1 text-2xl font-bold tabular-nums text-orange-900">{{ formatMoney(data.totals.card) }}</p>
+        </article>
+      </div>
+
+      <div class="overflow-x-auto rounded-xl border border-gray-200">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+          <caption class="sr-only">Ventas por hora del día {{ data.date }}</caption>
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Hora</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Cantidad</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Total</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Efectivo</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Yape</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Tarjeta</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 bg-white">
+            @for (row of data.rows; track row.hour) {
+              @if (row.quantity > 0 || row.total > 0) {
+                <tr class="even:bg-gray-50">
+                  <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-900">{{ row.hour }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums text-gray-700">{{ row.quantity }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums font-semibold text-gray-900">{{ formatMoney(row.total) }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums text-gray-700">{{ formatMoney(row.cash) }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums text-gray-700">{{ formatMoney(row.yape) }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums text-gray-700">{{ formatMoney(row.card) }}</td>
+                </tr>
+              }
+            }
+          </tbody>
+          <tfoot class="bg-gray-100 font-semibold">
+            <tr>
+              <td class="px-4 py-3 text-gray-900">Totales</td>
+              <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ data.totals.quantity }}</td>
+              <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.total) }}</td>
+              <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.cash) }}</td>
+              <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.yape) }}</td>
+              <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.card) }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      @if (data.transactions.length > 0) {
+        <section aria-labelledby="daily-transactions-title">
+          <h3 id="daily-transactions-title" class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+            Detalle de operaciones
+          </h3>
+          <div class="overflow-x-auto rounded-xl border border-gray-200">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Hora</th>
+                  <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Tipo</th>
+                  <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Detalle</th>
+                  <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Cliente</th>
+                  <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Total</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100 bg-white">
+                @for (item of data.transactions; track item.id + item.time + item.code) {
+                  <tr class="even:bg-gray-50" [class.bg-emerald-50/60]="item.source === 'income'">
+                    <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ item.time }}</td>
+                    <td class="whitespace-nowrap px-4 py-3">
+                      @if (item.source === 'income') {
+                        <span class="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">Ingreso</span>
+                      } @else {
+                        <span class="rounded-full bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">Venta</span>
+                      }
+                    </td>
+                    <td class="px-4 py-3 text-gray-900">
+                      {{ item.source === 'income' ? (item.description || 'Ingreso de tienda') : item.code }}
+                    </td>
+                    <td class="px-4 py-3 text-gray-700">{{ item.customer }}</td>
+                    <td class="whitespace-nowrap px-4 py-3 text-right font-semibold tabular-nums text-gray-900">
+                      {{ formatMoney(item.totalAmount) }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      }
+    }
+  }
+</div>

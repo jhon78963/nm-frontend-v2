@@ -1,0 +1,243 @@
+<div class="space-y-6">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div class="space-y-2">
+      <a
+        routerLink="/reports/sales"
+        class="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+      >
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Volver al reporte de ventas
+      </a>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900">Reporte por Período</h1>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+          Consulta ventas agrupadas por día entre dos fechas. Expande cada fila para ver el detalle
+          de operaciones del día.
+        </p>
+        @if (report()?.periodLabel) {
+          <p class="mt-2 text-sm font-semibold text-indigo-700">{{ report()?.periodLabel }}</p>
+        }
+      </div>
+    </div>
+
+    <app-button
+      type="button"
+      variant="secondary"
+      [loading]="isExporting()"
+      [disabled]="isExporting() || isLoading()"
+      (clicked)="exportPdf()"
+    >
+      Exportar PDF
+    </app-button>
+  </div>
+
+  <div class="rounded-xl border border-gray-200 bg-white p-4">
+    <div class="grid gap-4 md:grid-cols-[1fr_auto_1fr_auto] md:items-end">
+      <div>
+        <label for="period-from" class="mb-1 block text-sm font-medium text-gray-700">Desde</label>
+        <input
+          id="period-from"
+          type="date"
+          class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          [value]="dateRange().from"
+          (change)="onFromChange($event)"
+        />
+      </div>
+      <span class="hidden text-gray-400 md:block md:pb-3" aria-hidden="true">→</span>
+      <div>
+        <label for="period-to" class="mb-1 block text-sm font-medium text-gray-700">Hasta</label>
+        <input
+          id="period-to"
+          type="date"
+          class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          [value]="dateRange().to"
+          (change)="onToChange($event)"
+        />
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <app-button type="button" variant="secondary" (clicked)="setCurrentMonthRange()">
+          Mes actual
+        </app-button>
+        <app-button type="button" variant="primary" [loading]="isLoading()" (clicked)="loadReport()">
+          Buscar
+        </app-button>
+      </div>
+    </div>
+  </div>
+
+  @if (isLoading()) {
+    <div class="space-y-4" aria-busy="true">
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div class="h-24 animate-pulse rounded-xl bg-gray-100"></div>
+        }
+      </div>
+      <div class="h-72 animate-pulse rounded-xl bg-gray-100"></div>
+    </div>
+  } @else if (!report()) {
+    <div class="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-10 text-center text-sm text-gray-500">
+      Selecciona un rango de fechas y pulsa Buscar.
+    </div>
+  } @else {
+    @if (report(); as data) {
+      @if (summaryCards(); as cards) {
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          @for (card of cards; track card.label) {
+            <article
+              class="rounded-xl border px-4 py-4"
+              [class.border-blue-100]="card.tone === 'blue'"
+              [class.bg-blue-50]="card.tone === 'blue'"
+              [class.border-emerald-100]="card.tone === 'green'"
+              [class.bg-emerald-50]="card.tone === 'green'"
+              [class.border-violet-100]="card.tone === 'purple'"
+              [class.bg-violet-50]="card.tone === 'purple'"
+              [class.border-orange-100]="card.tone === 'orange'"
+              [class.bg-orange-50]="card.tone === 'orange'"
+            >
+              <p
+                class="text-xs font-semibold uppercase tracking-wide"
+                [class.text-blue-700]="card.tone === 'blue'"
+                [class.text-emerald-700]="card.tone === 'green'"
+                [class.text-violet-700]="card.tone === 'purple'"
+                [class.text-orange-700]="card.tone === 'orange'"
+              >
+                {{ card.label }}
+              </p>
+              <p class="mt-1 text-2xl font-bold tabular-nums text-gray-900">{{ formatMoney(card.value) }}</p>
+            </article>
+          }
+        </div>
+      }
+
+      <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr)_280px]">
+        <div class="overflow-x-auto rounded-xl border border-gray-200">
+          <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <caption class="sr-only">Ventas por día en el periodo seleccionado</caption>
+            <thead class="bg-gray-50">
+              <tr>
+                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600"></th>
+                <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Fecha</th>
+                <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Cantidad</th>
+                <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Total</th>
+                <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Efectivo</th>
+                <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Yape</th>
+                <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Tarjeta</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+              @for (row of data.rows; track row.dateIso) {
+                <tr class="even:bg-gray-50" [class.text-gray-400]="row.quantity === 0">
+                  <td class="px-4 py-3">
+                    <button
+                      type="button"
+                      class="rounded-lg p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+                      [attr.aria-expanded]="isExpanded(row.dateIso)"
+                      [attr.aria-label]="'Expandir detalle del ' + row.date"
+                      (click)="toggleRow(row.dateIso)"
+                    >
+                      <svg
+                        class="h-4 w-4 transition-transform"
+                        [class.rotate-90]="isExpanded(row.dateIso)"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"
+                      >
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </td>
+                  <td class="whitespace-nowrap px-4 py-3">
+                    <span class="font-medium text-gray-900">{{ row.date }}</span>
+                    <span class="ml-2 text-xs text-gray-500">{{ row.dayOfWeek }}</span>
+                  </td>
+                  <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ row.quantity }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums font-semibold text-gray-900">{{ formatMoney(row.total) }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ formatMoney(row.cash) }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ formatMoney(row.yape) }}</td>
+                  <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ formatMoney(row.card) }}</td>
+                </tr>
+
+                @if (isExpanded(row.dateIso)) {
+                  <tr>
+                    <td colspan="7" class="bg-gray-50 px-4 py-4">
+                      @if (isRowLoading(row.dateIso)) {
+                        <div class="h-16 animate-pulse rounded-lg bg-gray-100"></div>
+                      } @else if (row.products.length === 0) {
+                        <p class="text-sm text-gray-500">No hay operaciones detalladas para este día.</p>
+                      } @else {
+                        <div class="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+                          <table class="min-w-full text-sm">
+                            <thead class="bg-gray-50">
+                              <tr>
+                                <th scope="col" class="px-3 py-2 text-left font-semibold text-gray-600">Producto</th>
+                                <th scope="col" class="px-3 py-2 text-left font-semibold text-gray-600">Talla</th>
+                                <th scope="col" class="px-3 py-2 text-left font-semibold text-gray-600">Color</th>
+                                <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">Cantidad</th>
+                                <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">P. Unitario</th>
+                                <th scope="col" class="px-3 py-2 text-right font-semibold text-gray-600">Subtotal</th>
+                              </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                              @for (product of row.products; track product.name + product.subtotal) {
+                                <tr class="even:bg-gray-50">
+                                  <td class="px-3 py-2 text-gray-900">{{ product.name }}</td>
+                                  <td class="px-3 py-2 text-gray-700">{{ product.size }}</td>
+                                  <td class="px-3 py-2 text-gray-700">{{ product.color }}</td>
+                                  <td class="px-3 py-2 text-right tabular-nums">{{ product.quantity }}</td>
+                                  <td class="px-3 py-2 text-right tabular-nums">{{ formatMoney(product.unitPrice) }}</td>
+                                  <td class="px-3 py-2 text-right tabular-nums font-semibold">{{ formatMoney(product.subtotal) }}</td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+                      }
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+            <tfoot class="bg-gray-100 font-semibold">
+              <tr>
+                <td colspan="2" class="px-4 py-3 text-gray-900">Totales del periodo</td>
+                <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ data.totals.quantity }}</td>
+                <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.total) }}</td>
+                <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.cash) }}</td>
+                <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.yape) }}</td>
+                <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.card) }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <aside class="rounded-xl border border-gray-200 bg-white p-5">
+          <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Resumen</h2>
+          <dl class="mt-4 space-y-3 text-sm">
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-gray-600">Transacciones</dt>
+              <dd class="font-semibold tabular-nums text-gray-900">{{ data.summary.transactionCount }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-gray-600">Artículos vendidos</dt>
+              <dd class="font-semibold tabular-nums text-gray-900">{{ data.summary.itemsSold }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-gray-600">Ticket promedio</dt>
+              <dd class="font-semibold tabular-nums text-gray-900">{{ formatMoney(data.summary.averageTicket) }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-gray-600">Promedio diario</dt>
+              <dd class="font-semibold tabular-nums text-gray-900">{{ formatMoney(data.summary.averageDaily) }}</dd>
+            </div>
+            <div class="flex items-center justify-between gap-3">
+              <dt class="text-gray-600">Días con ventas</dt>
+              <dd class="font-semibold tabular-nums text-gray-900">
+                {{ data.summary.daysWithSales }} / {{ data.summary.daysInRange }}
+              </dd>
+            </div>
+          </dl>
+        </aside>
+      </div>
+    }
+  }
+</div>

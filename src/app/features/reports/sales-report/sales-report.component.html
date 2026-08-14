@@ -1,0 +1,62 @@
+<div class="space-y-6">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div class="space-y-2">
+      <a
+        routerLink="/reports"
+        class="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+      >
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Volver al reporte gerencial
+      </a>
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900">Reporte de Ventas</h1>
+        <p class="mt-1 max-w-2xl text-sm text-gray-500">
+          Analiza ingresos de caja por día o por mes. Incluye ventas y otros ingresos de tienda,
+          con la misma lógica que Control de Caja.
+        </p>
+      </div>
+      <a
+        routerLink="/reports/sales-period"
+        class="inline-flex text-sm font-semibold text-indigo-600 hover:text-indigo-700"
+      >
+        Ver ventas por periodo personalizado
+      </a>
+    </div>
+
+    <app-button
+      type="button"
+      variant="secondary"
+      [loading]="isExporting()"
+      [disabled]="isExporting() || isLoading()"
+      (clicked)="exportPdf()"
+    >
+      Exportar PDF
+    </app-button>
+  </div>
+
+  <app-tab-view
+    [tabs]="reportTabs"
+    [activeTab]="activeTab()"
+    (activeTabChange)="onTabChange($event)"
+  >
+    <ng-template appTabPanel tabId="daily">
+      <app-sales-daily-tab
+        [report]="dailyReport()"
+        [loading]="isLoading()"
+        [selectedDate]="selectedDate()"
+        (selectedDateChange)="onDailyDateChange($event)"
+      />
+    </ng-template>
+
+    <ng-template appTabPanel tabId="monthly">
+      <app-sales-monthly-tab
+        [report]="monthlyReport()"
+        [loading]="isLoading()"
+        [selectedMonth]="selectedMonth()"
+        (selectedMonthChange)="onMonthlyChange($event)"
+      />
+    </ng-template>
+  </app-tab-view>
+</div>

@@ -94,6 +94,8 @@ export class MainLayoutComponent implements OnInit {
       label: 'Reportes',
       items: [
         { label: 'Reportes', route: '/reports', permission: 'report.index' },
+        { label: 'Ventas', route: '/reports/sales', permission: 'report.sales' },
+        { label: 'Ventas por Período', route: '/reports/sales-period', permission: 'report.sales' },
         { label: 'Productos (inventario)', route: '/reports/products', permission: 'report.products' },
         { label: 'Resumen Financiero', route: '/reports/financial-summaries', permission: 'financialSummary.getSummary' },
         { label: 'Asistente IA', route: '/ai', permissions: ['product.get', 'product.getAll'] },

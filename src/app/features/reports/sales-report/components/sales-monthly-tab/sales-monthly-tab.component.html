@@ -1,0 +1,119 @@
+<div class="space-y-6">
+  <div class="max-w-xs">
+    <label for="monthly-report-month" class="mb-1 block text-sm font-medium text-gray-700">
+      Mes
+    </label>
+    <input
+      id="monthly-report-month"
+      type="month"
+      class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      [value]="selectedMonth()"
+      (change)="onMonthChange($event)"
+    />
+  </div>
+
+  @if (loading()) {
+    <div class="space-y-4" aria-busy="true">
+      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div class="h-24 animate-pulse rounded-xl bg-gray-100"></div>
+        }
+      </div>
+      <div class="h-64 animate-pulse rounded-xl bg-gray-100"></div>
+    </div>
+  } @else if (!report()) {
+    <div class="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-10 text-center text-sm text-gray-500">
+      No hay datos para el mes seleccionado.
+    </div>
+  } @else {
+    @if (report(); as data) {
+      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <article class="rounded-xl border border-blue-100 bg-blue-50 px-4 py-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Total del mes</p>
+          <p class="mt-1 text-2xl font-bold tabular-nums text-blue-900">{{ formatMoney(data.totals.total) }}</p>
+          <p class="mt-1 text-xs text-blue-700">{{ data.summary.daysWithSales }} días con ventas</p>
+        </article>
+        <article class="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-emerald-700">Efectivo</p>
+          <p class="mt-1 text-2xl font-bold tabular-nums text-emerald-900">{{ formatMoney(data.totals.cash) }}</p>
+        </article>
+        <article class="rounded-xl border border-violet-100 bg-violet-50 px-4 py-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-violet-700">Yape / Plin</p>
+          <p class="mt-1 text-2xl font-bold tabular-nums text-violet-900">{{ formatMoney(data.totals.yape) }}</p>
+        </article>
+        <article class="rounded-xl border border-orange-100 bg-orange-50 px-4 py-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-orange-700">Tarjeta</p>
+          <p class="mt-1 text-2xl font-bold tabular-nums text-orange-900">{{ formatMoney(data.totals.card) }}</p>
+        </article>
+      </div>
+
+      <section aria-labelledby="monthly-chart-title">
+        <h3 id="monthly-chart-title" class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
+          Ventas por día
+        </h3>
+        <div class="rounded-xl border border-gray-200 bg-white px-4 py-5">
+          <div class="flex h-48 items-end gap-1 sm:gap-2" role="img" [attr.aria-label]="'Gráfico de ventas diarias de ' + data.monthLabel">
+            @for (amount of data.chartAmounts; track $index) {
+              <div class="group relative flex min-w-0 flex-1 flex-col items-center justify-end">
+                <div
+                  class="w-full rounded-t-md bg-indigo-500 transition-colors group-hover:bg-indigo-600"
+                  [style.height]="barHeight(amount)"
+                  [attr.title]="formatMoney(amount)"
+                ></div>
+                <span class="mt-2 hidden truncate text-[10px] text-gray-400 sm:block">
+                  {{ data.chartLabels[$index] }}
+                </span>
+                <span class="pointer-events-none absolute -top-8 hidden rounded bg-gray-900 px-2 py-1 text-xs text-white group-hover:block">
+                  {{ formatMoney(amount) }}
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+
+      <div class="overflow-x-auto rounded-xl border border-gray-200">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+          <caption class="sr-only">Ventas diarias del mes {{ data.monthLabel }}</caption>
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Día</th>
+              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Fecha</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Cantidad</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Total</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Efectivo</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Yape</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Tarjeta</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100 bg-white">
+            @for (row of data.rows; track row.date) {
+              <tr class="even:bg-gray-50" [class.text-gray-400]="row.quantity === 0">
+                <td class="whitespace-nowrap px-4 py-3 font-medium">{{ row.day }}</td>
+                <td class="whitespace-nowrap px-4 py-3">
+                  <span class="font-medium text-gray-900">{{ row.date }}</span>
+                  <span class="ml-2 text-xs text-gray-500">{{ row.dayOfWeek }}</span>
+                </td>
+                <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ row.quantity }}</td>
+                <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums font-semibold text-gray-900">{{ formatMoney(row.total) }}</td>
+                <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ formatMoney(row.cash) }}</td>
+                <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ formatMoney(row.yape) }}</td>
+                <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ formatMoney(row.card) }}</td>
+              </tr>
+            }
+          </tbody>
+          <tfoot class="bg-gray-100 font-semibold">
+            <tr>
+              <td colspan="2" class="px-4 py-3 text-gray-900">Totales del mes</td>
+              <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ data.totals.quantity }}</td>
+              <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.total) }}</td>
+              <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.cash) }}</td>
+              <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.yape) }}</td>
+              <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.card) }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    }
+  }
+</div>
