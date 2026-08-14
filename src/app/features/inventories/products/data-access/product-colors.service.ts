@@ -1,8 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
-import { catchError, map, Observable, throwError } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
-import { ProductColorFormData, ProductColorSizeOption, ProductColorVariantRow, CatalogColorCreateData } from '../models/product.model';
+import {
+  CatalogColorCreateData,
+  EcommerceVariantRow,
+  ProductColorFormData,
+  ProductColorSizeOption,
+  ProductColorVariantRow,
+} from '../models/product.model';
 import { adaptProductColorVariantRow, adaptProductSize } from './product.adapter';
 
 function extractErrorMessage(err: unknown): string {
@@ -65,6 +71,39 @@ export class ProductColorsService {
             })
           : [],
       ),
+    );
+  }
+
+  getAttachedColorVariants(productId: number): Observable<EcommerceVariantRow[]> {
+    return this.getSizes(productId).pipe(
+      switchMap((sizes) => {
+        if (sizes.length === 0) {
+          return of([]);
+        }
+
+        return forkJoin(
+          sizes.map((size) =>
+            this.getColors(productId, size.id).pipe(
+              map((colors) =>
+                colors
+                  .filter((color) => color.variantAttached)
+                  .map(
+                    (color): EcommerceVariantRow => ({
+                      sizeId: size.id,
+                      sizeLabel: size.description,
+                      colorId: color.id,
+                      colorLabel: color.description,
+                      colorHash: color.hash ?? color.value ?? null,
+                      stock: color.stock ?? 0,
+                      price: color.price ?? 0,
+                      syncStatus: 'pending',
+                    }),
+                  ),
+              ),
+            ),
+          ),
+        ).pipe(map((groups) => groups.flat()));
+      }),
     );
   }
 

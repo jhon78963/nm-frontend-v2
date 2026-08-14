@@ -1,4 +1,5 @@
 import {
+  EcommerceStepState,
   PublishProduct,
   PublishProductListResponse,
   PublishProductMediaItem,
@@ -106,5 +107,33 @@ export function adaptCatalogOption(raw: unknown): { id: number; description: str
   return {
     id: readNumber(r['id']),
     description: readString(r['description']),
+  };
+}
+
+export function toEcommerceStepState(
+  product: Pick<PublishProduct, 'wooStatus' | 'wooCommerce'>,
+  lastError: string | null = null,
+): EcommerceStepState {
+  const wooProductId = product.wooCommerce?.productId ?? null;
+  const lastSyncedAt = product.wooCommerce?.lastSyncedAt ?? null;
+  const wantsPublish = product.wooStatus === 'publish';
+  const isPublished = wooProductId != null || wantsPublish;
+
+  let syncStatus: EcommerceStepState['syncStatus'] = 'never';
+  if (lastError) {
+    syncStatus = 'error';
+  } else if (wooProductId && lastSyncedAt) {
+    syncStatus = 'synced';
+  } else if (isPublished) {
+    syncStatus = 'pending';
+  }
+
+  return {
+    isPublished,
+    wooProductId,
+    wooUrl: null,
+    syncStatus,
+    lastSyncError: lastError,
+    lastSyncedAt,
   };
 }

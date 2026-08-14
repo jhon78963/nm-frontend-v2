@@ -123,6 +123,17 @@ export interface ProductColorFormData {
   stock: number;
 }
 
+export interface EcommerceVariantRow {
+  sizeId: number;
+  sizeLabel: string;
+  colorId: number;
+  colorLabel: string;
+  colorHash: string | null;
+  stock: number;
+  price: number;
+  syncStatus: 'synced' | 'pending';
+}
+
 export interface ProductImportResponse {
   message: string;
   updated: number;

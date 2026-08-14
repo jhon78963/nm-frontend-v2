@@ -59,6 +59,14 @@ export const routes: Routes = [
         data: { breadcrumb: 'Colores' },
       },
       {
+        path: 'ecommerce',
+        loadComponent: () =>
+          import('./components/product-ecommerce-step/product-ecommerce-step.component').then(
+            (m) => m.ProductEcommerceStepComponent,
+          ),
+        data: { breadcrumb: 'Ecommerce' },
+      },
+      {
         path: 'kardex',
         loadComponent: () =>
           import('./components/product-kardex/product-kardex.component').then(

@@ -72,6 +72,21 @@ export interface PublishSettingsFormModel {
   wooStatus: 'draft' | 'publish';
 }
 
+export interface EcommerceStepState {
+  isPublished: boolean;
+  wooProductId: number | null;
+  wooUrl: string | null;
+  syncStatus: 'synced' | 'pending' | 'error' | 'never';
+  lastSyncError: string | null;
+  lastSyncedAt: string | null;
+}
+
+export interface EcommercePublishFormModel {
+  publishOnline: boolean;
+  wooDescription: string;
+  onlinePrice: number | null;
+}
+
 export interface CatalogOption {
   id: number;
   description: string;

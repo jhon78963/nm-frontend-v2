@@ -56,6 +56,12 @@ export class ProductStepperComponent implements OnInit {
         disabled: isNew,
       },
       {
+        label: 'Ecommerce',
+        route: `/inventories/products/${id}/ecommerce`,
+        icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z',
+        disabled: isNew,
+      },
+      {
         label: 'Kardex',
         route: `/inventories/products/${id}/kardex`,
         icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01',
@@ -93,7 +99,9 @@ export class ProductStepperComponent implements OnInit {
     this.productId.set(idParam ? Number(idParam) : null);
 
     const url = this.router.url;
-    const stepMatch = url.match(/\/products\/(?:new|(\d+)\/(general|sizes|colors|kardex|history))/);
+    const stepMatch = url.match(
+      /\/products\/(?:new|(\d+)\/(general|sizes|colors|ecommerce|kardex|history))/,
+    );
 
     if (!stepMatch) {
       this.currentStepIndex.set(0);
@@ -101,7 +109,7 @@ export class ProductStepperComponent implements OnInit {
     }
 
     const stepName = url.includes('/new') ? 'general' : stepMatch[2];
-    const stepNames = ['general', 'sizes', 'colors', 'kardex', 'history'];
+    const stepNames = ['general', 'sizes', 'colors', 'ecommerce', 'kardex', 'history'];
     const index = stepNames.indexOf(stepName);
     this.currentStepIndex.set(index >= 0 ? index : 0);
   }
