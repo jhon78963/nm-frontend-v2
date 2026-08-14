@@ -88,3 +88,62 @@ export interface ProductVariantSelection {
   sku: string;
   availableQuantity: number;
 }
+
+export interface ExchangeItem {
+  saleItemId: number;
+  productId: number;
+  productName: string;
+  size: string;
+  color: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
+export interface ExchangeNewItem {
+  variantId: number;
+  productSizeId: number;
+  colorId: number;
+  productName: string;
+  size: string;
+  color: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+  sku?: string;
+  availableQuantity?: number;
+}
+
+export interface ExchangePreview {
+  originalItems: ExchangeItem[];
+  newItems: ExchangeNewItem[];
+  originalTotal: number;
+  newTotal: number;
+  difference: number;
+}
+
+export interface ExchangePayload {
+  saleId: number;
+  returnItems: { saleItemId: number; quantity: number }[];
+  newItems: { variantId: number; quantity: number }[];
+  paymentMethod: 'cash' | 'yape' | 'card' | null;
+  amountPaid: number;
+}
+
+export interface ExchangeResponse {
+  exchangeId: number;
+  newSaleId: number | null;
+  refundAmount: number;
+  message: string;
+}
+
+export interface ExchangeBackendPayload {
+  returned_detail_id: number;
+  difference_amount: number;
+  payment_method: string | null;
+  new_item: {
+    product_size_id: number;
+    color_id: number;
+    final_price: number;
+  };
+}

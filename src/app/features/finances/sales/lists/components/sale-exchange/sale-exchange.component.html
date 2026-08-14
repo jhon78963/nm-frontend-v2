@@ -1,0 +1,427 @@
+<div
+  class="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
+  aria-hidden="true"
+  (click)="closePanel()"
+></div>
+
+<aside
+  class="fixed inset-y-0 right-0 z-40 flex w-full flex-col bg-white shadow-2xl lg:w-[60vw] lg:max-w-4xl"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="sale-exchange-title"
+>
+  <div class="flex items-center justify-between border-b border-gray-200 px-6 py-5">
+    <div class="flex items-center gap-3">
+      <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-100">
+        <svg class="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+        </svg>
+      </div>
+      <div>
+        <h2 id="sale-exchange-title" class="text-base font-semibold text-gray-900">
+          Canje / Cambio
+        </h2>
+        @if (saleCode()) {
+          <p class="text-xs text-gray-400">
+            {{ saleCode() }}
+            @if (saleCustomer()) {
+              · {{ saleCustomer() }}
+            }
+          </p>
+        }
+      </div>
+    </div>
+    <button
+      type="button"
+      class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
+      aria-label="Cerrar panel de canje"
+      (click)="closePanel()"
+    >
+      <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </div>
+
+  <div class="border-b border-gray-100 px-6 py-4">
+    <ol class="flex items-center gap-3" aria-label="Pasos del canje">
+      @for (stepNumber of [1, 2, 3]; track stepNumber) {
+        <li class="flex items-center gap-2">
+          <span
+            class="flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold"
+            [class.bg-indigo-600]="stepIndex() === stepNumber"
+            [class.text-white]="stepIndex() === stepNumber"
+            [class.bg-indigo-100]="stepIndex() !== stepNumber"
+            [class.text-indigo-700]="stepIndex() !== stepNumber"
+            [attr.aria-current]="stepIndex() === stepNumber ? 'step' : null"
+          >
+            {{ stepNumber }}
+          </span>
+          <span
+            class="hidden text-sm sm:inline"
+            [class.font-semibold]="stepIndex() === stepNumber"
+            [class.text-indigo-700]="stepIndex() === stepNumber"
+            [class.text-gray-500]="stepIndex() !== stepNumber"
+          >
+            @switch (stepNumber) {
+              @case (1) { Devolución }
+              @case (2) { Producto nuevo }
+              @case (3) { Confirmar }
+            }
+          </span>
+          @if (stepNumber < 3) {
+            <span class="hidden h-px w-6 bg-gray-200 sm:block" aria-hidden="true"></span>
+          }
+        </li>
+      }
+    </ol>
+  </div>
+
+  <div class="flex-1 overflow-y-auto p-6">
+    @if (isLoading()) {
+      <div class="space-y-4" aria-busy="true" aria-label="Cargando venta">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="h-16 animate-pulse rounded-xl bg-gray-100"></div>
+        }
+      </div>
+    } @else if (loadError()) {
+      <div class="space-y-4">
+        <app-alert variant="error" [message]="loadError()" />
+        <app-button type="button" variant="secondary" (clicked)="closePanel()">
+          Cerrar
+        </app-button>
+      </div>
+    } @else {
+      @switch (step()) {
+        @case ('select-return') {
+          <section aria-labelledby="return-step-title">
+            <h3 id="return-step-title" class="text-sm font-semibold uppercase tracking-wide text-gray-500">
+              Selecciona el producto a devolver
+            </h3>
+            <p class="mt-1 text-sm text-gray-500">
+              Marca el producto que el cliente devuelve y confirma la cantidad.
+            </p>
+
+            @if (originalItems().length === 0) {
+              <p class="mt-4 rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-500">
+                Esta venta no tiene productos disponibles para canje.
+              </p>
+            } @else {
+              <ul class="mt-4 divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200">
+                @for (item of originalItems(); track item.saleItemId) {
+                  <li class="flex flex-col gap-3 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex min-w-0 flex-1 items-start gap-3">
+                      <app-checkbox
+                        [label]="''"
+                        [value]="isReturnSelected(item)"
+                        (valueChange)="toggleReturnItem(item, $event)"
+                      />
+                      <div class="min-w-0">
+                        <p class="font-medium text-gray-900">{{ item.productName }}</p>
+                        <p class="text-xs text-gray-500">{{ item.size }} · {{ item.color }}</p>
+                        <p class="mt-1 text-sm font-semibold tabular-nums text-indigo-700">
+                          {{ formatMoney(item.unitPrice) }}
+                        </p>
+                      </div>
+                    </div>
+
+                    @if (isReturnSelected(item)) {
+                      <div class="flex items-center gap-2 sm:shrink-0">
+                        <label class="text-xs font-medium text-gray-500" [for]="'return-qty-' + item.saleItemId">
+                          Cantidad
+                        </label>
+                        <input
+                          [id]="'return-qty-' + item.saleItemId"
+                          type="number"
+                          min="1"
+                          [max]="item.quantity"
+                          class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          [value]="returnQuantity(item)"
+                          [attr.aria-label]="'Cantidad a devolver de ' + item.productName"
+                          (change)="onReturnQuantityChange(item, $any($event.target).value)"
+                        />
+                        <span class="text-xs text-gray-400">/ {{ item.quantity }}</span>
+                      </div>
+                    }
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+        }
+
+        @case ('select-new') {
+          <section class="space-y-5" aria-labelledby="new-step-title">
+            <div class="rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+              <span class="font-medium text-gray-500">Devuelve:</span>
+              @for (item of originalItems(); track item.saleItemId) {
+                @if (isReturnSelected(item)) {
+                  <span class="ml-2 font-semibold text-gray-900">
+                    {{ item.productName }} ({{ formatMoney(item.unitPrice * returnQuantity(item)) }})
+                  </span>
+                }
+              }
+            </div>
+
+            <div>
+              <h3 id="new-step-title" class="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                Buscar producto nuevo
+              </h3>
+              <div class="relative mt-3">
+                <svg
+                  class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                  fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"
+                >
+                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input
+                  type="search"
+                  class="w-full rounded-xl border border-gray-300 py-2.5 pl-9 pr-4 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  placeholder="SKU o nombre de producto…"
+                  [value]="searchQuery()"
+                  aria-label="Buscar variantes para el canje"
+                  (input)="onSearchInput($event)"
+                  (keydown)="onSearchKeydown($event)"
+                />
+              </div>
+            </div>
+
+            @if (isSearching()) {
+              <div class="space-y-3">
+                @for (i of [1, 2, 3]; track i) {
+                  <div class="h-14 animate-pulse rounded-xl bg-gray-100"></div>
+                }
+              </div>
+            } @else if (searchQuery().trim().length >= 2 && searchResults().length === 0) {
+              <p class="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-500">
+                No se encontraron variantes para «{{ searchQuery().trim() }}».
+              </p>
+            } @else if (searchResults().length > 0) {
+              <ul class="divide-y divide-gray-100 overflow-hidden rounded-xl border border-gray-200" role="listbox" aria-label="Resultados de búsqueda">
+                @for (result of searchResults(); track result.variantId) {
+                  <li>
+                    <button
+                      type="button"
+                      class="flex w-full items-center gap-4 px-4 py-4 text-left transition-colors hover:bg-indigo-50/60 focus-visible:bg-indigo-50 focus-visible:outline-none"
+                      role="option"
+                      (click)="addNewItem(result)"
+                    >
+                      <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-indigo-50 text-xs font-semibold text-indigo-600">
+                        {{ result.size }}
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <p class="truncate font-semibold text-gray-900">{{ result.productName }}</p>
+                        <p class="truncate text-xs text-gray-500">
+                          {{ result.size }} · {{ result.color }}
+                          @if (result.sku) {
+                            · {{ result.sku }}
+                          }
+                        </p>
+                      </div>
+                      <div class="shrink-0 text-right">
+                        <p class="font-semibold tabular-nums text-indigo-700">{{ formatMoney(result.unitPrice) }}</p>
+                        @if (result.availableQuantity != null) {
+                          <p
+                            class="text-xs font-medium"
+                            [class.text-emerald-600]="result.availableQuantity > 0"
+                            [class.text-red-500]="result.availableQuantity <= 0"
+                          >
+                            Stock: {{ result.availableQuantity }}
+                          </p>
+                        }
+                      </div>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+
+            @if (newItems().length > 0) {
+              <section aria-labelledby="selected-new-title">
+                <h4 id="selected-new-title" class="text-sm font-semibold text-gray-900">
+                  Producto seleccionado
+                </h4>
+                <ul class="mt-3 space-y-3">
+                  @for (item of newItems(); track item.variantId) {
+                    <li class="rounded-xl border border-gray-200 bg-white px-4 py-4">
+                      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p class="font-medium text-gray-900">{{ item.productName }}</p>
+                          <p class="text-xs text-gray-500">{{ item.size }} · {{ item.color }}</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3">
+                          <div class="flex items-center gap-2">
+                            <label class="text-xs font-medium text-gray-500" [for]="'new-qty-' + item.variantId">
+                              Cant.
+                            </label>
+                            <input
+                              [id]="'new-qty-' + item.variantId"
+                              type="number"
+                              min="1"
+                              class="w-20 rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              [value]="item.quantity"
+                              (change)="updateNewItemQuantity(item.variantId, $any($event.target).value)"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            class="text-sm font-medium text-red-600 hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
+                            (click)="removeNewItem(item.variantId)"
+                          >
+                            Quitar
+                          </button>
+                        </div>
+                      </div>
+                    </li>
+                  }
+                </ul>
+              </section>
+            }
+          </section>
+        }
+
+        @case ('confirm') {
+          @if (preview(); as summary) {
+            <section class="space-y-5" aria-labelledby="confirm-step-title">
+              <h3 id="confirm-step-title" class="text-sm font-semibold uppercase tracking-wide text-gray-500">
+                Resumen del canje
+              </h3>
+
+              <div class="grid gap-4 md:grid-cols-2">
+                <div class="overflow-hidden rounded-xl border border-red-200 bg-red-50">
+                  <div class="border-b border-red-100 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-red-600">
+                    Devuelve
+                  </div>
+                  <ul class="divide-y divide-red-100">
+                    @for (item of summary.originalItems; track item.saleItemId) {
+                      <li class="px-4 py-3 text-sm">
+                        <p class="font-medium text-red-900">{{ item.productName }}</p>
+                        <p class="text-xs text-red-700">{{ item.size }} · {{ item.color }} · x{{ item.quantity }}</p>
+                        <p class="mt-1 font-semibold tabular-nums text-red-800">{{ formatMoney(item.subtotal) }}</p>
+                      </li>
+                    }
+                  </ul>
+                  <div class="border-t border-red-100 px-4 py-3 text-sm font-semibold text-red-900">
+                    Total devuelto: {{ formatMoney(summary.originalTotal) }}
+                  </div>
+                </div>
+
+                <div class="overflow-hidden rounded-xl border border-green-200 bg-green-50">
+                  <div class="border-b border-green-100 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-green-600">
+                    Lleva
+                  </div>
+                  <ul class="divide-y divide-green-100">
+                    @for (item of summary.newItems; track item.variantId) {
+                      <li class="px-4 py-3 text-sm">
+                        <p class="font-medium text-green-900">{{ item.productName }}</p>
+                        <p class="text-xs text-green-700">{{ item.size }} · {{ item.color }} · x{{ item.quantity }}</p>
+                        <div class="mt-2 max-w-xs">
+                          <label class="mb-1 block text-xs font-medium text-gray-600" [for]="'price-' + item.variantId">
+                            Precio unitario
+                          </label>
+                          <input
+                            [id]="'price-' + item.variantId"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            [value]="item.unitPrice"
+                            (change)="onNewItemPriceInput(item.variantId, $event)"
+                          />
+                        </div>
+                      </li>
+                    }
+                  </ul>
+                  <div class="border-t border-green-100 px-4 py-3 text-sm font-semibold text-green-900">
+                    Total nuevo: {{ formatMoney(summary.newTotal) }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-gray-200 bg-white px-4 py-4">
+                @if (summary.difference > 0) {
+                  <p class="text-sm font-medium text-gray-700">Cobrar diferencia</p>
+                  <p class="mt-1 text-3xl font-bold tabular-nums text-gray-900">
+                    {{ formatMoney(summary.difference) }}
+                  </p>
+                  <div class="mt-4 max-w-xs">
+                    <label class="mb-1 block text-sm font-medium text-gray-700" for="exchange-payment-method">
+                      Método de pago
+                    </label>
+                    <select
+                      id="exchange-payment-method"
+                      class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      [value]="paymentMethod()"
+                      (change)="onPaymentMethodChange($event)"
+                    >
+                      @for (option of paymentMethodOptions; track option.value) {
+                        <option [value]="option.value">{{ option.label }}</option>
+                      }
+                    </select>
+                  </div>
+                } @else if (summary.difference < 0) {
+                  <p class="text-sm font-medium text-blue-800">
+                    Diferencia a devolver: {{ formatAbsMoney(summary.difference) }}
+                  </p>
+                  <p class="mt-1 text-xs text-blue-700">
+                    No se devuelve dinero en efectivo; el saldo queda registrado en la operación.
+                  </p>
+                } @else {
+                  <p class="text-sm font-medium text-gray-800">Sin diferencia de precio</p>
+                }
+              </div>
+            </section>
+          }
+        }
+      }
+    }
+  </div>
+
+  @if (!isLoading() && !loadError()) {
+    <div class="flex flex-col-reverse gap-3 border-t border-gray-200 px-6 py-4 sm:flex-row sm:justify-between">
+      @switch (step()) {
+        @case ('select-return') {
+          <app-button type="button" variant="secondary" (clicked)="closePanel()">
+            Cancelar
+          </app-button>
+          <app-button
+            type="button"
+            variant="primary"
+            [disabled]="!hasReturnSelection()"
+            (clicked)="goToSelectNew()"
+          >
+            Siguiente
+          </app-button>
+        }
+        @case ('select-new') {
+          <app-button type="button" variant="secondary" (clicked)="goToSelectReturn()">
+            Atrás
+          </app-button>
+          <app-button
+            type="button"
+            variant="primary"
+            [loading]="isLoadingPreview()"
+            [disabled]="!hasNewItems() || isLoadingPreview()"
+            (clicked)="loadPreviewAndConfirmStep()"
+          >
+            Ver resumen
+          </app-button>
+        }
+        @case ('confirm') {
+          <app-button type="button" variant="secondary" (clicked)="goToConfirmBack()">
+            Atrás
+          </app-button>
+          <app-button
+            type="button"
+            variant="primary"
+            [loading]="isConfirming()"
+            [disabled]="isConfirming()"
+            (clicked)="confirmExchange()"
+          >
+            Confirmar canje
+          </app-button>
+        }
+      }
+    </div>
+  }
+</aside>

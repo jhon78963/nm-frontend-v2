@@ -28,6 +28,8 @@ import { ToastService } from '../../../../../../shared/ui/toast/toast.service';
 import { SaleService } from '../../data-access/sale.service';
 import { Sale, SunatStatus } from '../../models/sale.model';
 import { SaleFormComponent } from '../sale-form/sale-form.component';
+import { SaleExchangeComponent } from '../sale-exchange/sale-exchange.component';
+import { ExchangeResponse } from '../../models/sale.model';
 
 @Component({
   selector: 'app-sales-list',
@@ -35,6 +37,7 @@ import { SaleFormComponent } from '../sale-form/sale-form.component';
     ReactiveFormsModule,
     RouterLink,
     SaleFormComponent,
+    SaleExchangeComponent,
     ConfirmDialogComponent,
     DataTableComponent,
     TableActionButtonComponent,
@@ -62,6 +65,8 @@ export class SalesListComponent implements OnInit {
 
   protected readonly cancelConfirmId = signal<number | null>(null);
   protected readonly cancelling = signal(false);
+
+  protected readonly exchangeSaleId = signal<number | null>(null);
 
   protected readonly filterForm = new FormGroup({
     search: new FormControl('', { nonNullable: true }),
@@ -270,6 +275,27 @@ export class SalesListComponent implements OnInit {
 
   protected onFormClosed(): void {
     this.formDialogOpen.set(false);
+  }
+
+  protected openExchange(id: number): void {
+    this.exchangeSaleId.set(id);
+  }
+
+  protected closeExchange(): void {
+    this.exchangeSaleId.set(null);
+  }
+
+  protected onExchangeCompleted(response: ExchangeResponse): void {
+    this.exchangeSaleId.set(null);
+    this.toastService.show('success', response.message || 'Canje registrado correctamente.');
+    this.loadSales();
+  }
+
+  protected canExchange(sale: Sale): boolean {
+    return (
+      sale.status === 'ACTIVE' &&
+      this.authService.hasAnyPermission(['sale.exchange', 'sale.update'])
+    );
   }
 
   protected canEdit(sale: Sale): boolean {
