@@ -77,7 +77,7 @@
             }
           </h2>
 
-          <form [formGroup]="header" class="mt-4 space-y-4">
+          <form [formGroup]="header" class="mt-4 space-y-5">
             <div class="relative">
               <label for="supplierName" class="mb-1.5 block text-sm font-medium text-gray-700">
                 Proveedor
@@ -292,7 +292,7 @@
               </div>
             } @else {
               <form [formGroup]="lineDraft" class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                <div class="space-y-4">
+                <div class="space-y-5">
                   @if (!useExistingProduct()) {
                     <app-input label="Nombre del producto" formControlName="newProductName" />
                     <app-select
@@ -338,7 +338,7 @@
                   }
                 </div>
 
-                <div class="space-y-4">
+                <div class="space-y-5">
                   <div class="rounded-xl border border-gray-200 bg-gray-50/80 p-4">
                     <h3 class="text-sm font-semibold text-gray-900">Talla — Precios y código de barras</h3>
                     <div class="mt-3 space-y-3">

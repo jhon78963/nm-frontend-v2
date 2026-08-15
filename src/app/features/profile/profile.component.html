@@ -51,7 +51,7 @@
           }
         </div>
 
-        <form class="mt-6 space-y-4" (submit)="saveProfile($event)" novalidate>
+        <form class="mt-6 space-y-5" (submit)="saveProfile($event)" novalidate>
           @if (profileError()) {
             <app-alert variant="error" [message]="profileError()" />
           }
@@ -118,7 +118,7 @@
           Usa al menos 8 caracteres. La nueva contraseña y su confirmación deben coincidir.
         </p>
 
-        <form class="mt-6 space-y-4" (submit)="savePassword($event)" novalidate>
+        <form class="mt-6 space-y-5" (submit)="savePassword($event)" novalidate>
           @if (passwordError()) {
             <app-alert variant="error" [message]="passwordError()" />
           }

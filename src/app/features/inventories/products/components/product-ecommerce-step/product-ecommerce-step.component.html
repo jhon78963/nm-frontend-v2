@@ -1,11 +1,11 @@
 @if (isLoading()) {
-  <div class="space-y-4" aria-busy="true" aria-label="Cargando ecommerce">
+  <div class="space-y-5" aria-busy="true" aria-label="Cargando ecommerce">
     <div class="h-20 animate-pulse rounded-xl bg-gray-100"></div>
     <div class="h-48 animate-pulse rounded-xl bg-gray-100"></div>
     <div class="h-40 animate-pulse rounded-xl bg-gray-100"></div>
   </div>
 } @else if (loadError()) {
-  <div class="space-y-4">
+  <div class="space-y-5">
     <app-alert variant="error" [message]="loadError()" />
     <app-button type="button" variant="secondary" (clicked)="load()">Reintentar</app-button>
   </div>
@@ -129,7 +129,7 @@
           Configura la ficha de WooCommerce. El precio por variante se gestiona en Tallas y Colores.
         </p>
 
-        <form class="mt-5 space-y-4" (submit)="saveAndPublish($event)" novalidate>
+        <form class="mt-5 space-y-5" (submit)="saveAndPublish($event)" novalidate>
           <app-checkbox
             label="¿Publicar en tienda online?"
             [value]="formModel().publishOnline"
