@@ -8,7 +8,9 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { NgClass } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import {
   form,
   FormField,
@@ -19,9 +21,12 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, finalize, forkJoin, of, switchMap, Observable } from 'rxjs';
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
 import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataColumn,
   TableDataComponent,
@@ -73,13 +78,18 @@ type ReconciliationTableRow =
 @Component({
   selector: 'app-inventory-reconciliation',
   imports: [
+    NgClass,
+    FormsModule,
     RouterLink,
     FormField,
     AlertComponent,
     ButtonComponent,
+    CheckboxComponent,
     ConfirmDialogComponent,
     InputComponent,
+    MoneyInputComponent,
     SelectComponent,
+    TableActionButtonComponent,
     TableDataComponent,
   ],
   templateUrl: './inventory-reconciliation.component.html',
@@ -93,7 +103,7 @@ export class InventoryReconciliationComponent implements OnInit {
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
-  private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('searchInput');
+  private readonly searchInput = viewChild<ElementRef<HTMLElement>>('searchInput');
 
   protected readonly searchQuery = signal('');
   protected readonly searching = signal(false);
@@ -282,9 +292,8 @@ export class InventoryReconciliationComponent implements OnInit {
     });
   }
 
-  protected onSearchInput(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.searchQuery.set(target.value);
+  protected onSearchQueryChange(value: string): void {
+    this.searchQuery.set(value);
   }
 
   protected onSearchEnter(event: Event): void {
@@ -614,8 +623,7 @@ export class InventoryReconciliationComponent implements OnInit {
     this.addSizeTarget.set(null);
   }
 
-  protected onAddSizeSearchInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
+  protected onAddSizeSearchChange(value: string): void {
     this.addSizeSearch.set(value);
     const term = value.trim();
     if (term.length < 1) {
@@ -703,13 +711,13 @@ export class InventoryReconciliationComponent implements OnInit {
     this.addColorMode.set(mode);
   }
 
-  protected onAddColorNewNameInput(event: Event): void {
-    this.addColorNewName.set((event.target as HTMLInputElement).value);
+  protected onAddColorNewNameChange(value: string): void {
+    this.addColorNewName.set(value);
   }
 
-  protected onAddColorStockInput(event: Event): void {
-    const value = Number((event.target as HTMLInputElement).value);
-    this.addColorInitialStock.set(Number.isFinite(value) ? Math.max(0, value) : 0);
+  protected onAddColorStockChange(value: string): void {
+    const parsed = Number(value);
+    this.addColorInitialStock.set(Number.isFinite(parsed) ? Math.max(0, parsed) : 0);
   }
 
   protected confirmAddColor(): void {
@@ -1078,7 +1086,13 @@ export class InventoryReconciliationComponent implements OnInit {
   }
 
   private focusSearch(): void {
-    setTimeout(() => this.searchInput()?.nativeElement?.focus(), 0);
+    setTimeout(
+      () =>
+        this.searchInput()
+          ?.nativeElement.querySelector<HTMLInputElement>('input')
+          ?.focus(),
+      0,
+    );
   }
 
   private formatPosSaleDate(iso: string): string {

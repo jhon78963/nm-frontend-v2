@@ -13,7 +13,9 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import {
   TableDataComponent,
   TableDataColumn,
@@ -43,6 +45,8 @@ const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.vendors;
   selector: 'app-vendors-list',
   imports: [
     ReactiveFormsModule,
+    ButtonComponent,
+    InputComponent,
     VendorFormComponent,
     ConfirmDialogComponent,
     TableDataComponent,

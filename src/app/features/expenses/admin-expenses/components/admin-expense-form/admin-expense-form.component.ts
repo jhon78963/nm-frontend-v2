@@ -15,9 +15,12 @@ import {
   FormField,
   required,
 } from '@angular/forms/signals';
+import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { DateInputComponent } from '../../../../../shared/ui/date-input/date-input.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   SelectComponent,
   SelectOption,
@@ -55,11 +58,14 @@ function emptyForm(accountingMonth: string): AdminExpenseFormModel {
 @Component({
   selector: 'app-admin-expense-form',
   imports: [
+    FormsModule,
     FormField,
     ButtonComponent,
+    DateInputComponent,
     InputComponent,
     MoneyInputComponent,
     SelectComponent,
+    TableActionButtonComponent,
     VoucherFilePickerComponent,
   ],
   templateUrl: './admin-expense-form.component.html',

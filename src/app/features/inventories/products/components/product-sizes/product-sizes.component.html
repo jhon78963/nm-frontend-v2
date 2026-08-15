@@ -36,17 +36,18 @@
   @if (sizeTypes().length) {
     <div class="flex flex-wrap gap-2">
       @for (type of sizeTypes(); track type.id) {
-        <button
-          type="button"
-          (click)="toggleSizeType(type.id)"
-          [class]="[
-            'rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+        <div
+          class="[&_.btn-base]:rounded-lg [&_.btn-base]:px-4 [&_.btn-base]:py-2 [&_.btn-base]:text-sm [&_.btn-base]:font-medium [&_.btn-base]:shadow-none"
+          [ngClass]="
             isSizeTypeSelected(type.id)
-              ? 'bg-sky-600 text-white shadow-sm'
-              : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
-          ].join(' ')">
-          {{ type.description }}
-        </button>
+              ? '[&_.btn-base]:bg-sky-600 [&_.btn-base]:text-white hover:[&_.btn-base]:bg-sky-600'
+              : '[&_.btn-base]:border [&_.btn-base]:border-gray-300 [&_.btn-base]:bg-white [&_.btn-base]:text-gray-700 hover:[&_.btn-base]:bg-gray-50'
+          "
+        >
+          <app-button type="button" variant="secondary" (clicked)="toggleSizeType(type.id)">
+            {{ type.description }}
+          </app-button>
+        </div>
       }
     </div>
   }
@@ -90,12 +91,11 @@
           <ng-template #headerTemplate>
             <tr class="dt-thead-row">
               <th scope="col" class="dt-th w-12 text-center">
-                <input
-                  type="checkbox"
-                  class="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
-                  [checked]="allSelected()"
+                <app-checkbox
+                  [value]="allSelected()"
                   [indeterminate]="someSelected()"
-                  (change)="toggleSelectAll($any($event.target).checked)" />
+                  (valueChange)="toggleSelectAll($event)"
+                />
               </th>
               <th scope="col" class="dt-th">#</th>
               <th scope="col" class="dt-th">Talla</th>
@@ -111,11 +111,10 @@
           <ng-template #rowTemplate let-size>
             <tr class="hover:bg-gray-50">
               <td class="px-4 py-3">
-                <input
-                  type="checkbox"
-                  class="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
-                  [checked]="isSizeSelected(size)"
-                  (change)="toggleSizeSelection(size, $any($event.target).checked)" />
+                <app-checkbox
+                  [value]="isSizeSelected(size)"
+                  (valueChange)="toggleSizeSelection(size, $event)"
+                />
               </td>
               <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{{ size.id }}</td>
               <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
@@ -127,81 +126,71 @@
                 }
               </td>
               <td class="px-4 py-3">
-                <input
+                <app-input
                   type="text"
-                  class="block w-full min-w-[8rem] rounded-lg border-0 py-2 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
                   [(ngModel)]="size.barcode"
-                  (ngModelChange)="onSizeFieldChange(size)" />
+                  (ngModelChange)="onSizeFieldChange(size)"
+                />
               </td>
               <td class="px-4 py-3">
-                <input
+                <app-input
                   type="number"
-                  min="0"
-                  class="block w-full min-w-[5rem] rounded-lg border-0 py-2 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
                   [(ngModel)]="size.stock"
-                  (ngModelChange)="onSizeFieldChange(size)" />
+                  (ngModelChange)="onSizeFieldChange(size)"
+                />
               </td>
               <td class="px-4 py-3">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  class="block w-full min-w-[5rem] rounded-lg border-0 py-2 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
+                <app-money-input
                   [(ngModel)]="size.purchasePrice"
-                  (ngModelChange)="onSizeFieldChange(size)" />
+                  (ngModelChange)="onSizeFieldChange(size)"
+                />
               </td>
               <td class="px-4 py-3">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  class="block w-full min-w-[5rem] rounded-lg border-0 py-2 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
+                <app-money-input
                   [(ngModel)]="size.salePrice"
-                  (ngModelChange)="onSizeFieldChange(size)" />
+                  (ngModelChange)="onSizeFieldChange(size)"
+                />
               </td>
               <td class="px-4 py-3">
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  class="block w-full min-w-[5rem] rounded-lg border-0 py-2 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
+                <app-money-input
                   [(ngModel)]="size.minSalePrice"
-                  (ngModelChange)="onSizeFieldChange(size)" />
+                  (ngModelChange)="onSizeFieldChange(size)"
+                />
               </td>
               <td class="whitespace-nowrap px-4 py-3 text-right">
                 <div class="flex items-center justify-end gap-1">
                   @if (size.isExists) {
-                    <button
-                      type="button"
-                      class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-                      title="Actualizar"
+                    <app-table-action-button
+                      label="Actualizar"
+                      tone="neutral"
                       [disabled]="saving()"
-                      (click)="updateSize(size)">
+                      (clicked)="updateSize(size)"
+                    >
                       <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                       </svg>
-                    </button>
-                    <button
-                      type="button"
-                      class="rounded-lg p-2 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                      title="Eliminar"
+                    </app-table-action-button>
+                    <app-table-action-button
+                      label="Eliminar"
+                      tone="danger"
                       [disabled]="saving()"
-                      (click)="removeSize(size)">
+                      (clicked)="removeSize(size)"
+                    >
                       <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
-                    </button>
+                    </app-table-action-button>
                   } @else {
-                    <button
-                      type="button"
-                      class="rounded-lg p-2 text-sky-500 transition-colors hover:bg-sky-50 hover:text-sky-700"
-                      title="Guardar"
+                    <app-table-action-button
+                      label="Guardar"
+                      tone="sky"
                       [disabled]="saving()"
-                      (click)="saveSize(size)">
+                      (clicked)="saveSize(size)"
+                    >
                       <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                       </svg>
-                    </button>
+                    </app-table-action-button>
                   }
                 </div>
               </td>

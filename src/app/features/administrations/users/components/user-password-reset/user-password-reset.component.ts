@@ -18,6 +18,7 @@ import {
 } from '@angular/forms/signals';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
 import { UserService } from '../../data-access/user.service';
 import { UserPasswordResetFormModel } from '../../models/user.model';
@@ -29,7 +30,7 @@ import {
 
 @Component({
   selector: 'app-user-password-reset',
-  imports: [FormField, InputComponent, ButtonComponent],
+  imports: [FormField, InputComponent, ButtonComponent, TableActionButtonComponent],
   templateUrl: './user-password-reset.component.html',
 })
 export class UserPasswordResetComponent {

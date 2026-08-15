@@ -28,16 +28,17 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <button
-            type="button"
-            class="rounded-xl border border-gray-200 bg-white p-2.5 text-gray-600 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-            aria-label="Mes anterior"
-            (click)="changeMonth(-1)"
-          >
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
+          <div class="[&_.table-action-btn]:rounded-xl [&_.table-action-btn]:border [&_.table-action-btn]:border-gray-200 [&_.table-action-btn]:bg-white [&_.table-action-btn]:p-2.5 [&_.table-action-btn]:text-gray-600 hover:[&_.table-action-btn]:bg-gray-50">
+            <app-table-action-button
+              label="Mes anterior"
+              tone="neutral"
+              (clicked)="changeMonth(-1)"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </app-table-action-button>
+          </div>
 
           <div class="flex min-w-0 flex-1 flex-col items-center rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 sm:min-w-[220px] sm:flex-none">
             <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
@@ -48,39 +49,34 @@
             </span>
           </div>
 
-          <button
-            type="button"
-            class="rounded-xl border border-gray-200 bg-white p-2.5 text-gray-600 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-            aria-label="Mes siguiente"
-            (click)="changeMonth(1)"
-          >
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
+          <div class="[&_.table-action-btn]:rounded-xl [&_.table-action-btn]:border [&_.table-action-btn]:border-gray-200 [&_.table-action-btn]:bg-white [&_.table-action-btn]:p-2.5 [&_.table-action-btn]:text-gray-600 hover:[&_.table-action-btn]:bg-gray-50">
+            <app-table-action-button
+              label="Mes siguiente"
+              tone="neutral"
+              (clicked)="changeMonth(1)"
+            >
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </app-table-action-button>
+          </div>
 
           @if (!isCurrentMonth()) {
-            <button
-              type="button"
-              class="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 transition-colors hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-              (click)="goToCurrentMonth()"
-            >
-              Este mes
-            </button>
+            <div class="[&_.btn-base]:rounded-xl [&_.btn-base]:border [&_.btn-base]:border-indigo-200 [&_.btn-base]:bg-indigo-50 [&_.btn-base]:px-3 [&_.btn-base]:py-2 [&_.btn-base]:text-xs [&_.btn-base]:font-semibold [&_.btn-base]:text-indigo-700 [&_.btn-base]:shadow-none hover:[&_.btn-base]:bg-indigo-100">
+              <app-button type="button" variant="secondary" (clicked)="goToCurrentMonth()">
+                Este mes
+              </app-button>
+            </div>
           }
         </div>
 
         @if (canStore()) {
-          <button
-            type="button"
-            class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
-            (click)="openCreateForm()"
-          >
+          <app-button type="button" variant="primary" (clicked)="openCreateForm()">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
             </svg>
             Nuevo gasto
-          </button>
+          </app-button>
         }
       </div>
 
@@ -163,11 +159,10 @@
           </td>
           <td dtCell="voucher" class="px-6 py-4 text-center">
             @if (expense.voucherPaths.length > 0) {
-              <button
-                type="button"
-                class="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-indigo-600 transition-colors hover:bg-indigo-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                [attr.aria-label]="'Ver ' + expense.voucherPaths.length + ' comprobante(s)'"
-                (click)="openVoucherPreview(expense)"
+              <app-table-action-button
+                [label]="'Ver ' + expense.voucherPaths.length + ' comprobante(s)'"
+                tone="indigo"
+                (clicked)="openVoucherPreview(expense)"
               >
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -178,23 +173,23 @@
                     {{ expense.voucherPaths.length }}
                   </span>
                 }
-              </button>
+              </app-table-action-button>
             } @else {
               <span class="text-xs text-gray-300">—</span>
             }
           </td>
           @if (canUpdate()) {
             <td dtCell="actions" class="px-6 py-4 text-center">
-              <button
-                type="button"
-                class="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                [attr.aria-label]="'Editar gasto: ' + expense.description"
-                (click)="openEditForm(expense)"
+              <app-table-action-button
+                label="Editar gasto"
+                [ariaLabel]="'Editar gasto: ' + expense.description"
+                tone="indigo"
+                (clicked)="openEditForm(expense)"
               >
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
-              </button>
+              </app-table-action-button>
             </td>
           }
         </tr>

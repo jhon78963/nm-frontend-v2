@@ -14,7 +14,9 @@ import {
   FormField,
   required,
 } from '@angular/forms/signals';
+import { NgClass } from '@angular/common';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
@@ -34,7 +36,7 @@ const EMPTY_FORM: QuickTransactionFormModel = {
 
 @Component({
   selector: 'app-quick-transaction-form',
-  imports: [FormField, ButtonComponent, MoneyInputComponent],
+  imports: [FormField, NgClass, ButtonComponent, TableActionButtonComponent, MoneyInputComponent],
   templateUrl: './quick-transaction-form.component.html',
 })
 export class QuickTransactionFormComponent {

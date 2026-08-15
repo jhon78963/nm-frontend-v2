@@ -7,11 +7,14 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { downloadFile } from '../../../core/utils/file-download.util';
 import { ExportButtonComponent } from '../../../shared/ui/export-button/export-button.component';
 import { ButtonComponent } from '../../../shared/ui/button/button.component';
+import { DateInputComponent } from '../../../shared/ui/date-input/date-input.component';
+import { TableActionButtonComponent } from '../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataColumn,
   TableDataComponent,
@@ -48,7 +51,15 @@ interface PeriodProductRow {
 
 @Component({
   selector: 'app-sales-period-report',
-  imports: [RouterLink, ButtonComponent, ExportButtonComponent, TableDataComponent],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    ButtonComponent,
+    DateInputComponent,
+    ExportButtonComponent,
+    TableActionButtonComponent,
+    TableDataComponent,
+  ],
   providers: [SalesReportService],
   templateUrl: './sales-period-report.component.html',
 })
@@ -56,6 +67,11 @@ export class SalesPeriodReportComponent implements OnInit {
   private readonly salesReportService = inject(SalesReportService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+
+  protected readonly dateFilterForm = new FormGroup({
+    from: new FormControl(firstDayOfMonthIsoDate(), { nonNullable: true }),
+    to: new FormControl(todayIsoDate(), { nonNullable: true }),
+  });
 
   protected readonly dateRange = signal({
     from: firstDayOfMonthIsoDate(),
@@ -107,6 +123,14 @@ export class SalesPeriodReportComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.dateFilterForm.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(({ from, to }) => {
+        if (from && to) {
+          this.dateRange.set({ from, to });
+        }
+      });
+
     this.loadReport();
   }
 
@@ -114,18 +138,8 @@ export class SalesPeriodReportComponent implements OnInit {
     return `S/ ${this.moneyFormatter.format(value)}`;
   }
 
-  protected onFromChange(event: Event): void {
-    const from = (event.target as HTMLInputElement).value;
-    this.dateRange.update((range) => ({ ...range, from }));
-  }
-
-  protected onToChange(event: Event): void {
-    const to = (event.target as HTMLInputElement).value;
-    this.dateRange.update((range) => ({ ...range, to }));
-  }
-
   protected setCurrentMonthRange(): void {
-    this.dateRange.set({
+    this.dateFilterForm.setValue({
       from: firstDayOfMonthIsoDate(),
       to: todayIsoDate(),
     });

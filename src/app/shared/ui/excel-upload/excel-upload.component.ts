@@ -22,7 +22,7 @@ export class ExcelUploadComponent {
 
   protected readonly displayError = computed(() => this.errorMessage() || this.validationError());
 
-  protected openPicker(): void {
+  openPicker(): void {
     if (this.disabled()) return;
     this.fileInput()?.nativeElement.click();
   }

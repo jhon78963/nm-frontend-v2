@@ -15,7 +15,10 @@ import {
   required,
 } from '@angular/forms/signals';
 import { concatMap, finalize, from, map, switchMap, toArray } from 'rxjs';
+import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -53,9 +56,12 @@ const EMPTY_VARIANT: PublishVariantFormModel = {
   selector: 'app-product-create-drawer',
   imports: [
     FormField,
+    FormsModule,
     InputComponent,
     SelectComponent,
     ButtonComponent,
+    MoneyInputComponent,
+    TableActionButtonComponent,
   ],
   templateUrl: './product-create-drawer.component.html',
 })

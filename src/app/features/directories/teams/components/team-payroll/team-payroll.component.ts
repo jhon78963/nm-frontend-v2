@@ -15,6 +15,13 @@ import {
   Validators,
 } from '@angular/forms';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
+import { DateInputComponent } from '../../../../../shared/ui/date-input/date-input.component';
+import { FileDropzoneComponent } from '../../../../../shared/ui/file-dropzone/file-dropzone.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataColumn,
   TableDataComponent,
@@ -45,7 +52,7 @@ import {
 
 @Component({
   selector: 'app-team-payroll',
-  imports: [ReactiveFormsModule, RouterLink, ConfirmDialogComponent, TableDataComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
+  imports: [ReactiveFormsModule, RouterLink, ConfirmDialogComponent, InputComponent, DateInputComponent, MoneyInputComponent, CheckboxComponent, FileDropzoneComponent, ButtonComponent, TableActionButtonComponent, TableDataComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
   templateUrl: './team-payroll.component.html',
 })
 export class TeamPayrollComponent implements OnInit {
@@ -210,9 +217,8 @@ export class TeamPayrollComponent implements OnInit {
     return formatShortDate(ymd);
   }
 
-  protected onVoucherSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.voucherFiles.set(input.files ? Array.from(input.files) : []);
+  protected onVoucherFilesChange(files: File[]): void {
+    this.voucherFiles.set(files);
   }
 
   protected submitPayment(): void {

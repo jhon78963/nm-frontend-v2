@@ -46,16 +46,15 @@
         <!-- Date navigation -->
         <div class="flex items-center gap-2">
           @if (isAdmin()) {
-            <button
-              type="button"
-              class="rounded-xl border border-gray-200 bg-white p-2.5 text-gray-600 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-              aria-label="Día anterior"
-              (click)="changeDate(-1)"
+            <app-table-action-button
+              label="Día anterior"
+              tone="neutral"
+              (clicked)="changeDate(-1)"
             >
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
-            </button>
+            </app-table-action-button>
           }
 
           <div class="flex min-w-0 flex-1 flex-col items-center rounded-xl border border-gray-200 bg-gray-50 px-4 py-2 sm:min-w-[240px] sm:flex-none">
@@ -68,52 +67,39 @@
           </div>
 
           @if (isAdmin()) {
-            <button
-              type="button"
-              class="rounded-xl border border-gray-200 bg-white p-2.5 text-gray-600 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:opacity-40"
-              aria-label="Día siguiente"
+            <app-table-action-button
+              label="Día siguiente"
+              tone="neutral"
               [disabled]="isToday()"
-              (click)="changeDate(1)"
+              (clicked)="changeDate(1)"
             >
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
               </svg>
-            </button>
+            </app-table-action-button>
 
             @if (!isToday()) {
-              <button
-                type="button"
-                class="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 transition-colors hover:bg-indigo-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                (click)="goToToday()"
-              >
+              <app-button type="button" variant="secondary" (clicked)="goToToday()">
                 Hoy
-              </button>
+              </app-button>
             }
           }
         </div>
 
         @if (canStore()) {
           <div class="flex gap-2">
-            <button
-              type="button"
-              class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 sm:flex-none"
-              (click)="openForm('INCOME')"
-            >
+            <app-button type="button" variant="primary" (clicked)="openForm('INCOME')">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
               </svg>
               Ingreso
-            </button>
-            <button
-              type="button"
-              class="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 sm:flex-none"
-              (click)="openForm('EXPENSE')"
-            >
+            </app-button>
+            <app-button type="button" variant="danger" (clicked)="openForm('EXPENSE')">
               <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
               </svg>
               Gasto
-            </button>
+            </app-button>
           </div>
         }
       </div>
@@ -123,45 +109,54 @@
         <span class="shrink-0 text-xs font-semibold uppercase tracking-wide text-gray-400">
           Método:
         </span>
-        <button
-          type="button"
-          class="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ring-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-          [class.bg-emerald-50]="paymentFilters().cash"
-          [class.text-emerald-700]="paymentFilters().cash"
-          [class.ring-emerald-300]="paymentFilters().cash"
-          [class.bg-white]="!paymentFilters().cash"
-          [class.text-gray-500]="!paymentFilters().cash"
-          [class.ring-gray-200]="!paymentFilters().cash"
-          (click)="toggleFilter('cash')"
+        <div
+          [ngClass]="
+            paymentFilters().cash
+              ? '[&_.btn-base]:bg-emerald-50 [&_.btn-base]:text-emerald-700 [&_.btn-base]:ring-emerald-300'
+              : '[&_.btn-base]:bg-white [&_.btn-base]:text-gray-500 [&_.btn-base]:ring-gray-200'
+          "
         >
-          Efectivo
-        </button>
-        <button
-          type="button"
-          class="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ring-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-          [class.bg-purple-50]="paymentFilters().yape"
-          [class.text-purple-700]="paymentFilters().yape"
-          [class.ring-purple-300]="paymentFilters().yape"
-          [class.bg-white]="!paymentFilters().yape"
-          [class.text-gray-500]="!paymentFilters().yape"
-          [class.ring-gray-200]="!paymentFilters().yape"
-          (click)="toggleFilter('yape')"
+          <app-button
+            type="button"
+            variant="secondary"
+            class="[&_.btn-base]:rounded-lg [&_.btn-base]:px-3 [&_.btn-base]:py-1.5 [&_.btn-base]:text-xs [&_.btn-base]:font-semibold [&_.btn-base]:ring-1 [&_.btn-base]:shadow-none"
+            (clicked)="toggleFilter('cash')"
+          >
+            Efectivo
+          </app-button>
+        </div>
+        <div
+          [ngClass]="
+            paymentFilters().yape
+              ? '[&_.btn-base]:bg-purple-50 [&_.btn-base]:text-purple-700 [&_.btn-base]:ring-purple-300'
+              : '[&_.btn-base]:bg-white [&_.btn-base]:text-gray-500 [&_.btn-base]:ring-gray-200'
+          "
         >
-          Yape / Plin
-        </button>
-        <button
-          type="button"
-          class="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ring-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-          [class.bg-blue-50]="paymentFilters().card"
-          [class.text-blue-700]="paymentFilters().card"
-          [class.ring-blue-300]="paymentFilters().card"
-          [class.bg-white]="!paymentFilters().card"
-          [class.text-gray-500]="!paymentFilters().card"
-          [class.ring-gray-200]="!paymentFilters().card"
-          (click)="toggleFilter('card')"
+          <app-button
+            type="button"
+            variant="secondary"
+            class="[&_.btn-base]:rounded-lg [&_.btn-base]:px-3 [&_.btn-base]:py-1.5 [&_.btn-base]:text-xs [&_.btn-base]:font-semibold [&_.btn-base]:ring-1 [&_.btn-base]:shadow-none"
+            (clicked)="toggleFilter('yape')"
+          >
+            Yape / Plin
+          </app-button>
+        </div>
+        <div
+          [ngClass]="
+            paymentFilters().card
+              ? '[&_.btn-base]:bg-blue-50 [&_.btn-base]:text-blue-700 [&_.btn-base]:ring-blue-300'
+              : '[&_.btn-base]:bg-white [&_.btn-base]:text-gray-500 [&_.btn-base]:ring-gray-200'
+          "
         >
-          Tarjeta
-        </button>
+          <app-button
+            type="button"
+            variant="secondary"
+            class="[&_.btn-base]:rounded-lg [&_.btn-base]:px-3 [&_.btn-base]:py-1.5 [&_.btn-base]:text-xs [&_.btn-base]:font-semibold [&_.btn-base]:ring-1 [&_.btn-base]:shadow-none"
+            (clicked)="toggleFilter('card')"
+          >
+            Tarjeta
+          </app-button>
+        </div>
       </div>
     </div>
   </header>
@@ -263,49 +258,45 @@
                       @if (row.movementKind === 'sales') {
                       } @else if (row.movementKind === 'incomes') {
                         <div class="flex items-center justify-center gap-1">
-                          <button
-                            type="button"
-                            class="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                            aria-label="Editar ingreso"
-                            (click)="openForm('INCOME', row.item)"
+                          <app-table-action-button
+                            label="Editar ingreso"
+                            tone="indigo"
+                            (clicked)="openForm('INCOME', row.item)"
                           >
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                             </svg>
-                          </button>
-                          <button
-                            type="button"
-                            class="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                            aria-label="Eliminar ingreso"
-                            (click)="confirmDelete(row.item, 'INCOME')"
+                          </app-table-action-button>
+                          <app-table-action-button
+                            label="Eliminar ingreso"
+                            tone="danger"
+                            (clicked)="confirmDelete(row.item, 'INCOME')"
                           >
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
-                          </button>
+                          </app-table-action-button>
                         </div>
                       } @else {
                         <div class="flex items-center justify-center gap-1">
-                          <button
-                            type="button"
-                            class="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                            aria-label="Editar gasto"
-                            (click)="openForm('EXPENSE', row.item)"
+                          <app-table-action-button
+                            label="Editar gasto"
+                            tone="indigo"
+                            (clicked)="openForm('EXPENSE', row.item)"
                           >
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
                             </svg>
-                          </button>
-                          <button
-                            type="button"
-                            class="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-                            aria-label="Eliminar gasto"
-                            (click)="confirmDelete(row.item, 'EXPENSE')"
+                          </app-table-action-button>
+                          <app-table-action-button
+                            label="Eliminar gasto"
+                            tone="danger"
+                            (clicked)="confirmDelete(row.item, 'EXPENSE')"
                           >
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                               <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
-                          </button>
+                          </app-table-action-button>
                         </div>
                       }
                     </td>

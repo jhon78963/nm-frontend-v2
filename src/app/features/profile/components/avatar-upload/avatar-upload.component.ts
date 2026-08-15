@@ -15,7 +15,11 @@ import {
     <div class="avatar-upload">
       <div class="avatar-preview">
         @if (displayUrl(); as url) {
-          <img class="avatar-image" [src]="url" [alt]="'Foto de perfil de ' + (displayName() || 'usuario')" />
+          <img
+            class="avatar-image"
+            [src]="url"
+            [alt]="'Foto de perfil de ' + (displayName() || 'usuario')"
+          />
         } @else {
           <span class="avatar-initials" aria-hidden="true">{{ initials() }}</span>
         }
@@ -68,15 +72,10 @@ export class AvatarUploadComponent implements OnDestroy {
   private objectUrl: string | null = null;
   private readonly localPreview = signal<string | null>(null);
 
-  protected readonly displayUrl = computed(
-    () => this.localPreview() ?? this.avatarUrl(),
-  );
+  protected readonly displayUrl = computed(() => this.localPreview() ?? this.avatarUrl());
 
   protected readonly initials = computed(() => {
-    const parts = this.displayName()
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean);
+    const parts = this.displayName().trim().split(/\s+/).filter(Boolean);
 
     if (parts.length === 0) {
       return 'U';

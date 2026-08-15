@@ -9,11 +9,16 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, concat, of } from 'rxjs';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
+import { ColorPickerInputComponent } from '../../../../../shared/ui/color-picker-input/color-picker-input.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataColumn,
   TableDataComponent,
@@ -51,7 +56,18 @@ const SELECTED_SIZE_KEY = 'selectedSize';
 
 @Component({
   selector: 'app-product-colors',
-  imports: [FormsModule, RouterLink, ButtonComponent, ConfirmDialogComponent, TableDataComponent],
+  imports: [
+    NgClass,
+    FormsModule,
+    RouterLink,
+    ButtonComponent,
+    CheckboxComponent,
+    ColorPickerInputComponent,
+    ConfirmDialogComponent,
+    InputComponent,
+    TableActionButtonComponent,
+    TableDataComponent,
+  ],
   templateUrl: './product-colors.component.html',
 })
 export class ProductColorsComponent implements OnInit {
@@ -86,7 +102,7 @@ export class ProductColorsComponent implements OnInit {
   private readonly colorRevisionEpoch = signal(0);
   private readonly selectedColorIds = signal<Set<number>>(new Set());
   private readonly initialColorSnapshots = new Map<number, ColorFieldSnapshot>();
-  private readonly colorJumpInputRef = viewChild<ElementRef<HTMLInputElement>>('colorJumpInput');
+  private readonly colorJumpInputRef = viewChild<ElementRef<HTMLElement>>('colorJumpInput');
 
   protected readonly filteredSizeOptions = computed(() => {
     const query = this.sizeSearch().trim().toLowerCase();
@@ -1013,7 +1029,11 @@ export class ProductColorsComponent implements OnInit {
   private resetColorJumpSearch(): void {
     this.colorJumpSearch.set('');
     this.colorJumpOpen.set(false);
-    queueMicrotask(() => this.colorJumpInputRef()?.nativeElement.focus());
+    queueMicrotask(() =>
+      this.colorJumpInputRef()
+        ?.nativeElement.querySelector<HTMLInputElement>('input')
+        ?.focus(),
+    );
   }
 
   private bumpPanelStockSourceEpoch(): void {

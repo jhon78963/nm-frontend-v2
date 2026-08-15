@@ -9,7 +9,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
+import { NgClass } from '@angular/common';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataColumn,
   TableDataComponent,
@@ -34,7 +39,17 @@ interface SizeFieldSnapshot {
 
 @Component({
   selector: 'app-product-sizes',
-  imports: [FormsModule, RouterLink, ButtonComponent, TableDataComponent],
+  imports: [
+    NgClass,
+    FormsModule,
+    RouterLink,
+    ButtonComponent,
+    CheckboxComponent,
+    InputComponent,
+    MoneyInputComponent,
+    TableActionButtonComponent,
+    TableDataComponent,
+  ],
   templateUrl: './product-sizes.component.html',
 })
 export class ProductSizesComponent implements OnInit {

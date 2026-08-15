@@ -7,8 +7,13 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { RoleService } from '../../data-access/role.service';
 import {
   buildPermissionTree,
@@ -22,6 +27,13 @@ import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 
 @Component({
   selector: 'app-role-sync',
+  imports: [
+    FormsModule,
+    ButtonComponent,
+    CheckboxComponent,
+    InputComponent,
+    TableActionButtonComponent,
+  ],
   templateUrl: './role-sync.component.html',
 })
 export class RoleSyncComponent implements OnInit {
@@ -81,8 +93,7 @@ export class RoleSyncComponent implements OnInit {
       });
   }
 
-  protected onSearchInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
+  protected onSearchValueChange(value: string): void {
     this.search.set(value);
     if (value.trim()) {
       this.expandedModules.set(
@@ -103,13 +114,49 @@ export class RoleSyncComponent implements OnInit {
     return this.selected().has(name);
   }
 
-  protected togglePermission(name: string): void {
+  protected setPermission(name: string, checked: boolean): void {
     this.selected.update((set) => {
       const next = new Set(set);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
+      if (checked) {
+        next.add(name);
+      } else {
+        next.delete(name);
+      }
       return next;
     });
+  }
+
+  protected onModuleCheckboxChange(module: PermissionModule, checked: boolean): void {
+    const names = this.modulePermissionNames(module);
+    this.selected.update((set) => {
+      const next = new Set(set);
+      if (checked) {
+        names.forEach((n) => next.add(n));
+      } else {
+        names.forEach((n) => next.delete(n));
+      }
+      return next;
+    });
+  }
+
+  protected onSubmoduleCheckboxChange(
+    submodule: PermissionSubmodule,
+    checked: boolean,
+  ): void {
+    const names = submodule.permissions.map((p) => p.value);
+    this.selected.update((set) => {
+      const next = new Set(set);
+      if (checked) {
+        names.forEach((n) => next.add(n));
+      } else {
+        names.forEach((n) => next.delete(n));
+      }
+      return next;
+    });
+  }
+
+  protected permissionLabel(perm: { actionLabel: string; value: string }): string {
+    return `${perm.actionLabel} · ${perm.value}`;
   }
 
   protected moduleState(module: PermissionModule): 'all' | 'some' | 'none' {
@@ -120,36 +167,6 @@ export class RoleSyncComponent implements OnInit {
     return 'some';
   }
 
-  protected toggleModule(module: PermissionModule): void {
-    const names = this.modulePermissionNames(module);
-    const state = this.moduleState(module);
-    this.selected.update((set) => {
-      const next = new Set(set);
-      if (state === 'all') names.forEach((n) => next.delete(n));
-      else names.forEach((n) => next.add(n));
-      return next;
-    });
-  }
-
-  protected submoduleState(submodule: PermissionSubmodule): 'all' | 'some' | 'none' {
-    const names = submodule.permissions.map((p) => p.value);
-    const count = names.filter((n) => this.selected().has(n)).length;
-    if (count === 0) return 'none';
-    if (count === names.length) return 'all';
-    return 'some';
-  }
-
-  protected toggleSubmodule(submodule: PermissionSubmodule): void {
-    const names = submodule.permissions.map((p) => p.value);
-    const state = this.submoduleState(submodule);
-    this.selected.update((set) => {
-      const next = new Set(set);
-      if (state === 'all') names.forEach((n) => next.delete(n));
-      else names.forEach((n) => next.add(n));
-      return next;
-    });
-  }
-
   protected moduleSelectedCount(module: PermissionModule): number {
     return this.modulePermissionNames(module).filter((n) =>
       this.selected().has(n),
@@ -158,6 +175,14 @@ export class RoleSyncComponent implements OnInit {
 
   protected moduleTotalCount(module: PermissionModule): number {
     return this.modulePermissionNames(module).length;
+  }
+
+  protected submoduleState(submodule: PermissionSubmodule): 'all' | 'some' | 'none' {
+    const names = submodule.permissions.map((p) => p.value);
+    const count = names.filter((n) => this.selected().has(n)).length;
+    if (count === 0) return 'none';
+    if (count === names.length) return 'all';
+    return 'some';
   }
 
   protected submoduleSelectedCount(submodule: PermissionSubmodule): number {

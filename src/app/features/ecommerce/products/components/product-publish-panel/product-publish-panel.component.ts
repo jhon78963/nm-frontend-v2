@@ -15,7 +15,11 @@ import {
   required,
 } from '@angular/forms/signals';
 import { distinctUntilChanged, finalize, switchMap } from 'rxjs';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { RadioGroupComponent } from '../../../../../shared/ui/radio-group/radio-group.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
 import { PublishProductService } from '../../data-access/publish-product.service';
@@ -49,7 +53,7 @@ function settingsFromProduct(product: PublishProduct): PublishSettingsFormModel 
 
 @Component({
   selector: 'app-product-publish-panel',
-  imports: [FormField, InputComponent, ProductGalleryComponent],
+  imports: [FormField, InputComponent, CheckboxComponent, RadioGroupComponent, ButtonComponent, TableActionButtonComponent, ProductGalleryComponent],
   templateUrl: './product-publish-panel.component.html',
 })
 export class ProductPublishPanelComponent {
@@ -83,6 +87,11 @@ export class ProductPublishPanelComponent {
     { label: 'Borrador', value: 'draft' as const, description: 'Oculto en la tienda' },
     { label: 'Publicado', value: 'publish' as const, description: 'Visible en WooCommerce' },
   ];
+
+  protected readonly wooStatusRadioOptions = this.wooStatusOptions.map((option) => ({
+    value: option.value,
+    label: `${option.label} — ${option.description}`,
+  }));
 
   private readonly galleryRef = viewChild(ProductGalleryComponent);
 

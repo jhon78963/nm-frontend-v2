@@ -15,7 +15,10 @@ import {
 } from '@angular/forms/signals';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, of, switchMap } from 'rxjs';
+import { FormsModule } from '@angular/forms';
+import { NgClass } from '@angular/common';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import {
   TableDataComponent,
   TableDataColumn,
@@ -64,8 +67,11 @@ function toIsoDate(date: Date): string {
 @Component({
   selector: 'app-product-kardex',
   imports: [
+    NgClass,
+    FormsModule,
     FormField,
     ButtonComponent,
+    InputComponent,
     TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,

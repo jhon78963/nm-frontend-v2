@@ -11,12 +11,14 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { fromEvent } from 'rxjs';
 import { filter } from 'rxjs/operators';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { PrintFormat, ReceiptData } from '../../models/pos.model';
 import { ReceiptPrinter } from '../../utils/receipt-printer';
 
 @Component({
   selector: 'app-pos-receipt-preview',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, ButtonComponent, TableActionButtonComponent],
   templateUrl: './pos-receipt-preview.component.html',
   styleUrl: './pos-receipt-preview.component.scss',
 })

@@ -9,10 +9,13 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { ExpenseVoucherService } from '../../../data-access/expense-voucher.service';
 
 @Component({
   selector: 'app-voucher-preview-dialog',
+  imports: [ButtonComponent, TableActionButtonComponent],
   templateUrl: './voucher-preview-dialog.component.html',
 })
 export class VoucherPreviewDialogComponent {

@@ -23,6 +23,7 @@ import { ButtonComponent } from '../../../../../shared/ui/button/button.componen
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
 import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TeamLookupService } from '../../data-access/team-lookup.service';
 import { TeamService } from '../../data-access/team.service';
 import { TeamFormModel } from '../../models/team.model';
@@ -44,6 +45,7 @@ const EMPTY_FORM: TeamFormModel = {
     SelectComponent,
     ButtonComponent,
     AlertComponent,
+    TableActionButtonComponent,
   ],
   templateUrl: './team-form.component.html',
 })

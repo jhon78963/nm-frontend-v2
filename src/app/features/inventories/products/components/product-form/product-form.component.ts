@@ -16,6 +16,7 @@ import {
   required,
 } from '@angular/forms/signals';
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
@@ -36,6 +37,7 @@ const EMPTY_FORM: ProductFormModel = {
     InputComponent,
     SelectComponent,
     AlertComponent,
+    ButtonComponent,
   ],
   templateUrl: './product-form.component.html',
 })

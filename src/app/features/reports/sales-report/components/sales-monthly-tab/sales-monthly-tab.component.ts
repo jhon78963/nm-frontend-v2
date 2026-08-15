@@ -1,4 +1,7 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, input, output } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { DateInputComponent } from '../../../../../shared/ui/date-input/date-input.component';
 import {
   TableDataColumn,
   TableDataComponent,
@@ -18,15 +21,36 @@ interface MonthlySalesRow {
 
 @Component({
   selector: 'app-sales-monthly-tab',
-  imports: [TableDataComponent],
+  imports: [ReactiveFormsModule, DateInputComponent, TableDataComponent],
   templateUrl: './sales-monthly-tab.component.html',
 })
 export class SalesMonthlyTabComponent {
+  private readonly destroyRef = inject(DestroyRef);
+
   readonly report = input<MonthlySalesReport | null>(null);
   readonly loading = input(false);
   readonly selectedMonth = input.required<string>();
 
   readonly selectedMonthChange = output<string>();
+
+  protected readonly monthControl = new FormControl('', { nonNullable: true });
+
+  private readonly syncMonthControl = effect(() => {
+    const month = this.selectedMonth();
+    if (this.monthControl.value !== month) {
+      this.monthControl.setValue(month, { emitEvent: false });
+    }
+  });
+
+  constructor() {
+    this.monthControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        if (value) {
+          this.selectedMonthChange.emit(value);
+        }
+      });
+  }
 
   protected readonly tableColumns: TableDataColumn<MonthlySalesRow>[] = [
     { key: 'day', label: 'Día' },
@@ -61,10 +85,4 @@ export class SalesMonthlyTabComponent {
     return `${Math.max(4, (amount / max) * 100)}%`;
   }
 
-  protected onMonthChange(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    if (value) {
-      this.selectedMonthChange.emit(value);
-    }
-  }
 }

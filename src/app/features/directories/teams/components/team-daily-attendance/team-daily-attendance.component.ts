@@ -8,7 +8,11 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import { AttendanceService } from '../../data-access/attendance.service';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { DateInputComponent } from '../../../../../shared/ui/date-input/date-input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { DailyAttendanceRow } from '../../models/attendance.model';
 import {
   attendanceStatusLabel,
@@ -18,6 +22,7 @@ import {
 
 @Component({
   selector: 'app-team-daily-attendance',
+  imports: [FormsModule, DateInputComponent, ButtonComponent, TableActionButtonComponent],
   templateUrl: './team-daily-attendance.component.html',
 })
 export class TeamDailyAttendanceComponent implements OnInit {

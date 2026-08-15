@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common';
 import {
   Component,
   computed,
@@ -9,6 +10,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, NavigationEnd, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 
 interface Step {
@@ -20,7 +22,7 @@ interface Step {
 
 @Component({
   selector: 'app-product-stepper',
-  imports: [RouterOutlet],
+  imports: [NgClass, RouterOutlet, ButtonComponent],
   templateUrl: './product-stepper.component.html',
 })
 export class ProductStepperComponent implements OnInit {

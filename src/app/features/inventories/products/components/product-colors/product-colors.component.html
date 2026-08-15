@@ -49,30 +49,11 @@
     <!-- Sidebar: size + stock panel -->
     <aside class="flex flex-col gap-4 lg:col-span-4">
       <section class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-        <label for="size-search" class="block text-sm font-medium text-gray-700">
-          Buscar talla
-        </label>
-        <div class="relative mt-2">
-          <svg
-            class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            id="size-search"
-            type="search"
-            class="block w-full rounded-lg border-0 py-2.5 pl-10 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-600"
-            placeholder="Filtrar por nombre…"
-            [ngModel]="sizeSearch()"
-            (ngModelChange)="onSizeSearchInput($event)" />
-        </div>
+        <app-input
+          label="Buscar talla"
+          placeholder="Filtrar por nombre…"
+          [ngModel]="sizeSearch()"
+          (ngModelChange)="onSizeSearchInput($event)" />
 
         <label for="size-select" class="mt-4 block text-sm font-medium text-gray-700">
           Talla seleccionada
@@ -279,35 +260,16 @@
         <!-- Toolbar -->
         <div
           class="mb-4 flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
-          <div class="relative flex-1">
-            <label for="color-jump" class="sr-only">Ir a color</label>
-            <svg
-              class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
+          <div
+            class="relative flex-1"
+            (focusin)="onColorJumpFocus()"
+            (focusout)="onColorJumpBlur()"
+            (keydown)="onColorJumpKeydown($event)">
+            <app-input
               #colorJumpInput
-              id="color-jump"
-              type="search"
-              autocomplete="off"
-              role="combobox"
-              [attr.aria-expanded]="colorJumpOpen()"
-              aria-controls="color-jump-listbox"
-              class="block w-full rounded-lg border-0 py-2.5 pl-10 pr-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-600"
               placeholder="Ir a color… Enter para ubicar"
               [ngModel]="colorJumpSearch()"
-              (ngModelChange)="onColorJumpInput($event)"
-              (focus)="onColorJumpFocus()"
-              (blur)="onColorJumpBlur()"
-              (keydown)="onColorJumpKeydown($event)" />
+              (ngModelChange)="onColorJumpInput($event)" />
 
             @if (colorJumpOpen() && colorJumpSuggestions().length) {
               <ul
@@ -315,17 +277,18 @@
                 role="listbox"
                 class="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg">
                 @for (color of colorJumpSuggestions(); track color.id) {
-                  <li role="option">
-                    <button
-                      type="button"
-                      class="flex w-full items-center gap-3 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
-                      (mousedown)="selectJumpColor(color)">
-                      <span
-                        class="h-5 w-5 shrink-0 rounded-md ring-1 ring-inset ring-gray-200"
-                        [style.background-color]="colorSwatchStyle(color)"
-                        aria-hidden="true"></span>
-                      <span class="truncate">{{ color.description }}</span>
-                    </button>
+                  <li
+                    role="option"
+                    (mousedown)="$event.preventDefault(); selectJumpColor(color)">
+                    <div class="[&_.btn-base]:flex [&_.btn-base]:w-full [&_.btn-base]:items-center [&_.btn-base]:gap-3 [&_.btn-base]:rounded-none [&_.btn-base]:border-0 [&_.btn-base]:bg-transparent [&_.btn-base]:px-3 [&_.btn-base]:py-2 [&_.btn-base]:text-left [&_.btn-base]:text-sm [&_.btn-base]:font-normal [&_.btn-base]:text-gray-700 [&_.btn-base]:shadow-none hover:[&_.btn-base]:bg-gray-50">
+                      <app-button type="button" variant="secondary" (clicked)="selectJumpColor(color)">
+                        <span
+                          class="h-5 w-5 shrink-0 rounded-md ring-1 ring-inset ring-gray-200"
+                          [style.background-color]="colorSwatchStyle(color)"
+                          aria-hidden="true"></span>
+                        <span class="truncate">{{ color.description }}</span>
+                      </app-button>
+                    </div>
                   </li>
                 }
               </ul>
@@ -336,39 +299,39 @@
             class="inline-flex rounded-lg bg-gray-100 p-1"
             role="group"
             aria-label="Filtrar colores">
-            <button
-              type="button"
-              class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
-              [class.bg-white]="isFilterActive('all')"
-              [class.text-gray-900]="isFilterActive('all')"
-              [class.shadow-sm]="isFilterActive('all')"
-              [class.text-gray-600]="!isFilterActive('all')"
-              [class.hover:text-gray-900]="!isFilterActive('all')"
-              (click)="setFilterStatus('all')">
-              Todos
-            </button>
-            <button
-              type="button"
-              class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
-              [class.bg-white]="isFilterActive('active')"
-              [class.text-gray-900]="isFilterActive('active')"
-              [class.shadow-sm]="isFilterActive('active')"
-              [class.text-gray-600]="!isFilterActive('active')"
-              [class.hover:text-gray-900]="!isFilterActive('active')"
-              (click)="setFilterStatus('active')">
-              Con stock
-            </button>
-            <button
-              type="button"
-              class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
-              [class.bg-white]="isFilterActive('inactive')"
-              [class.text-gray-900]="isFilterActive('inactive')"
-              [class.shadow-sm]="isFilterActive('inactive')"
-              [class.text-gray-600]="!isFilterActive('inactive')"
-              [class.hover:text-gray-900]="!isFilterActive('inactive')"
-              (click)="setFilterStatus('inactive')">
-              Agotado
-            </button>
+            <div
+              class="[&_.btn-base]:rounded-md [&_.btn-base]:px-3 [&_.btn-base]:py-1.5 [&_.btn-base]:text-xs [&_.btn-base]:font-medium [&_.btn-base]:shadow-none"
+              [ngClass]="
+                isFilterActive('all')
+                  ? '[&_.btn-base]:bg-white [&_.btn-base]:text-gray-900 [&_.btn-base]:shadow-sm'
+                  : '[&_.btn-base]:bg-transparent [&_.btn-base]:text-gray-600 hover:[&_.btn-base]:text-gray-900'
+              ">
+              <app-button type="button" variant="secondary" (clicked)="setFilterStatus('all')">
+                Todos
+              </app-button>
+            </div>
+            <div
+              class="[&_.btn-base]:rounded-md [&_.btn-base]:px-3 [&_.btn-base]:py-1.5 [&_.btn-base]:text-xs [&_.btn-base]:font-medium [&_.btn-base]:shadow-none"
+              [ngClass]="
+                isFilterActive('active')
+                  ? '[&_.btn-base]:bg-white [&_.btn-base]:text-gray-900 [&_.btn-base]:shadow-sm'
+                  : '[&_.btn-base]:bg-transparent [&_.btn-base]:text-gray-600 hover:[&_.btn-base]:text-gray-900'
+              ">
+              <app-button type="button" variant="secondary" (clicked)="setFilterStatus('active')">
+                Con stock
+              </app-button>
+            </div>
+            <div
+              class="[&_.btn-base]:rounded-md [&_.btn-base]:px-3 [&_.btn-base]:py-1.5 [&_.btn-base]:text-xs [&_.btn-base]:font-medium [&_.btn-base]:shadow-none"
+              [ngClass]="
+                isFilterActive('inactive')
+                  ? '[&_.btn-base]:bg-white [&_.btn-base]:text-gray-900 [&_.btn-base]:shadow-sm'
+                  : '[&_.btn-base]:bg-transparent [&_.btn-base]:text-gray-600 hover:[&_.btn-base]:text-gray-900'
+              ">
+              <app-button type="button" variant="secondary" (clicked)="setFilterStatus('inactive')">
+                Agotado
+              </app-button>
+            </div>
           </div>
         </div>
 
@@ -482,13 +445,10 @@
                     [class.outline-sky-500]="isRowHighlighted(color)"
                     [class.-outline-offset-2]="isRowHighlighted(color)">
                     <td class="px-4 py-3 text-center align-middle">
-                      <input
-                        type="checkbox"
-                        class="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
-                        [attr.id]="'select-' + color.id"
+                      <app-checkbox
+                        [value]="isColorSelected(color)"
                         [attr.aria-label]="'Seleccionar ' + color.description"
-                        [checked]="isColorSelected(color)"
-                        (change)="toggleColorSelection(color, $any($event.target).checked)" />
+                        (valueChange)="toggleColorSelection(color, $event)" />
                     </td>
                     <td class="hidden whitespace-nowrap px-4 py-3 text-xs text-gray-400 md:table-cell">
                       {{ color.id }}
@@ -542,32 +502,22 @@
                     </td>
                     <td class="px-4 py-3 align-middle">
                       <div class="flex items-center gap-1">
-                        <input
+                        <app-input
                           type="number"
-                          min="0"
-                          step="1"
-                          inputmode="numeric"
-                          placeholder="0"
-                          class="block w-full min-w-[4.5rem] rounded-lg border-0 py-2 px-3 text-center text-sm font-semibold tabular-nums text-gray-900 ring-1 ring-inset ring-gray-300 bg-white focus:ring-2 focus:ring-inset focus:ring-sky-600"
-                          [class.ring-amber-300]="color.isExists && (color.stock ?? 0) === 0"
-                          [attr.aria-label]="'Stock de ' + color.description"
-                          [(ngModel)]="color.stock"
+                          class="min-w-[4.5rem] text-center font-semibold tabular-nums"
+                          [ngClass]="color.isExists && (color.stock ?? 0) === 0 ? '[&_.input-field]:ring-amber-300' : ''"
+                          [ngModel]="color.stock"
                           (ngModelChange)="onStockChange(color, $event)" />
                         <span class="shrink-0 text-xs text-gray-400">uds</span>
                       </div>
                     </td>
                     <td class="whitespace-nowrap px-4 py-3 text-right align-middle">
                       <div class="flex items-center justify-end gap-1">
-                        <button
-                          type="button"
-                          class="rounded-lg p-2 transition-colors"
-                          [class.text-sky-500]="!color.isExists"
-                          [class.hover:bg-sky-50]="!color.isExists"
-                          [class.text-gray-400]="color.isExists"
-                          [class.hover:bg-gray-100]="color.isExists"
-                          [title]="color.isExists ? 'Actualizar stock' : 'Asignar stock'"
+                        <app-table-action-button
+                          [label]="color.isExists ? 'Actualizar stock' : 'Asignar stock'"
+                          [tone]="color.isExists ? 'neutral' : 'sky'"
                           [disabled]="saving()"
-                          (click)="saveColorVariant(color)">
+                          (clicked)="saveColorVariant(color)">
                           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                               stroke-linecap="round"
@@ -575,14 +525,13 @@
                               stroke-width="2"
                               d="M5 13l4 4L19 7" />
                           </svg>
-                        </button>
+                        </app-table-action-button>
                         @if (color.isExists) {
-                          <button
-                            type="button"
-                            class="rounded-lg p-2 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                            title="Quitar variante"
+                          <app-table-action-button
+                            label="Quitar variante"
+                            tone="danger"
                             [disabled]="saving()"
-                            (click)="removeColorVariant(color)">
+                            (clicked)="removeColorVariant(color)">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path
                                 stroke-linecap="round"
@@ -590,7 +539,7 @@
                                 stroke-width="2"
                                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
-                          </button>
+                          </app-table-action-button>
                         }
                       </div>
                     </td>
@@ -646,60 +595,32 @@
           </p>
         </div>
       </div>
-      <button
-        type="button"
-        class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
-        aria-label="Cerrar panel"
+      <app-table-action-button
+        label="Cerrar panel"
+        tone="neutral"
         [disabled]="creatingColor()"
-        (click)="closeCreateColorModal()"
+        (clicked)="closeCreateColorModal()"
       >
         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
-      </button>
+      </app-table-action-button>
     </div>
 
     <div class="flex-1 overflow-y-auto p-6">
       <div class="space-y-5">
-        <div>
-          <label for="new-color-name" class="block text-sm font-medium text-gray-700">
-            Nombre
-          </label>
-          <input
-            id="new-color-name"
-            type="text"
-            class="mt-2 block w-full rounded-lg border-0 py-2.5 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
-            placeholder="Ej. Azul marino"
-            [ngModel]="newColorDescription()"
-            (ngModelChange)="newColorDescription.set($event)"
-          />
-        </div>
+        <app-input
+          label="Nombre"
+          placeholder="Ej. Azul marino"
+          [ngModel]="newColorDescription()"
+          (ngModelChange)="newColorDescription.set($event)"
+        />
 
-        <div>
-          <label for="new-color-hash" class="block text-sm font-medium text-gray-700">
-            Color
-          </label>
-          <div class="mt-2 flex items-center gap-3">
-            <input
-              id="new-color-hash"
-              type="color"
-              class="h-11 w-14 cursor-pointer rounded-lg border border-gray-200 bg-white p-1"
-              [ngModel]="newColorHash()"
-              (ngModelChange)="newColorHash.set($event)"
-            />
-            <input
-              type="text"
-              class="block flex-1 rounded-lg border-0 py-2.5 px-3 font-mono text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
-              [ngModel]="newColorHash()"
-              (ngModelChange)="newColorHash.set($event)"
-            />
-            <span
-              class="h-11 w-11 shrink-0 rounded-lg ring-1 ring-inset ring-gray-200"
-              [style.background-color]="newColorHash()"
-              aria-hidden="true"
-            ></span>
-          </div>
-        </div>
+        <app-color-picker-input
+          label="Color"
+          [value]="newColorHash()"
+          (valueChange)="newColorHash.set($event)"
+        />
       </div>
     </div>
 

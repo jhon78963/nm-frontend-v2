@@ -1,4 +1,4 @@
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, NgClass } from '@angular/common';
 import {
   Component,
   computed,
@@ -8,10 +8,14 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { downloadFile } from '../../../../../core/utils/file-download.util';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { ExportButtonComponent } from '../../../../../shared/ui/export-button/export-button.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataColumn,
   TableDataComponent,
@@ -32,7 +36,17 @@ const DEFAULT_HORIZON_DAYS = 30;
 
 @Component({
   selector: 'app-products-inventory-report',
-  imports: [DecimalPipe, RouterLink, ExportButtonComponent, TableDataComponent],
+  imports: [
+    DecimalPipe,
+    NgClass,
+    ReactiveFormsModule,
+    RouterLink,
+    ButtonComponent,
+    ExportButtonComponent,
+    InputComponent,
+    TableActionButtonComponent,
+    TableDataComponent,
+  ],
   providers: [ProductsInventoryService],
   templateUrl: './products-inventory-report.component.html',
 })
@@ -44,6 +58,7 @@ export class ProductsInventoryReportComponent implements OnInit {
   protected readonly loading = signal(false);
   protected readonly exporting = signal(false);
   protected readonly searchQuery = signal('');
+  protected readonly searchControl = new FormControl('', { nonNullable: true });
   protected readonly products = signal<ProductInventoryItem[]>([]);
   protected readonly horizonDays = signal(DEFAULT_HORIZON_DAYS);
   protected readonly aiSummary = signal<ProductsInventoryAiSummary | null>(null);
@@ -102,6 +117,12 @@ export class ProductsInventoryReportComponent implements OnInit {
   );
 
   ngOnInit(): void {
+    this.searchControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        this.searchQuery.set(value);
+      });
+
     this.loadData();
   }
 
@@ -183,12 +204,7 @@ export class ProductsInventoryReportComponent implements OnInit {
       });
   }
 
-  protected onSearchInput(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.searchQuery.set(target.value);
-  }
-
   protected clearSearch(): void {
-    this.searchQuery.set('');
+    this.searchControl.setValue('');
   }
 }

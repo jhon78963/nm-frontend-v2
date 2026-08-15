@@ -1,4 +1,4 @@
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, NgClass } from '@angular/common';
 import {
   Component,
   computed,
@@ -9,7 +9,9 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../../../auth/data-access/auth.service';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataColumn,
   TableDataComponent,
@@ -41,7 +43,15 @@ type CashRegisterDisplayRow =
 
 @Component({
   selector: 'app-cash-register',
-  imports: [DecimalPipe, ConfirmDialogComponent, MovementFormComponent, TableDataComponent],
+  imports: [
+    DecimalPipe,
+    NgClass,
+    ConfirmDialogComponent,
+    ButtonComponent,
+    TableActionButtonComponent,
+    MovementFormComponent,
+    TableDataComponent,
+  ],
   templateUrl: './cash-register.component.html',
 })
 export class CashRegisterComponent implements OnInit {

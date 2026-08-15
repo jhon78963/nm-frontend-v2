@@ -22,6 +22,7 @@ import { AccumulatedExpense } from '../../models/accumulated-expense.model';
 import { AccountSetupPanelComponent } from '../account-setup-panel/account-setup-panel.component';
 import { AccumulatedExpenseFormComponent } from '../accumulated-expense-form/accumulated-expense-form.component';
 import { MonthEndTransferPanelComponent } from '../month-end-transfer-panel/month-end-transfer-panel.component';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import {
   TableDataColumn,
   TableDataComponent,
@@ -30,6 +31,7 @@ import {
   DtExpandCellComponent,
   DtRowDirective,
 } from '../../../../../shared/ui/table-data/table-data.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 
 @Component({
   selector: 'app-accumulated-expenses',
@@ -39,6 +41,8 @@ import {
     MonthEndTransferPanelComponent,
     AccumulatedExpenseFormComponent,
     VoucherPreviewDialogComponent,
+    ButtonComponent,
+    TableActionButtonComponent,
     TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,

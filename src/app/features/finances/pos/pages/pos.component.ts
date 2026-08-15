@@ -5,12 +5,15 @@ import {
   DestroyRef,
   ElementRef,
   inject,
-  signal,
   viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime } from 'rxjs';
 import { AuthService } from '../../../auth/data-access/auth.service';
+import { ButtonComponent } from '../../../../shared/ui/button/button.component';
+import { InputComponent } from '../../../../shared/ui/input/input.component';
+import { TableActionButtonComponent } from '../../../../shared/ui/table-action-button/table-action-button.component';
 import { PosFooterComponent } from '../components/pos-footer/pos-footer.component';
 import { PosHeaderComponent } from '../components/pos-header/pos-header.component';
 import { PosReceiptPreviewComponent } from '../components/pos-receipt-preview/pos-receipt-preview.component';
@@ -21,6 +24,10 @@ import { PosService } from '../data-access/pos.service';
   selector: 'app-pos',
   imports: [
     DecimalPipe,
+    ReactiveFormsModule,
+    InputComponent,
+    ButtonComponent,
+    TableActionButtonComponent,
     PosHeaderComponent,
     PosFooterComponent,
     PosSelectorComponent,
@@ -34,8 +41,8 @@ export class PosComponent {
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly barcodeQuery = signal('');
-  protected readonly barcodeInputRef = viewChild<ElementRef<HTMLInputElement>>('barcodeInput');
+  protected readonly barcodeControl = new FormControl('', { nonNullable: true });
+  private readonly barcodeInputHost = viewChild<ElementRef<HTMLElement>>('barcodeInputHost');
 
   protected readonly hasNoWarehouse = computed(() => {
     const user = this.authService.currentUser();
@@ -43,7 +50,7 @@ export class PosComponent {
   });
 
   // Debounced scan — fires 350ms after the user stops typing (scanner auto-sends)
-  private readonly _barcodeDebounce = toObservable(this.barcodeQuery)
+  private readonly _barcodeDebounce = this.barcodeControl.valueChanges
     .pipe(debounceTime(350), takeUntilDestroyed(this.destroyRef))
     .subscribe((val) => {
       if (val.trim() && !this.hasNoWarehouse()) {
@@ -56,13 +63,9 @@ export class PosComponent {
 
   // ── Barcode ───────────────────────────────────────────────────────────────
 
-  protected onBarcodeInput(event: Event): void {
-    this.barcodeQuery.set((event.target as HTMLInputElement).value);
-  }
-
   protected async onScanKeydown(): Promise<void> {
     if (this.hasNoWarehouse()) return;
-    await this.performScan(this.barcodeQuery());
+    await this.performScan(this.barcodeControl.value);
   }
 
   private async performScan(raw: string): Promise<void> {
@@ -72,8 +75,12 @@ export class PosComponent {
     if (prod) {
       this.posService.openAddModal(prod);
     }
-    this.barcodeQuery.set('');
-    setTimeout(() => this.barcodeInputRef()?.nativeElement.focus(), 0);
+    this.barcodeControl.setValue('', { emitEvent: false });
+    setTimeout(() => this.focusBarcodeInput(), 0);
+  }
+
+  private focusBarcodeInput(): void {
+    this.barcodeInputHost()?.nativeElement.querySelector('input')?.focus();
   }
 
   protected onReceiptPreviewClose(): void {

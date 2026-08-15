@@ -14,9 +14,15 @@ import {
   FormField,
   required,
 } from '@angular/forms/signals';
+import {
+  FormControl,
+  ReactiveFormsModule,
+} from '@angular/forms';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { DateInputComponent } from '../../../../../shared/ui/date-input/date-input.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   SelectComponent,
   SelectOption,
@@ -49,9 +55,12 @@ const EMPTY_FORM: MovementFormModel = {
   selector: 'app-movement-form',
   imports: [
     FormField,
+    ReactiveFormsModule,
     ButtonComponent,
+    DateInputComponent,
     InputComponent,
     MoneyInputComponent,
+    TableActionButtonComponent,
     SelectComponent,
   ],
   templateUrl: './movement-form.component.html',
@@ -71,6 +80,7 @@ export class MovementFormComponent {
 
   protected readonly saving = signal(false);
   protected readonly formModel = signal<MovementFormModel>({ ...EMPTY_FORM });
+  protected readonly dateControl = new FormControl('', { nonNullable: true });
 
   protected readonly isEditing = computed(() => this.editingItem() !== null);
 
@@ -145,6 +155,17 @@ export class MovementFormComponent {
         date: toDatetimeLocalValue(this.defaultMovementDate(viewDate)),
       });
     });
+
+    effect(() => {
+      const date = this.formModel().date;
+      if (this.dateControl.value !== date) {
+        this.dateControl.setValue(date, { emitEvent: false });
+      }
+    });
+
+    this.dateControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => this.onDateTimeChange(value));
   }
 
   protected onClose(): void {

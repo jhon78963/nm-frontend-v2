@@ -1,5 +1,9 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { PosService } from '../../data-access/pos.service';
 import { CartItem, Variant } from '../../models/pos.model';
 
@@ -12,7 +16,7 @@ interface SelectionItem {
 
 @Component({
   selector: 'app-pos-selector',
-  imports: [DecimalPipe],
+  imports: [DecimalPipe, FormsModule, ButtonComponent, MoneyInputComponent, TableActionButtonComponent],
   templateUrl: './pos-selector.component.html',
   styleUrl: './pos-selector.component.scss',
 })
@@ -152,7 +156,7 @@ export class PosSelectorComponent {
     this.selections.set(map);
   }
 
-  protected updatePrice(variant: Variant, event: Event): void {
+  protected updatePrice(variant: Variant, value: number | null): void {
     const size = this.activeSize();
     if (!size) return;
 
@@ -160,7 +164,7 @@ export class PosSelectorComponent {
     const map = new Map(this.selections());
 
     if (map.has(key)) {
-      const newPrice = parseFloat((event.target as HTMLInputElement).value) || 0;
+      const newPrice = value ?? 0;
       map.set(key, { ...map.get(key)!, price: newPrice });
       this.selections.set(map);
       this.pricingAlert.set(null);

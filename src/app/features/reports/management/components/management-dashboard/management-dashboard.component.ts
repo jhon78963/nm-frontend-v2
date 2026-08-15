@@ -1,4 +1,4 @@
-import { DecimalPipe } from '@angular/common';
+import { DecimalPipe, NgClass } from '@angular/common';
 import {
   Component,
   computed,
@@ -9,6 +9,8 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataColumn,
   TableDataComponent,
@@ -39,7 +41,14 @@ interface AccumulatedHistoryRow extends MonthlyHistoryRow {
 
 @Component({
   selector: 'app-management-dashboard',
-  imports: [DecimalPipe, RouterLink, TableDataComponent],
+  imports: [
+    DecimalPipe,
+    NgClass,
+    RouterLink,
+    ButtonComponent,
+    TableActionButtonComponent,
+    TableDataComponent,
+  ],
   providers: [ReportDashboardService],
   templateUrl: './management-dashboard.component.html',
 })

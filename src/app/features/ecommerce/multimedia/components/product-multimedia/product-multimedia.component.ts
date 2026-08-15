@@ -13,6 +13,9 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataComponent,
   TableDataColumn,
@@ -30,7 +33,7 @@ import { ProductGalleryComponent } from '../../../products/components/product-ga
 
 @Component({
   selector: 'app-product-multimedia',
-  imports: [ReactiveFormsModule, TableDataComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective, ProductGalleryComponent],
+  imports: [ReactiveFormsModule, InputComponent, ButtonComponent, TableActionButtonComponent, TableDataComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective, ProductGalleryComponent],
   templateUrl: './product-multimedia.component.html',
 })
 export class ProductMultimediaComponent implements OnDestroy {

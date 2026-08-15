@@ -7,10 +7,7 @@
         Gestiona tu catálogo de productos e inventario
       </p>
     </div>
-    <button
-      type="button"
-      class="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2"
-      (click)="openCreate()">
+    <app-button type="button" variant="primary" (clicked)="openCreate()">
       <svg
         class="h-5 w-5"
         fill="none"
@@ -23,48 +20,18 @@
           d="M12 4v16m8-8H4" />
       </svg>
       Nuevo producto
-    </button>
+    </app-button>
   </div>
 
   <!-- Barra de filtros y búsqueda -->
   <div class="rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-900/5 sm:p-5">
     <div class="flex flex-col gap-4 xl:flex-row xl:items-center">
       <!-- Búsqueda -->
-      <div class="w-full min-w-0 xl:flex-1">
-        <form [formGroup]="filterForm" class="relative">
-          <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-            <svg
-              class="h-5 w-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-          <input
-            type="text"
-            formControlName="search"
-            placeholder="Buscar por nombre, código completo o últimos 4-5 dígitos"
-            class="block w-full rounded-lg border-0 py-2.5 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-600 sm:text-sm sm:leading-6" />
-          @if (currentSearch()) {
-            <button
-              type="button"
-              (click)="clearSearch()"
-              class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          }
-        </form>
+      <div class="w-full min-w-0 xl:flex-1" [formGroup]="filterForm">
+        <app-input
+          formControlName="search"
+          placeholder="Buscar por nombre, código completo o últimos 4-5 dígitos"
+        />
       </div>
 
       <!-- Filtro por género -->
@@ -74,31 +41,29 @@
           role="group"
           aria-label="Filtrar por género">
           @for (gender of genders(); track gender.id) {
-            <button
-              type="button"
-              class="rounded-lg px-3.5 py-2 text-sm font-medium whitespace-nowrap transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-1"
-              [class.bg-white]="isGenderSelected(gender.id)"
-              [class.text-sky-700]="isGenderSelected(gender.id)"
-              [class.shadow-sm]="isGenderSelected(gender.id)"
-              [class.ring-1]="isGenderSelected(gender.id)"
-              [class.ring-sky-200]="isGenderSelected(gender.id)"
-              [class.text-gray-600]="!isGenderSelected(gender.id)"
-              [class.hover:bg-white/80]="!isGenderSelected(gender.id)"
-              [class.hover:text-gray-900]="!isGenderSelected(gender.id)"
-              [attr.aria-pressed]="isGenderSelected(gender.id)"
-              (click)="toggleGender(gender.id)">
-              {{ gender.description }}
-            </button>
+            <div
+              class="[&_.btn-base]:rounded-lg [&_.btn-base]:px-3.5 [&_.btn-base]:py-2 [&_.btn-base]:text-sm [&_.btn-base]:font-medium [&_.btn-base]:whitespace-nowrap [&_.btn-base]:shadow-none [&_.btn-base]:ring-1 [&_.btn-base]:ring-inset"
+              [ngClass]="
+                isGenderSelected(gender.id)
+                  ? '[&_.btn-base]:bg-white [&_.btn-base]:text-sky-700 [&_.btn-base]:ring-sky-200 hover:[&_.btn-base]:bg-white'
+                  : '[&_.btn-base]:bg-transparent [&_.btn-base]:text-gray-600 [&_.btn-base]:ring-transparent hover:[&_.btn-base]:bg-white/80 hover:[&_.btn-base]:text-gray-900'
+              "
+            >
+              <app-button
+                type="button"
+                variant="secondary"
+                [attr.aria-pressed]="isGenderSelected(gender.id)"
+                (clicked)="toggleGender(gender.id)">
+                {{ gender.description }}
+              </app-button>
+            </div>
           }
         </div>
       }
 
       <!-- Acciones -->
       <div class="flex flex-wrap items-center gap-2 xl:shrink-0">
-        <button
-          type="button"
-          (click)="clearFilters()"
-          class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2">
+        <app-button type="button" variant="secondary" (clicked)="clearFilters()">
           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
@@ -107,22 +72,15 @@
               d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
           </svg>
           Limpiar filtros
-        </button>
+        </app-button>
 
-        <button
+        <app-button
           type="button"
+          variant="secondary"
           [disabled]="isImporting()"
-          (click)="triggerImport()"
-          class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50">
-          @if (isImporting()) {
-            <svg class="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-          } @else {
+          [loading]="isImporting()"
+          (clicked)="triggerImport()">
+          @if (!isImporting()) {
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 stroke-linecap="round"
@@ -132,7 +90,7 @@
             </svg>
           }
           Importar Excel
-        </button>
+        </app-button>
 
         <app-export-button
           label="Exportar Excel"
@@ -141,12 +99,13 @@
           (clicked)="exportProducts()"
         />
 
-        <input
-          #importInput
-          type="file"
-          accept=".xlsx,.xls,.ods"
-          class="hidden"
-          (change)="onImportFileSelected($event)" />
+        <div class="sr-only" aria-hidden="true">
+          <app-excel-upload
+            #excelImport
+            accept=".xlsx,.xls,.ods"
+            (fileSelected)="onImportFile($event)"
+          />
+        </div>
       </div>
     </div>
   </div>

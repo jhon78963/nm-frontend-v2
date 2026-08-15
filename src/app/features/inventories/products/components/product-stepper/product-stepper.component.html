@@ -16,18 +16,19 @@
 
       <div class="flex items-center gap-2 md:gap-3">
         @if (productId() !== null) {
-          <button
+          <app-button
             type="button"
+            variant="secondary"
+            class="shrink-0 [&_.btn-base]:border-0 [&_.btn-base]:bg-transparent [&_.btn-base]:px-2.5 [&_.btn-base]:py-2 [&_.btn-base]:shadow-none sm:[&_.btn-base]:px-3"
             [disabled]="!canGoBack()"
-            (click)="goBack()"
-            class="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 sm:px-3"
             aria-label="Ir al paso anterior"
+            (clicked)="goBack()"
           >
             <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
             <span class="hidden sm:inline">Anterior</span>
-          </button>
+          </app-button>
         } @else {
           <div class="hidden w-[72px] shrink-0 sm:block" aria-hidden="true"></div>
         }
@@ -40,54 +41,59 @@
               @if ($index > 0) {
                 <div class="hidden h-px w-4 shrink-0 bg-gray-300 lg:block xl:w-8" aria-hidden="true"></div>
               }
-              <button
-                type="button"
-                [disabled]="step.disabled"
-                (click)="goToStep($index)"
-                [attr.aria-current]="currentStepIndex() === $index ? 'step' : null"
-                [attr.aria-label]="step.label"
-                [class]="[
-                  'flex shrink-0 flex-col items-center gap-1 rounded-lg px-2.5 py-2 transition-colors sm:gap-1.5 sm:px-3 md:px-3.5 lg:px-4',
+              <div
+                class="[&_.btn-base]:flex [&_.btn-base]:flex-col [&_.btn-base]:items-center [&_.btn-base]:gap-1 [&_.btn-base]:rounded-lg [&_.btn-base]:px-2.5 [&_.btn-base]:py-2 [&_.btn-base]:shadow-none sm:[&_.btn-base]:gap-1.5 sm:[&_.btn-base]:px-3 md:[&_.btn-base]:px-3.5 lg:[&_.btn-base]:px-4"
+                [ngClass]="
                   currentStepIndex() === $index
-                    ? 'bg-sky-50 text-sky-700 ring-1 ring-sky-200'
+                    ? '[&_.btn-base]:bg-sky-50 [&_.btn-base]:text-sky-700 [&_.btn-base]:ring-1 [&_.btn-base]:ring-sky-200 hover:[&_.btn-base]:bg-sky-50'
                     : step.disabled
-                      ? 'cursor-not-allowed text-gray-400'
-                      : 'text-gray-600 hover:bg-gray-50'
-                ].join(' ')"
+                      ? '[&_.btn-base]:cursor-not-allowed [&_.btn-base]:bg-transparent [&_.btn-base]:text-gray-400 hover:[&_.btn-base]:bg-transparent'
+                      : '[&_.btn-base]:bg-transparent [&_.btn-base]:text-gray-600 hover:[&_.btn-base]:bg-gray-50'
+                "
               >
-                <svg
-                  class="h-5 w-5 shrink-0 sm:h-6 sm:w-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
+                <app-button
+                  type="button"
+                  variant="secondary"
+                  [disabled]="step.disabled"
+                  [attr.aria-current]="currentStepIndex() === $index ? 'step' : null"
+                  [attr.aria-label]="step.label"
+                  (clicked)="goToStep($index)"
                 >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    [attr.d]="step.icon"
-                  />
-                </svg>
-                <span class="hidden text-xs font-medium sm:block">{{ step.label }}</span>
-              </button>
+                  <svg
+                    class="h-5 w-5 shrink-0 sm:h-6 sm:w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      [attr.d]="step.icon"
+                    />
+                  </svg>
+                  <span class="hidden text-xs font-medium sm:block">{{ step.label }}</span>
+                </app-button>
+              </div>
             </li>
           }
         </ol>
 
         @if (productId() !== null) {
-          <button
+          <app-button
             type="button"
+            variant="secondary"
+            class="shrink-0 [&_.btn-base]:border-0 [&_.btn-base]:bg-transparent [&_.btn-base]:px-2.5 [&_.btn-base]:py-2 [&_.btn-base]:shadow-none sm:[&_.btn-base]:px-3"
             [disabled]="!canGoNext()"
-            (click)="goNext()"
-            class="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 sm:px-3"
             aria-label="Ir al paso siguiente"
+            (clicked)="goNext()"
           >
             <span class="hidden sm:inline">Siguiente</span>
             <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
-          </button>
+          </app-button>
         } @else {
           <div class="hidden w-[72px] shrink-0 sm:block" aria-hidden="true"></div>
         }

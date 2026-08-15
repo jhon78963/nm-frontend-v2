@@ -10,8 +10,10 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { AccumulatedExpenseService } from '../../data-access/accumulated-expense.service';
 import { AccumulatedAccountSettings } from '../../models/accumulated-expense.model';
@@ -23,7 +25,7 @@ import {
 
 @Component({
   selector: 'app-month-end-transfer-panel',
-  imports: [DecimalPipe, ButtonComponent, ConfirmDialogComponent],
+  imports: [DecimalPipe, FormsModule, ButtonComponent, ConfirmDialogComponent, MoneyInputComponent],
   templateUrl: './month-end-transfer-panel.component.html',
 })
 export class MonthEndTransferPanelComponent {

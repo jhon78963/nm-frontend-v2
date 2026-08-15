@@ -23,6 +23,7 @@ import {
 import { forkJoin } from 'rxjs';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
 import {
@@ -36,7 +37,7 @@ import { UserFormModel, UserPayload } from '../../models/user.model';
 
 @Component({
   selector: 'app-user-form',
-  imports: [FormField, InputComponent, SelectComponent, ButtonComponent],
+  imports: [FormField, InputComponent, SelectComponent, ButtonComponent, TableActionButtonComponent],
   templateUrl: './user-form.component.html',
 })
 export class UserFormComponent implements OnInit {

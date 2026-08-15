@@ -14,7 +14,9 @@ import {
   form,
   FormField,
 } from '@angular/forms/signals';
+import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { DateInputComponent } from '../../../../../shared/ui/date-input/date-input.component';
 import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { formatYearMonth } from '../../data-access/accumulated-expense.adapter';
@@ -35,7 +37,7 @@ interface BalanceFormModel {
 
 @Component({
   selector: 'app-account-setup-panel',
-  imports: [DecimalPipe, FormField, ButtonComponent, MoneyInputComponent],
+  imports: [DecimalPipe, FormsModule, FormField, ButtonComponent, DateInputComponent, MoneyInputComponent],
   templateUrl: './account-setup-panel.component.html',
 })
 export class AccountSetupPanelComponent {

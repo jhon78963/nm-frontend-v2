@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common';
 import {
   Component,
   computed,
@@ -13,7 +14,9 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import {
   TableDataComponent,
   TableDataColumn,
@@ -59,7 +62,10 @@ const SIZE_TYPE_BADGE_CLASSES = [
 @Component({
   selector: 'app-sizes-list',
   imports: [
+    NgClass,
     ReactiveFormsModule,
+    ButtonComponent,
+    InputComponent,
     SizeFormComponent,
     ConfirmDialogComponent,
     TableDataComponent,

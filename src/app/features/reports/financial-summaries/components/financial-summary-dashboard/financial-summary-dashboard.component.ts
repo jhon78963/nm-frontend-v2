@@ -10,6 +10,8 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../../auth/data-access/auth.service';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import {
   TableDataColumn,
@@ -31,7 +33,17 @@ import { QuickTransactionFormComponent } from '../quick-transaction-form/quick-t
 
 @Component({
   selector: 'app-financial-summary-dashboard',
-  imports: [DecimalPipe, RouterLink, QuickTransactionFormComponent, TableDataComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
+  imports: [
+    DecimalPipe,
+    RouterLink,
+    ButtonComponent,
+    TableActionButtonComponent,
+    QuickTransactionFormComponent,
+    TableDataComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
+  ],
   providers: [FinancialSummaryService],
   templateUrl: './financial-summary-dashboard.component.html',
 })

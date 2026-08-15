@@ -35,46 +35,18 @@
         Administra puntos de venta y almacenes vinculados a cada cliente del sistema.
       </p>
     </div>
-    <button
-      type="button"
-      class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
-      (click)="openCreate()"
-    >
+    <app-button type="button" variant="primary" (clicked)="openCreate()">
       <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
       </svg>
       Nueva tienda
-    </button>
+    </app-button>
   </div>
 
   <!-- ── Toolbar ── -->
   <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
-    <div class="relative flex-1 max-w-sm" [formGroup]="filterForm">
-      <svg
-        class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"
-      >
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-      <input
-        formControlName="search"
-        type="search"
-        placeholder="Buscar por nombre de tienda…"
-        class="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-9 pr-9 text-sm placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        aria-label="Buscar tiendas"
-      />
-      @if (filterForm.controls.search.value) {
-        <button
-          type="button"
-          class="absolute right-3 top-1/2 -translate-y-1/2 rounded text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
-          aria-label="Limpiar búsqueda"
-          (click)="clearSearch()"
-        >
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      }
+    <div class="max-w-sm flex-1" [formGroup]="filterForm">
+      <app-input formControlName="search" placeholder="Buscar por nombre de tienda…" />
     </div>
 
     <div class="flex flex-wrap items-center gap-3" [formGroup]="filterForm">
@@ -99,13 +71,9 @@
       </div>
 
       @if (hasActiveFilters()) {
-        <button
-          type="button"
-          class="text-sm font-medium text-indigo-600 hover:text-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2"
-          (click)="clearFilters()"
-        >
+        <app-button type="button" variant="secondary" (clicked)="clearFilters()">
           Limpiar filtros
-        </button>
+        </app-button>
       }
     </div>
 
@@ -122,11 +90,13 @@
     [data]="warehouses()"
     [loading]="loading()"
     [emptyState]="emptyState()"
+    [emptySearch]="currentSearch()"
     [pagination]="paginationData()"
     [theme]="'indigo'"
     [minWidth]="'640px'"
     [ariaLabel]="'Lista de tiendas'"
     (emptyAction)="onEmptyAction()"
+    (clearSearch)="clearSearch()"
     (pageChange)="goToPage($event)"
   >
     <ng-template #emptyIcon>

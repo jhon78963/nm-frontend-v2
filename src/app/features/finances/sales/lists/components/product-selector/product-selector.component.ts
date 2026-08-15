@@ -6,13 +6,23 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { ButtonComponent } from '../../../../../../shared/ui/button/button.component';
+import { InputComponent } from '../../../../../../shared/ui/input/input.component';
+import { TableActionButtonComponent } from '../../../../../../shared/ui/table-action-button/table-action-button.component';
 import { PosService } from '../../../../pos/data-access/pos.service';
 import { Product } from '../../../../pos/models/pos.model';
 import { ProductVariantSelection } from '../../models/sale.model';
 
 @Component({
   selector: 'app-sale-product-selector',
+  imports: [
+    ReactiveFormsModule,
+    ButtonComponent,
+    InputComponent,
+    TableActionButtonComponent,
+  ],
   templateUrl: './product-selector.component.html',
 })
 export class SaleProductSelectorComponent {
@@ -25,10 +35,23 @@ export class SaleProductSelectorComponent {
   protected readonly products = signal<ProductVariantSelection[]>([]);
   protected readonly loading = signal(false);
   protected readonly query = signal('');
+  protected readonly searchControl = new FormControl('', { nonNullable: true });
 
   private readonly search$ = new Subject<string>();
 
+  protected readonly moneyFormatter = new Intl.NumberFormat('es-PE', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
   constructor() {
+    this.searchControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        this.query.set(value);
+        this.search$.next(value.trim());
+      });
+
     this.search$
       .pipe(
         debounceTime(350),
@@ -38,12 +61,6 @@ export class SaleProductSelectorComponent {
       .subscribe((term) => {
         void this.loadProducts(term);
       });
-  }
-
-  protected onSearchInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.query.set(value);
-    this.search$.next(value.trim());
   }
 
   protected onSearchKeydown(event: KeyboardEvent): void {
@@ -61,16 +78,21 @@ export class SaleProductSelectorComponent {
     this.selected.emit(product);
   }
 
-  private async loadProducts(query: string): Promise<void> {
-    if (!query || query.length < 2) {
+  protected formatMoney(value: number): string {
+    return `S/ ${this.moneyFormatter.format(value)}`;
+  }
+
+  private async loadProducts(term: string): Promise<void> {
+    if (term.length < 2) {
       this.products.set([]);
       return;
     }
 
     this.loading.set(true);
+
     try {
-      const result = await this.posService.searchProductBySku(query);
-      this.products.set(this.flattenVariants(result, query));
+      const product = await this.posService.searchProductBySku(term);
+      this.products.set(this.flattenProductVariants(product, term));
     } catch {
       this.products.set([]);
     } finally {
@@ -78,11 +100,13 @@ export class SaleProductSelectorComponent {
     }
   }
 
-  private flattenVariants(
+  private flattenProductVariants(
     product: Product | undefined,
     query: string,
   ): ProductVariantSelection[] {
-    if (!product?.variants) return [];
+    if (!product?.variants) {
+      return [];
+    }
 
     const flat: ProductVariantSelection[] = [];
 
@@ -104,13 +128,5 @@ export class SaleProductSelectorComponent {
     const trimmedQuery = query.trim();
     const exactSku = flat.some((item) => item.sku === trimmedQuery);
     return exactSku ? flat.filter((item) => item.sku === trimmedQuery) : flat;
-  }
-
-  protected formatMoney(value: number): string {
-    return new Intl.NumberFormat('es-PE', {
-      style: 'currency',
-      currency: 'PEN',
-      minimumFractionDigits: 2,
-    }).format(value);
   }
 }

@@ -21,6 +21,7 @@ import {
   SelectComponent,
   SelectOption,
 } from '../../../../../shared/ui/select/select.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
 import { SizeLookupService } from '../../data-access/size-lookup.service';
 import { SizeService } from '../../data-access/size.service';
@@ -33,7 +34,7 @@ const EMPTY_FORM: SizeFormModel = {
 
 @Component({
   selector: 'app-size-form',
-  imports: [FormField, InputComponent, SelectComponent, ButtonComponent],
+  imports: [FormField, InputComponent, SelectComponent, ButtonComponent, TableActionButtonComponent],
   templateUrl: './size-form.component.html',
 })
 export class SizeFormComponent implements OnInit {

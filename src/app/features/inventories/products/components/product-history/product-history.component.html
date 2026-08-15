@@ -48,38 +48,21 @@
     <!-- Filters -->
     <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
       <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <label class="relative block w-full lg:max-w-md">
-          <span class="sr-only">Buscar en el historial</span>
-          <svg
-            class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="search"
-            [value]="searchQuery()"
-            (input)="onSearchInput($event)"
+        <div class="w-full lg:max-w-md">
+          <app-input
             placeholder="Buscar por acción, usuario o campo..."
-            class="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-900 shadow-sm transition-colors placeholder:text-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20" />
-        </label>
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+          />
+        </div>
 
         @if (hasActiveFilters()) {
-          <button
-            type="button"
-            (click)="clearFilters()"
-            class="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900">
+          <app-button type="button" variant="secondary" (clicked)="clearFilters()">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
             Limpiar filtros
-          </button>
+          </app-button>
         }
       </div>
 
@@ -88,17 +71,18 @@
         role="group"
         aria-label="Filtrar por tipo de evento">
         @for (option of severityOptions; track option.value) {
-          <button
-            type="button"
-            (click)="setSeverityFilter(option.value)"
-            [class]="[
-              'rounded-full px-3 py-1.5 text-xs font-medium transition-colors ring-1 ring-inset',
+          <div
+            class="[&_.btn-base]:rounded-full [&_.btn-base]:px-3 [&_.btn-base]:py-1.5 [&_.btn-base]:text-xs [&_.btn-base]:font-medium [&_.btn-base]:shadow-none [&_.btn-base]:ring-1 [&_.btn-base]:ring-inset"
+            [ngClass]="
               severityFilter() === option.value
-                ? 'bg-sky-600 text-white ring-sky-600'
-                : 'bg-white text-gray-600 ring-gray-300 hover:bg-gray-50',
-            ].join(' ')">
-            {{ option.label }}
-          </button>
+                ? '[&_.btn-base]:bg-sky-600 [&_.btn-base]:text-white [&_.btn-base]:ring-sky-600 hover:[&_.btn-base]:bg-sky-600'
+                : '[&_.btn-base]:bg-white [&_.btn-base]:text-gray-600 [&_.btn-base]:ring-gray-300 hover:[&_.btn-base]:bg-gray-50'
+            "
+          >
+            <app-button type="button" variant="secondary" (clicked)="setSeverityFilter(option.value)">
+              {{ option.label }}
+            </app-button>
+          </div>
         }
       </div>
     </div>
@@ -195,12 +179,9 @@
       <p class="mt-1 text-sm text-gray-500">
         Prueba con otro término o limpia los filtros activos.
       </p>
-      <button
-        type="button"
-        (click)="clearFilters()"
-        class="mt-4 rounded-lg bg-white px-4 py-2 text-sm font-medium text-sky-700 ring-1 ring-sky-200 transition-colors hover:bg-sky-50">
+      <app-button type="button" variant="secondary" (clicked)="clearFilters()">
         Limpiar filtros
-      </button>
+      </app-button>
     </div>
   } @else {
     <!-- Timeline -->

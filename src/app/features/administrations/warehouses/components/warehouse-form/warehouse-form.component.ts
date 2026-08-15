@@ -17,6 +17,7 @@ import {
 } from '@angular/forms/signals';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
 import { WarehouseLookupService } from '../../data-access/warehouse-lookup.service';
@@ -30,7 +31,7 @@ const EMPTY_FORM: WarehouseFormModel = {
 
 @Component({
   selector: 'app-warehouse-form',
-  imports: [FormField, InputComponent, SelectComponent, ButtonComponent],
+  imports: [FormField, InputComponent, SelectComponent, ButtonComponent, TableActionButtonComponent],
   templateUrl: './warehouse-form.component.html',
 })
 export class WarehouseFormComponent implements OnInit {

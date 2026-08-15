@@ -505,12 +505,10 @@
                           <span class="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">
                             {{ colorGroup.get('displayLabel')?.value }}
                           </span>
-                          <input
+                          <app-input
+                            class="w-20 shrink-0 [&_.input-wrapper]:gap-0"
                             type="number"
                             formControlName="quantity"
-                            min="1"
-                            class="w-20 shrink-0 rounded-lg border border-gray-300 px-2 py-1 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                            [attr.aria-label]="'Cantidad de ' + (colorGroup.get('displayLabel')?.value ?? 'color')"
                           />
                           <div class="shrink-0">
                             <app-table-action-button

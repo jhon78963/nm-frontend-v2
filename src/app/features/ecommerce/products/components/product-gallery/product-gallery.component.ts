@@ -21,6 +21,8 @@ import {
   tap,
   throwError,
 } from 'rxjs';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   FileDropzoneComponent,
   FileDropzoneStatusSeverity,
@@ -45,7 +47,7 @@ interface TrackedFile {
 
 @Component({
   selector: 'app-product-gallery',
-  imports: [FileDropzoneComponent],
+  imports: [FileDropzoneComponent, ButtonComponent, TableActionButtonComponent],
   templateUrl: './product-gallery.component.html',
 })
 export class ProductGalleryComponent implements OnDestroy {

@@ -43,34 +43,20 @@
     </div>
 
     <div class="flex flex-wrap items-center gap-2">
-      <button
-        type="button"
-        class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
-        (click)="goAttendance()"
-      >
+      <app-button type="button" variant="secondary" (clicked)="goAttendance()">
         Asistencia
-      </button>
-      <button
-        type="button"
-        class="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
-        aria-label="Mes anterior"
-        (click)="prevMonth()"
-      >
+      </app-button>
+      <app-table-action-button label="Mes anterior" tone="neutral" (clicked)="prevMonth()">
         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
-      </button>
+      </app-table-action-button>
       <span class="min-w-[140px] text-center text-sm font-bold text-gray-900">{{ monthTitle() }}</span>
-      <button
-        type="button"
-        class="rounded-lg border border-gray-300 p-2 text-gray-600 hover:bg-gray-50"
-        aria-label="Mes siguiente"
-        (click)="nextMonth()"
-      >
+      <app-table-action-button label="Mes siguiente" tone="neutral" (clicked)="nextMonth()">
         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
         </svg>
-      </button>
+      </app-table-action-button>
     </div>
   </div>
 
@@ -78,18 +64,13 @@
     <span class="text-sm font-semibold text-gray-800">Ámbito del resumen</span>
     <div class="mt-3 flex flex-wrap gap-2">
       @for (opt of periodOptions; track opt.value) {
-        <button
+        <app-button
           type="button"
-          class="rounded-xl px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
-          [class.bg-emerald-600]="period() === opt.value"
-          [class.text-white]="period() === opt.value"
-          [class.shadow-sm]="period() === opt.value"
-          [class.bg-gray-100]="period() !== opt.value"
-          [class.text-gray-700]="period() !== opt.value"
-          (click)="onPeriodChange(opt.value)"
+          [variant]="period() === opt.value ? 'primary' : 'secondary'"
+          (clicked)="onPeriodChange(opt.value)"
         >
           {{ opt.label }}
-        </button>
+        </app-button>
       }
     </div>
   </div>
@@ -131,8 +112,7 @@
 
             <div class="grid gap-3 sm:grid-cols-2">
               <div>
-                <label for="pay-amount" class="text-sm font-medium text-gray-700">Monto (S/)</label>
-                <input id="pay-amount" type="number" min="0.01" step="0.01" formControlName="amount" class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <app-money-input label="Monto (S/)" formControlName="amount" />
               </div>
               <div>
                 <label for="pay-method" class="text-sm font-medium text-gray-700">Medio de pago</label>
@@ -146,12 +126,10 @@
 
             <div class="grid gap-3 sm:grid-cols-2">
               <div>
-                <label for="pay-date" class="text-sm font-medium text-gray-700">Fecha de pago</label>
-                <input id="pay-date" type="date" formControlName="date" class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <app-date-input label="Fecha de pago" formControlName="date" />
               </div>
               <div>
-                <label for="pay-accounting" class="text-sm font-medium text-gray-700">Mes contable</label>
-                <input id="pay-accounting" type="month" formControlName="accountingMonth" class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+                <app-input label="Mes contable" type="text" formControlName="accountingMonth" />
               </div>
             </div>
 
@@ -170,22 +148,31 @@
             </div>
 
             <div>
-              <label for="pay-voucher" class="text-sm font-medium text-gray-700">Comprobante (opcional)</label>
-              <input id="pay-voucher" type="file" accept="image/*,.pdf" multiple class="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-emerald-700" (change)="onVoucherSelected($event)" />
+              <app-file-dropzone
+                [maxFiles]="5"
+                [accept]="'image/*,.pdf'"
+                subjectLabel="comprobantes"
+                formatsHint="PDF o imagen"
+                (filesChange)="onVoucherFilesChange($event)"
+              />
             </div>
 
-            <label class="flex items-start gap-2 text-sm text-gray-600">
-              <input type="checkbox" formControlName="syncCashMovement" class="mt-1 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500" />
-              Reflejar también en Finanzas → Gastos administrativos
-            </label>
+            <app-checkbox
+              label="Reflejar también en Finanzas → Gastos administrativos"
+              [value]="paymentForm.controls.syncCashMovement.value"
+              (valueChange)="paymentForm.controls.syncCashMovement.setValue($event)"
+            />
 
-            <button
+            <app-button
               type="submit"
-              class="w-full rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+              variant="primary"
+              class="w-full"
               [disabled]="savingPayment()"
+              [loading]="savingPayment()"
+              (clicked)="submitPayment()"
             >
               {{ savingPayment() ? 'Guardando…' : 'Registrar movimiento' }}
-            </button>
+            </app-button>
           </form>
         </div>
       </div>
@@ -264,18 +251,18 @@
                 <td dtCell="period" class="px-6 py-4 text-gray-600">{{ item.payrollPeriodLabel }}</td>
                 <td dtCell="amount" class="px-6 py-4 text-right font-semibold text-gray-900">S/ {{ money(item.amount) }}</td>
                 <td dtCell="actions" class="px-6 py-4 text-right">
-                  <button
-                    type="button"
-                    class="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
-                    [attr.aria-label]="'Eliminar movimiento de S/ ' + money(item.amount)"
+                  <app-table-action-button
+                    label="Eliminar movimiento"
+                    [ariaLabel]="'Eliminar movimiento de S/ ' + money(item.amount)"
+                    tone="danger"
                     [disabled]="deletingPaymentId() === item.id"
-                    (click)="openDeleteConfirm(item)"
+                    (clicked)="openDeleteConfirm(item)"
                   >
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
                       <polyline points="3 6 5 6 21 6"/>
                       <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
                     </svg>
-                  </button>
+                  </app-table-action-button>
                 </td>
               </tr>
             </ng-template>

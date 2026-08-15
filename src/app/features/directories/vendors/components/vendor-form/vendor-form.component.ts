@@ -18,6 +18,7 @@ import {
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
 import { VendorService } from '../../data-access/vendor.service';
 import { VendorFormModel } from '../../models/vendor.model';
@@ -31,7 +32,7 @@ const EMPTY_FORM: VendorFormModel = {
 
 @Component({
   selector: 'app-vendor-form',
-  imports: [FormField, InputComponent, ButtonComponent, AlertComponent],
+  imports: [FormField, InputComponent, ButtonComponent, AlertComponent, TableActionButtonComponent],
   templateUrl: './vendor-form.component.html',
 })
 export class VendorFormComponent implements OnInit {

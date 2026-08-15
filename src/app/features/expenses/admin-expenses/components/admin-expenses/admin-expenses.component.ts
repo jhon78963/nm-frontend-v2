@@ -10,6 +10,8 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../../../auth/data-access/auth.service';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   formatMonthLabel,
   formatPaymentDate,
@@ -36,6 +38,8 @@ import { VoucherPreviewDialogComponent } from '../voucher-preview-dialog/voucher
     DecimalPipe,
     AdminExpenseFormComponent,
     VoucherPreviewDialogComponent,
+    ButtonComponent,
+    TableActionButtonComponent,
     TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,

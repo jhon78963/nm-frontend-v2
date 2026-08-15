@@ -19,6 +19,7 @@ import {
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
 import { CustomerService } from '../../data-access/customer.service';
 import { CustomerFormModel } from '../../models/customer.model';
@@ -31,7 +32,7 @@ const EMPTY_FORM: CustomerFormModel = {
 
 @Component({
   selector: 'app-customer-form',
-  imports: [FormField, InputComponent, ButtonComponent, AlertComponent],
+  imports: [FormField, InputComponent, ButtonComponent, AlertComponent, TableActionButtonComponent],
   templateUrl: './customer-form.component.html',
 })
 export class CustomerFormComponent implements OnInit {

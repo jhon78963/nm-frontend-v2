@@ -55,40 +55,23 @@
     <label for="reconciliation-search" class="block text-sm font-medium text-sky-100">
       Buscar producto
     </label>
-    <div class="relative mt-2">
-      <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-        @if (searching() || loadingBundle()) {
-          <svg class="h-5 w-5 animate-spin text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        } @else {
-          <svg class="h-5 w-5 text-sky-200" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        }
+    <div class="relative mt-2 flex items-center gap-2">
+      <div class="relative min-w-0 flex-1 [&_.input-wrapper]:mb-0" (keydown.enter)="onSearchEnter($event)">
+        <app-input
+          #searchInput
+          placeholder="Nombre, ID numérico o código de barras…"
+          [ngModel]="searchQuery()"
+          (ngModelChange)="onSearchQueryChange($event)"
+          [disabled]="searching() || loadingBundle()" />
       </div>
-      <input
-        #searchInput
-        id="reconciliation-search"
-        type="search"
-        name="reconciliationSearch"
-        class="block w-full rounded-xl border-0 bg-white/95 py-3.5 pl-12 pr-28 text-gray-900 shadow-sm ring-1 ring-inset ring-white/20 placeholder:text-gray-400 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-white sm:text-sm"
-        [value]="searchQuery()"
-        [disabled]="searching() || loadingBundle()"
-        placeholder="Nombre, ID numérico o código de barras…"
-        autocomplete="off"
-        autocapitalize="off"
-        spellcheck="false"
-        (input)="onSearchInput($event)"
-        (keydown.enter)="onSearchEnter($event)" />
-      <div class="absolute inset-y-0 right-0 flex items-center pr-2">
-        <button
+      <div class="shrink-0 [&_.btn-base]:rounded-lg [&_.btn-base]:bg-sky-800 [&_.btn-base]:px-4 [&_.btn-base]:py-2 [&_.btn-base]:text-sm [&_.btn-base]:font-semibold [&_.btn-base]:text-white [&_.btn-base]:shadow-none hover:[&_.btn-base]:bg-sky-900 focus-visible:[&_.btn-base]:ring-2 focus-visible:[&_.btn-base]:ring-white focus-visible:[&_.btn-base]:ring-offset-2 focus-visible:[&_.btn-base]:ring-offset-sky-700 disabled:[&_.btn-base]:cursor-not-allowed disabled:[&_.btn-base]:opacity-60">
+        <app-button
           type="button"
-          class="rounded-lg bg-sky-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-900 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+          variant="primary"
           [disabled]="searching() || loadingBundle()"
-          (click)="runSearch()">
+          (clicked)="runSearch()">
           Buscar
-        </button>
+        </app-button>
       </div>
     </div>
     @if (navigationHint(); as hint) {
@@ -270,26 +253,24 @@
                             {{ posSoldTagLabel(sizePosSoldQty(row.size)) }}
                           </span>
                         }
-                        <button
-                          type="button"
-                          class="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-sky-600"
-                          title="Agregar color a esta talla"
+                        <app-table-action-button
+                          label="Agregar color a esta talla"
+                          tone="neutral"
                           [disabled]="saving() || addingColor() || removingSize()"
-                          (click)="openAddColorDialog(row.size)">
+                          (clicked)="openAddColorDialog(row.size)">
                           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                           </svg>
-                        </button>
-                        <button
-                          type="button"
-                          class="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
-                          [title]="sizeRemoveTooltip(row.size)"
+                        </app-table-action-button>
+                        <app-table-action-button
+                          [label]="sizeRemoveTooltip(row.size)"
+                          tone="danger"
                           [disabled]="!canRemoveSize(row.size) || removingSize()"
-                          (click)="confirmRemoveSize(row.size)">
+                          (clicked)="confirmRemoveSize(row.size)">
                           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
-                        </button>
+                        </app-table-action-button>
                       </div>
                     </div>
                     @if (hasColorBreakdown(row.size)) {
@@ -300,40 +281,29 @@
                     }
                   </td>
                   <td class="px-4 py-3 align-top text-right">
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      class="w-24 rounded-lg border-gray-300 text-right text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
-                      [value]="row.size.purchasePrice ?? ''"
-                      (change)="updateSizeField(row.size.id, 'purchasePrice', $any($event.target).value === '' ? null : +$any($event.target).value)" />
+                    <app-money-input
+                      class="ml-auto w-24"
+                      [ngModel]="row.size.purchasePrice"
+                      (ngModelChange)="updateSizeField(row.size.id, 'purchasePrice', $event)" />
                   </td>
                   <td class="px-4 py-3 align-top text-right">
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      class="w-24 rounded-lg border-gray-300 text-right text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
-                      [value]="row.size.salePrice ?? ''"
-                      (change)="updateSizeField(row.size.id, 'salePrice', $any($event.target).value === '' ? null : +$any($event.target).value)" />
+                    <app-money-input
+                      class="ml-auto w-24"
+                      [ngModel]="row.size.salePrice"
+                      (ngModelChange)="updateSizeField(row.size.id, 'salePrice', $event)" />
                   </td>
                   <td class="px-4 py-3 align-top text-right">
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      class="w-24 rounded-lg border-gray-300 text-right text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
-                      [value]="row.size.minSalePrice ?? ''"
-                      (change)="updateSizeField(row.size.id, 'minSalePrice', $any($event.target).value === '' ? null : +$any($event.target).value)" />
+                    <app-money-input
+                      class="ml-auto w-24"
+                      [ngModel]="row.size.minSalePrice"
+                      (ngModelChange)="updateSizeField(row.size.id, 'minSalePrice', $event)" />
                   </td>
                   <td class="px-4 py-3 align-top">
-                    <input
+                    <app-input
                       type="text"
-                      maxlength="255"
-                      class="w-full min-w-[7rem] rounded-lg border-gray-300 text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
-                      [value]="row.size.barcode ?? ''"
+                      [ngModel]="row.size.barcode ?? ''"
                       [disabled]="saving()"
-                      (change)="updateSizeField(row.size.id, 'barcode', $any($event.target).value)" />
+                      (ngModelChange)="updateSizeField(row.size.id, 'barcode', $event)" />
                   </td>
                   <td class="px-4 py-3 align-top text-right">
                     @if (hasColorBreakdown(row.size)) {
@@ -342,15 +312,12 @@
                       </span>
                     } @else {
                       <div class="flex flex-col items-end gap-1">
-                        <input
+                        <app-input
                           type="number"
-                          min="0"
-                          step="1"
-                          class="w-20 rounded-lg border-gray-300 text-right text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
-                          [class.ring-2]="sizePosSoldQty(row.size) > 0"
-                          [class.ring-amber-300]="sizePosSoldQty(row.size) > 0"
-                          [value]="row.size.masterStock"
-                          (change)="updateSizeField(row.size.id, 'masterStock', +$any($event.target).value)" />
+                          class="w-20 text-right"
+                          [ngClass]="sizePosSoldQty(row.size) > 0 ? '[&_.input-field]:ring-2 [&_.input-field]:ring-amber-300' : ''"
+                          [ngModel]="row.size.masterStock"
+                          (ngModelChange)="updateSizeField(row.size.id, 'masterStock', +$event)" />
                         @if (sizePosSoldQty(row.size) > 0) {
                           <span class="text-xs text-amber-700">{{ posStockHint(row.size) }}</span>
                         }
@@ -377,26 +344,24 @@
                         }
                       </div>
                       <div class="flex items-center gap-1">
-                        <button
-                          type="button"
-                          class="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-sky-50 hover:text-sky-600"
-                          title="Sustituir por otro color (conserva stock)"
+                        <app-table-action-button
+                          label="Sustituir por otro color (conserva stock)"
+                          tone="neutral"
                           [disabled]="saving() || replacingVariantColor() || removingColor()"
-                          (click)="openReplaceColorDialog(row.size, row.color)">
+                          (clicked)="openReplaceColorDialog(row.size, row.color)">
                           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                           </svg>
-                        </button>
-                        <button
-                          type="button"
-                          class="rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                          title="Eliminar variante de color"
+                        </app-table-action-button>
+                        <app-table-action-button
+                          label="Eliminar variante de color"
+                          tone="danger"
                           [disabled]="saving() || replacingVariantColor() || removingColor() || removingSize()"
-                          (click)="confirmRemoveColor(row.size, row.color)">
+                          (clicked)="confirmRemoveColor(row.size, row.color)">
                           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
-                        </button>
+                        </app-table-action-button>
                       </div>
                     </div>
                   </td>
@@ -404,22 +369,17 @@
                   <td class="px-4 py-2.5 text-right">
                     <div class="flex flex-col items-end gap-1">
                       <div class="flex items-center justify-end gap-2">
-                        <input
-                          type="checkbox"
-                          class="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
-                          [checked]="row.color.stockReviewed"
+                        <app-checkbox
+                          [value]="row.color.stockReviewed"
                           [disabled]="saving() || replacingVariantColor()"
                           [attr.aria-label]="'Marcar stock revisado — ' + row.color.description"
-                          (change)="updateColorReviewed(row.size.id, row.color.colorId, $any($event.target).checked)" />
-                        <input
+                          (valueChange)="updateColorReviewed(row.size.id, row.color.colorId, $event)" />
+                        <app-input
                           type="number"
-                          min="0"
-                          step="1"
-                          class="w-20 rounded-lg border-gray-300 text-right text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
-                          [class.ring-2]="colorPosSoldQty(row.color) > 0"
-                          [class.ring-amber-300]="colorPosSoldQty(row.color) > 0"
-                          [value]="row.color.stock"
-                          (change)="updateColorStock(row.size.id, row.color.colorId, +$any($event.target).value)" />
+                          class="w-20 text-right"
+                          [ngClass]="colorPosSoldQty(row.color) > 0 ? '[&_.input-field]:ring-2 [&_.input-field]:ring-amber-300' : ''"
+                          [ngModel]="row.color.stock"
+                          (ngModelChange)="updateColorStock(row.size.id, row.color.colorId, +$event)" />
                       </div>
                       @if (colorPosSoldQty(row.color) > 0) {
                         <span class="text-xs text-amber-700">{{ posStockHint(row.size, row.color) }}</span>
@@ -454,15 +414,14 @@
       <ul class="mt-4 max-h-80 space-y-2 overflow-y-auto">
         @for (item of searchResults(); track item.id) {
           <li>
-            <button
-              type="button"
-              class="w-full rounded-lg border border-gray-200 px-4 py-3 text-left transition-colors hover:border-sky-300 hover:bg-sky-50"
-              (click)="openProduct(item.id)">
-              <span class="font-semibold text-gray-900">{{ item.name }}</span>
-              <span class="ml-2 text-sm text-gray-500">
-                ID {{ item.id }}@if (item.gender) { — {{ item.gender }} }
-              </span>
-            </button>
+            <div class="[&_.btn-base]:w-full [&_.btn-base]:justify-start [&_.btn-base]:rounded-lg [&_.btn-base]:border [&_.btn-base]:border-gray-200 [&_.btn-base]:px-4 [&_.btn-base]:py-3 [&_.btn-base]:text-left [&_.btn-base]:shadow-none hover:[&_.btn-base]:border-sky-300 hover:[&_.btn-base]:bg-sky-50">
+              <app-button type="button" variant="secondary" (clicked)="openProduct(item.id)">
+                <span class="font-semibold text-gray-900">{{ item.name }}</span>
+                <span class="ml-2 text-sm font-normal text-gray-500">
+                  ID {{ item.id }}@if (item.gender) { — {{ item.gender }} }
+                </span>
+              </app-button>
+            </div>
           </li>
         }
       </ul>
@@ -525,24 +484,20 @@
       <p class="mt-2 text-sm text-gray-600">
         Busque la talla en el catálogo. Si no existe, créela antes en Inventario → Tallas.
       </p>
-      <label for="add-size-search" class="mt-4 block text-sm font-medium text-gray-700">Talla</label>
-      <input
-        id="add-size-search"
-        type="text"
-        class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
+      <app-input
+        label="Talla"
         placeholder="Ej. 32, M, L…"
-        [value]="addSizeSearch()"
-        (input)="onAddSizeSearchInput($event)" />
+        [ngModel]="addSizeSearch()"
+        (ngModelChange)="onAddSizeSearchChange($event)" />
       @if (addSizeResults().length > 0) {
         <ul class="mt-2 max-h-40 overflow-y-auto rounded-lg border border-gray-200">
           @for (option of addSizeResults(); track option.id) {
             <li>
-              <button
-                type="button"
-                class="w-full px-3 py-2 text-left text-sm hover:bg-sky-50"
-                (click)="selectAddSizeTarget(option)">
-                {{ option.value }}
-              </button>
+              <div class="[&_.btn-base]:w-full [&_.btn-base]:justify-start [&_.btn-base]:rounded-none [&_.btn-base]:border-0 [&_.btn-base]:bg-transparent [&_.btn-base]:px-3 [&_.btn-base]:py-2 [&_.btn-base]:text-left [&_.btn-base]:text-sm [&_.btn-base]:font-normal [&_.btn-base]:shadow-none hover:[&_.btn-base]:bg-sky-50">
+                <app-button type="button" variant="secondary" (clicked)="selectAddSizeTarget(option)">
+                  {{ option.value }}
+                </app-button>
+              </div>
             </li>
           }
         </ul>
@@ -578,26 +533,28 @@
         <p class="mt-2 text-sm text-gray-600">Talla <strong>{{ ctx.sizeLabel }}</strong></p>
       }
       <div class="mt-4 flex gap-2" role="group" aria-label="Modo de color">
-        <button
-          type="button"
-          class="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
-          [class.bg-sky-600]="addColorMode() === 'catalog'"
-          [class.text-white]="addColorMode() === 'catalog'"
-          [class.bg-gray-100]="addColorMode() !== 'catalog'"
-          [class.text-gray-700]="addColorMode() !== 'catalog'"
-          (click)="setAddColorMode('catalog')">
-          Del catálogo
-        </button>
-        <button
-          type="button"
-          class="rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
-          [class.bg-sky-600]="addColorMode() === 'new'"
-          [class.text-white]="addColorMode() === 'new'"
-          [class.bg-gray-100]="addColorMode() !== 'new'"
-          [class.text-gray-700]="addColorMode() !== 'new'"
-          (click)="setAddColorMode('new')">
-          Color nuevo
-        </button>
+        <div
+          class="[&_.btn-base]:rounded-lg [&_.btn-base]:px-3 [&_.btn-base]:py-1.5 [&_.btn-base]:text-sm [&_.btn-base]:font-medium [&_.btn-base]:shadow-none"
+          [ngClass]="
+            addColorMode() === 'catalog'
+              ? '[&_.btn-base]:bg-sky-600 [&_.btn-base]:text-white hover:[&_.btn-base]:bg-sky-600'
+              : '[&_.btn-base]:bg-gray-100 [&_.btn-base]:text-gray-700 hover:[&_.btn-base]:bg-gray-100'
+          ">
+          <app-button type="button" variant="secondary" (clicked)="setAddColorMode('catalog')">
+            Del catálogo
+          </app-button>
+        </div>
+        <div
+          class="[&_.btn-base]:rounded-lg [&_.btn-base]:px-3 [&_.btn-base]:py-1.5 [&_.btn-base]:text-sm [&_.btn-base]:font-medium [&_.btn-base]:shadow-none"
+          [ngClass]="
+            addColorMode() === 'new'
+              ? '[&_.btn-base]:bg-sky-600 [&_.btn-base]:text-white hover:[&_.btn-base]:bg-sky-600'
+              : '[&_.btn-base]:bg-gray-100 [&_.btn-base]:text-gray-700 hover:[&_.btn-base]:bg-gray-100'
+          ">
+          <app-button type="button" variant="secondary" (clicked)="setAddColorMode('new')">
+            Color nuevo
+          </app-button>
+        </div>
       </div>
       @if (addColorMode() === 'catalog') {
         @if (catalogColorsLoading()) {
@@ -615,23 +572,17 @@
           </select>
         }
       } @else {
-        <label for="add-color-name" class="mt-4 block text-sm font-medium text-gray-700">Nombre del color</label>
-        <input
-          id="add-color-name"
-          type="text"
-          class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
+        <app-input
+          label="Nombre del color"
           placeholder="Ej. Guinda"
-          [value]="addColorNewName()"
-          (input)="onAddColorNewNameInput($event)" />
+          [ngModel]="addColorNewName()"
+          (ngModelChange)="onAddColorNewNameChange($event)" />
       }
-      <label for="add-color-stock" class="mt-4 block text-sm font-medium text-gray-700">Stock inicial</label>
-      <input
-        id="add-color-stock"
+      <app-input
         type="number"
-        min="0"
-        class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
-        [value]="addColorInitialStock()"
-        (input)="onAddColorStockInput($event)" />
+        label="Stock inicial"
+        [ngModel]="addColorInitialStock()"
+        (ngModelChange)="onAddColorStockChange($event)" />
       <div class="mt-5 flex justify-end gap-3">
         <app-button type="button" variant="secondary" [disabled]="addingColor()" (clicked)="closeAddColorDialog()">
           Cancelar

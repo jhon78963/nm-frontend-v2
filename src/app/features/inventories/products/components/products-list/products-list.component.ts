@@ -2,7 +2,6 @@ import {
   Component,
   computed,
   DestroyRef,
-  ElementRef,
   inject,
   OnInit,
   signal,
@@ -18,8 +17,11 @@ import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { debounceTime, distinctUntilChanged, finalize } from 'rxjs';
 import { downloadFile } from '../../../../../core/utils/file-download.util';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { ExportButtonComponent } from '../../../../../shared/ui/export-button/export-button.component';
+import { ExcelUploadComponent } from '../../../../../shared/ui/excel-upload/excel-upload.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import {
   TableDataComponent,
   TableDataColumn,
@@ -62,12 +64,15 @@ function isProductFilterState(value: unknown): value is ProductFilterState {
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    ButtonComponent,
+    InputComponent,
     ConfirmDialogComponent,
     TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
     DtRowDirective,
     ExportButtonComponent,
+    ExcelUploadComponent,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -97,7 +102,7 @@ export class ProductsListComponent implements OnInit {
   protected readonly isExporting = signal(false);
   protected readonly isImporting = signal(false);
 
-  protected readonly importInput = viewChild<ElementRef<HTMLInputElement>>('importInput');
+  protected readonly excelImport = viewChild<ExcelUploadComponent>('excelImport');
 
   protected readonly filterForm = new FormGroup({
     search: new FormControl('', { nonNullable: true }),
@@ -369,18 +374,10 @@ export class ProductsListComponent implements OnInit {
   }
 
   protected triggerImport(): void {
-    const input = this.importInput();
-    if (input) {
-      input.nativeElement.value = '';
-      input.nativeElement.click();
-    }
+    this.excelImport()?.openPicker();
   }
 
-  protected onImportFileSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-
+  protected onImportFile(file: File): void {
     this.isImporting.set(true);
     this.productService
       .importFromExcel(file)

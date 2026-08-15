@@ -55,43 +55,32 @@
 
   <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
     <div class="relative flex-1 max-w-md" [formGroup]="filterForm">
-      <svg
-        class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"
-      >
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-      <input
+      <app-input
+        class="block w-full"
         formControlName="search"
-        type="search"
         placeholder="Buscar por código, cliente o comprobante…"
-        class="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-9 pr-9 text-sm placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
         aria-label="Buscar ventas"
       />
       @if (filterForm.controls.search.value) {
-        <button
-          type="button"
-          class="absolute right-3 top-1/2 -translate-y-1/2 rounded text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
-          aria-label="Limpiar búsqueda"
-          (click)="clearSearch()"
+        <app-table-action-button
+          class="absolute right-3 top-1/2 z-10 -translate-y-1/2"
+          label="Limpiar búsqueda"
+          tone="neutral"
+          (clicked)="clearSearch()"
         >
           <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
-        </button>
+        </app-table-action-button>
       }
     </div>
 
-    <button
-      type="button"
-      class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 lg:ml-auto"
-      (click)="clearFilters()"
-    >
+    <app-button type="button" variant="secondary" class="lg:ml-auto" (clicked)="clearFilters()">
       <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M8 4V2m8 2V2M5 8h14M6 20h12a2 2 0 002-2V8H4v10a2 2 0 002 2z"/>
       </svg>
       Limpiar filtros
-    </button>
+    </app-button>
   </div>
 
   @if (showsCurrentMonthHint()) {

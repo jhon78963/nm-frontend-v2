@@ -10,7 +10,11 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { forkJoin } from 'rxjs';
+import { debounceTime, distinctUntilChanged, forkJoin } from 'rxjs';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { RoleService } from '../../data-access/role.service';
 import { Permission } from '../../models/role.model';
 import {
@@ -21,7 +25,13 @@ import {
 
 @Component({
   selector: 'app-role-form',
-  imports: [ReactiveFormsModule],
+  imports: [
+    ReactiveFormsModule,
+    ButtonComponent,
+    CheckboxComponent,
+    InputComponent,
+    TableActionButtonComponent,
+  ],
   templateUrl: './role-form.component.html',
 })
 export class RoleFormComponent implements OnInit {
@@ -37,6 +47,8 @@ export class RoleFormComponent implements OnInit {
   protected readonly saving = signal(false);
 
   protected readonly permissionsSearch = signal('');
+
+  protected readonly permissionsSearchControl = new FormControl('', { nonNullable: true });
 
   protected allPermissions: Permission[] = [];
   protected permissionTree = signal<PermissionModule[]>([]);
@@ -67,6 +79,10 @@ export class RoleFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.permissionsSearchControl.valueChanges
+      .pipe(debounceTime(200), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => this.onPermissionsSearchValue(value));
+
     const id = this.roleId();
     if (id !== null) {
       forkJoin({
@@ -104,8 +120,7 @@ export class RoleFormComponent implements OnInit {
     }
   }
 
-  protected onPermissionsSearch(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
+  protected onPermissionsSearchValue(value: string): void {
     this.permissionsSearch.set(value);
     if (value.trim()) {
       const allIds = new Set(this.filteredTree().map((m) => m.id));
@@ -117,16 +132,33 @@ export class RoleFormComponent implements OnInit {
     return this.selected().has(name);
   }
 
-  protected togglePermission(name: string): void {
+  protected setPermission(name: string, checked: boolean): void {
     this.selected.update((set) => {
       const next = new Set(set);
-      if (next.has(name)) {
-        next.delete(name);
-      } else {
+      if (checked) {
         next.add(name);
+      } else {
+        next.delete(name);
       }
       return next;
     });
+  }
+
+  protected onModuleCheckboxChange(module: PermissionModule, checked: boolean): void {
+    const names = module.submodules.flatMap((s) => s.permissions.map((p) => p.value));
+    this.selected.update((set) => {
+      const next = new Set(set);
+      if (checked) {
+        names.forEach((n) => next.add(n));
+      } else {
+        names.forEach((n) => next.delete(n));
+      }
+      return next;
+    });
+  }
+
+  protected permissionLabel(perm: { actionLabel: string; value: string }): string {
+    return `${perm.actionLabel} · ${perm.value}`;
   }
 
   protected moduleState(module: PermissionModule): 'all' | 'some' | 'none' {
@@ -135,20 +167,6 @@ export class RoleFormComponent implements OnInit {
     if (selectedCount === 0) return 'none';
     if (selectedCount === names.length) return 'all';
     return 'some';
-  }
-
-  protected toggleModule(module: PermissionModule): void {
-    const names = module.submodules.flatMap((s) => s.permissions.map((p) => p.value));
-    const state = this.moduleState(module);
-    this.selected.update((set) => {
-      const next = new Set(set);
-      if (state === 'all') {
-        names.forEach((n) => next.delete(n));
-      } else {
-        names.forEach((n) => next.add(n));
-      }
-      return next;
-    });
   }
 
   protected isModuleExpanded(id: string): boolean {

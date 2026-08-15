@@ -26,6 +26,7 @@ export class DateInputComponent implements ControlValueAccessor {
   readonly errorMessage = input<string>();
   readonly min = input<string>();
   readonly max = input<string>();
+  readonly inputType = input<'date' | 'month' | 'datetime-local'>('date');
 
   protected readonly inputId = `app-date-input-${DateInputComponent.nextId++}`;
   protected readonly errorMessageId = `${this.inputId}-error`;

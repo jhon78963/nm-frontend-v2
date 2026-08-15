@@ -20,6 +20,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
 import { TenantService } from '../../data-access/tenant.service';
 import { TenantFormModel, TenantSettingPayload } from '../../models/tenant.model';
@@ -45,7 +46,7 @@ const EMPTY_FORM: TenantFormModel = {
 
 @Component({
   selector: 'app-tenant-form',
-  imports: [FormField, InputComponent, ButtonComponent],
+  imports: [FormField, InputComponent, ButtonComponent, TableActionButtonComponent],
   templateUrl: './tenant-form.component.html',
 })
 export class TenantFormComponent implements OnInit {

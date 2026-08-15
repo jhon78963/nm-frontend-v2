@@ -50,34 +50,26 @@
         role="tablist"
         aria-label="Tipo de predicción"
       >
-        <button
+        <app-button
           type="button"
           role="tab"
-          class="min-w-[140px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
-          [class.bg-white]="activeTab() === 'price'"
-          [class.text-violet-700]="activeTab() === 'price'"
-          [class.shadow-sm]="activeTab() === 'price'"
-          [class.text-gray-600]="activeTab() !== 'price'"
-          [class.hover:text-gray-900]="activeTab() !== 'price'"
+          [variant]="activeTab() === 'price' ? 'primary' : 'secondary'"
+          class="min-w-[140px] flex-1"
           [attr.aria-selected]="activeTab() === 'price'"
-          (click)="setActiveTab('price')"
+          (clicked)="setActiveTab('price')"
         >
           Optimizar precio
-        </button>
-        <button
+        </app-button>
+        <app-button
           type="button"
           role="tab"
-          class="min-w-[140px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
-          [class.bg-white]="activeTab() === 'demand'"
-          [class.text-violet-700]="activeTab() === 'demand'"
-          [class.shadow-sm]="activeTab() === 'demand'"
-          [class.text-gray-600]="activeTab() !== 'demand'"
-          [class.hover:text-gray-900]="activeTab() !== 'demand'"
+          [variant]="activeTab() === 'demand' ? 'primary' : 'secondary'"
+          class="min-w-[140px] flex-1"
           [attr.aria-selected]="activeTab() === 'demand'"
-          (click)="setActiveTab('demand')"
+          (clicked)="setActiveTab('demand')"
         >
           Predicción de demanda
-        </button>
+        </app-button>
       </div>
     </div>
   </header>
@@ -98,26 +90,18 @@
         </div>
 
         @if (selectedProduct()) {
-          <button
-            type="button"
-            class="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
-            (click)="clearSelectedProduct()"
-          >
+          <app-button type="button" variant="secondary" (clicked)="clearSelectedProduct()">
             Limpiar selección
-          </button>
+          </app-button>
         }
       </div>
 
       <div class="relative mt-4">
         <label for="ai-product-search" class="sr-only">Buscar producto</label>
-        <input
-          id="ai-product-search"
-          type="search"
-          autocomplete="off"
+        <app-input
           placeholder="Escribe al menos 2 caracteres…"
-          class="w-full rounded-xl border border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-900 transition-colors placeholder:text-gray-400 focus:border-violet-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20"
-          [value]="productQuery()"
-          (input)="onProductSearchInput($event)"
+          autocomplete="off"
+          [formControl]="productQueryControl"
           (focus)="openProductDropdown()"
           (blur)="closeProductDropdown()"
         />
@@ -130,9 +114,10 @@
           >
             @for (item of productResults(); track item.id) {
               <li role="option">
-                <button
+                <app-button
                   type="button"
-                  class="w-full px-4 py-3 text-left text-sm transition-colors hover:bg-violet-50 focus-visible:bg-violet-50 focus-visible:outline-none"
+                  variant="secondary"
+                  class="w-full justify-start px-4 py-3 text-left text-sm"
                   (mousedown)="$event.preventDefault(); onProductPicked(item)"
                 >
                   <span class="font-medium text-gray-900">{{ item.name }}</span>
@@ -140,7 +125,7 @@
                     ID {{ item.id }} · {{ item.gender }} · Stock {{ item.stock }} ·
                     Venta S/ {{ item.salePrice | number: '1.2-2' }}
                   </span>
-                </button>
+                </app-button>
               </li>
             }
           </ul>
@@ -355,18 +340,10 @@
           </div>
 
           <div class="mb-5">
-            <label for="horizon-days" class="mb-1.5 block text-sm font-medium text-gray-700">
-              Horizonte de proyección (días)
-            </label>
-            <input
-              id="horizon-days"
+            <app-input
               type="number"
-              min="1"
-              max="365"
-              class="w-full max-w-xs rounded-xl border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 transition-colors focus:border-violet-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-              [disabled]="!productContext() || demandLoading()"
-              [value]="horizonDays()"
-              (input)="updateHorizonDays($any($event.target).value)"
+              label="Horizonte de proyección (días)"
+              [formControl]="horizonDaysControl"
             />
             <p class="mt-1.5 text-xs text-gray-500">Predeterminado: 30 días. Rango: 1–365.</p>
           </div>

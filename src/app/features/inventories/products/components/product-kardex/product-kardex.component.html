@@ -87,12 +87,11 @@
           role="group"
           aria-label="Atajos de periodo">
           @for (preset of datePresets; track preset.id) {
-            <button
-              type="button"
-              (click)="applyDatePreset(preset.id)"
-              class="rounded-full bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-200 transition-colors hover:bg-sky-50 hover:text-sky-700 hover:ring-sky-200">
-              {{ preset.label }}
-            </button>
+            <div class="[&_.btn-base]:rounded-full [&_.btn-base]:bg-gray-50 [&_.btn-base]:px-3 [&_.btn-base]:py-1.5 [&_.btn-base]:text-xs [&_.btn-base]:font-medium [&_.btn-base]:text-gray-600 [&_.btn-base]:shadow-none [&_.btn-base]:ring-1 [&_.btn-base]:ring-inset [&_.btn-base]:ring-gray-200 hover:[&_.btn-base]:bg-sky-50 hover:[&_.btn-base]:text-sky-700 hover:[&_.btn-base]:ring-sky-200">
+              <app-button type="button" variant="secondary" (clicked)="applyDatePreset(preset.id)">
+                {{ preset.label }}
+              </app-button>
+            </div>
           }
         </div>
       </div>
@@ -220,73 +219,59 @@
       <!-- Table toolbar -->
       <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <label class="relative block w-full lg:max-w-md">
-            <span class="sr-only">Buscar en movimientos</span>
-            <svg
-              class="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              aria-hidden="true">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <input
-              type="search"
-              [value]="searchQuery()"
-              (input)="onSearchInput($event)"
+          <div class="w-full lg:max-w-md">
+            <app-input
               placeholder="Buscar por motivo, documento o cantidad…"
-              class="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-900 shadow-sm transition-colors placeholder:text-gray-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20" />
-          </label>
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)"
+            />
+          </div>
 
           <div
             class="flex flex-wrap items-center gap-2"
             role="group"
             aria-label="Filtrar por dirección">
-            <button
-              type="button"
-              (click)="setDirectionFilter('all')"
-              [class]="[
-                'rounded-full px-3 py-1.5 text-xs font-medium transition-colors ring-1 ring-inset',
+            <div
+              class="[&_.btn-base]:rounded-full [&_.btn-base]:px-3 [&_.btn-base]:py-1.5 [&_.btn-base]:text-xs [&_.btn-base]:font-medium [&_.btn-base]:shadow-none [&_.btn-base]:ring-1 [&_.btn-base]:ring-inset"
+              [ngClass]="
                 directionFilter() === 'all'
-                  ? 'bg-sky-600 text-white ring-sky-600'
-                  : 'bg-white text-gray-600 ring-gray-300 hover:bg-gray-50',
-              ].join(' ')">
-              Todos
-            </button>
-            <button
-              type="button"
-              (click)="setDirectionFilter('IN')"
-              [class]="[
-                'rounded-full px-3 py-1.5 text-xs font-medium transition-colors ring-1 ring-inset',
+                  ? '[&_.btn-base]:bg-sky-600 [&_.btn-base]:text-white [&_.btn-base]:ring-sky-600 hover:[&_.btn-base]:bg-sky-600'
+                  : '[&_.btn-base]:bg-white [&_.btn-base]:text-gray-600 [&_.btn-base]:ring-gray-300 hover:[&_.btn-base]:bg-gray-50'
+              "
+            >
+              <app-button type="button" variant="secondary" (clicked)="setDirectionFilter('all')">
+                Todos
+              </app-button>
+            </div>
+            <div
+              class="[&_.btn-base]:rounded-full [&_.btn-base]:px-3 [&_.btn-base]:py-1.5 [&_.btn-base]:text-xs [&_.btn-base]:font-medium [&_.btn-base]:shadow-none [&_.btn-base]:ring-1 [&_.btn-base]:ring-inset"
+              [ngClass]="
                 directionFilter() === 'IN'
-                  ? 'bg-emerald-600 text-white ring-emerald-600'
-                  : 'bg-white text-gray-600 ring-gray-300 hover:bg-gray-50',
-              ].join(' ')">
-              Entradas
-            </button>
-            <button
-              type="button"
-              (click)="setDirectionFilter('OUT')"
-              [class]="[
-                'rounded-full px-3 py-1.5 text-xs font-medium transition-colors ring-1 ring-inset',
+                  ? '[&_.btn-base]:bg-emerald-600 [&_.btn-base]:text-white [&_.btn-base]:ring-emerald-600 hover:[&_.btn-base]:bg-emerald-600'
+                  : '[&_.btn-base]:bg-white [&_.btn-base]:text-gray-600 [&_.btn-base]:ring-gray-300 hover:[&_.btn-base]:bg-gray-50'
+              "
+            >
+              <app-button type="button" variant="secondary" (clicked)="setDirectionFilter('IN')">
+                Entradas
+              </app-button>
+            </div>
+            <div
+              class="[&_.btn-base]:rounded-full [&_.btn-base]:px-3 [&_.btn-base]:py-1.5 [&_.btn-base]:text-xs [&_.btn-base]:font-medium [&_.btn-base]:shadow-none [&_.btn-base]:ring-1 [&_.btn-base]:ring-inset"
+              [ngClass]="
                 directionFilter() === 'OUT'
-                  ? 'bg-rose-600 text-white ring-rose-600'
-                  : 'bg-white text-gray-600 ring-gray-300 hover:bg-gray-50',
-              ].join(' ')">
-              Salidas
-            </button>
+                  ? '[&_.btn-base]:bg-rose-600 [&_.btn-base]:text-white [&_.btn-base]:ring-rose-600 hover:[&_.btn-base]:bg-rose-600'
+                  : '[&_.btn-base]:bg-white [&_.btn-base]:text-gray-600 [&_.btn-base]:ring-gray-300 hover:[&_.btn-base]:bg-gray-50'
+              "
+            >
+              <app-button type="button" variant="secondary" (clicked)="setDirectionFilter('OUT')">
+                Salidas
+              </app-button>
+            </div>
 
             @if (hasActiveTableFilters()) {
-              <button
-                type="button"
-                (click)="clearTableFilters()"
-                class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900">
+              <app-button type="button" variant="secondary" (clicked)="clearTableFilters()">
                 Limpiar
-              </button>
+              </app-button>
             }
           </div>
         </div>

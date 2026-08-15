@@ -39,17 +39,16 @@
         </p>
       </div>
     </div>
-    <button
-      type="button"
-      class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
-      aria-label="Cerrar panel"
+    <app-table-action-button
+      label="Cerrar panel"
+      tone="neutral"
       [disabled]="saving()"
-      (click)="onClose()"
+      (clicked)="onClose()"
     >
       <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
       </svg>
-    </button>
+    </app-table-action-button>
   </div>
 
   <form class="flex flex-1 flex-col overflow-hidden" (submit)="$event.preventDefault(); onSubmit()" novalidate>
@@ -67,65 +66,69 @@
           </legend>
           <div class="grid grid-cols-2 gap-2">
             @for (category of categories(); track category.id) {
-              <button
-                type="button"
-                class="flex items-center gap-3 rounded-xl border px-3 py-3 text-left text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                [class.border-gray-900]="isCategorySelected(category)"
-                [class.bg-gray-50]="isCategorySelected(category)"
-                [class.border-gray-200]="!isCategorySelected(category)"
-                [class.hover:border-indigo-300]="!isCategorySelected(category)"
-                [class.hover:bg-indigo-50]="!isCategorySelected(category)"
-                [attr.aria-pressed]="isCategorySelected(category)"
-                (click)="selectCategory(category)"
+              <div
+                [ngClass]="
+                  isCategorySelected(category)
+                    ? '[&_.btn-base]:border-gray-900 [&_.btn-base]:bg-gray-50'
+                    : '[&_.btn-base]:border-gray-200 [&_.btn-base]:hover:border-indigo-300 [&_.btn-base]:hover:bg-indigo-50'
+                "
               >
-                <span
-                  class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
-                  [class.bg-emerald-50]="category.icon === 'sale'"
-                  [class.text-emerald-600]="category.icon === 'sale'"
-                  [class.bg-blue-50]="category.icon === 'capital'"
-                  [class.text-blue-600]="category.icon === 'capital'"
-                  [class.bg-orange-50]="category.icon === 'transport' || category.icon === 'food'"
-                  [class.text-orange-600]="category.icon === 'transport' || category.icon === 'food'"
-                  [class.bg-purple-50]="category.icon === 'store'"
-                  [class.text-purple-600]="category.icon === 'store'"
-                  [class.bg-gray-100]="category.icon === 'other'"
-                  [class.text-gray-600]="category.icon === 'other'"
+                <app-button
+                  type="button"
+                  variant="secondary"
+                  class="[&_.btn-base]:h-auto [&_.btn-base]:w-full [&_.btn-base]:justify-start [&_.btn-base]:gap-3 [&_.btn-base]:rounded-xl [&_.btn-base]:px-3 [&_.btn-base]:py-3 [&_.btn-base]:text-left [&_.btn-base]:text-sm [&_.btn-base]:font-semibold"
+                  [attr.aria-pressed]="isCategorySelected(category)"
+                  (clicked)="selectCategory(category)"
                 >
-                  @switch (category.icon) {
-                    @case ('sale') {
-                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                      </svg>
+                  <span
+                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+                    [class.bg-emerald-50]="category.icon === 'sale'"
+                    [class.text-emerald-600]="category.icon === 'sale'"
+                    [class.bg-blue-50]="category.icon === 'capital'"
+                    [class.text-blue-600]="category.icon === 'capital'"
+                    [class.bg-orange-50]="category.icon === 'transport' || category.icon === 'food'"
+                    [class.text-orange-600]="category.icon === 'transport' || category.icon === 'food'"
+                    [class.bg-purple-50]="category.icon === 'store'"
+                    [class.text-purple-600]="category.icon === 'store'"
+                    [class.bg-gray-100]="category.icon === 'other'"
+                    [class.text-gray-600]="category.icon === 'other'"
+                  >
+                    @switch (category.icon) {
+                      @case ('sale') {
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                        </svg>
+                      }
+                      @case ('capital') {
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                        </svg>
+                      }
+                      @case ('transport') {
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M8 17h8M5 11l1-4h12l1 4M6 17a1 1 0 11-2 0 1 1 0 012 0zm14 0a1 1 0 11-2 0 1 1 0 012 0zM7 11h10" />
+                        </svg>
+                      }
+                      @case ('food') {
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13M8 12V4a2 2 0 114 0v8M16 12V4a2 2 0 114 0v8" />
+                        </svg>
+                      }
+                      @case ('store') {
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                        </svg>
+                      }
+                      @default {
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h.01M12 12h.01M19 12h.01" />
+                        </svg>
+                      }
                     }
-                    @case ('capital') {
-                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                      </svg>
-                    }
-                    @case ('transport') {
-                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 17h8M5 11l1-4h12l1 4M6 17a1 1 0 11-2 0 1 1 0 012 0zm14 0a1 1 0 11-2 0 1 1 0 012 0zM7 11h10" />
-                      </svg>
-                    }
-                    @case ('food') {
-                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13M8 12V4a2 2 0 114 0v8M16 12V4a2 2 0 114 0v8" />
-                      </svg>
-                    }
-                    @case ('store') {
-                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                      </svg>
-                    }
-                    @default {
-                      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h.01M12 12h.01M19 12h.01" />
-                      </svg>
-                    }
-                  }
-                </span>
-                <span class="text-gray-900">{{ category.name }}</span>
-              </button>
+                  </span>
+                  <span class="text-gray-900">{{ category.name }}</span>
+                </app-button>
+              </div>
             }
           </div>
         </fieldset>

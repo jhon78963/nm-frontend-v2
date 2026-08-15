@@ -1,4 +1,15 @@
-import { Component, computed, input, output } from '@angular/core';
+import {
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  inject,
+  input,
+  output,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { DateInputComponent } from '../../../../../shared/ui/date-input/date-input.component';
 import {
   TableDataColumn,
   TableDataComponent,
@@ -14,18 +25,21 @@ interface HourlySalesRow {
   card: number;
 }
 
-
 @Component({
   selector: 'app-sales-daily-tab',
-  imports: [TableDataComponent],
+  imports: [ReactiveFormsModule, DateInputComponent, TableDataComponent],
   templateUrl: './sales-daily-tab.component.html',
 })
 export class SalesDailyTabComponent {
+  private readonly destroyRef = inject(DestroyRef);
+
   readonly report = input<DailySalesReport | null>(null);
   readonly loading = input(false);
   readonly selectedDate = input.required<string>();
 
   readonly selectedDateChange = output<string>();
+
+  protected readonly dateControl = new FormControl('', { nonNullable: true });
 
   protected readonly hourlyColumns: TableDataColumn<HourlySalesRow>[] = [
     { key: 'hour', label: 'Hora' },
@@ -54,14 +68,24 @@ export class SalesDailyTabComponent {
     maximumFractionDigits: 2,
   });
 
-  protected formatMoney(value: number): string {
-    return `S/ ${this.moneyFormatter.format(value)}`;
+  constructor() {
+    effect(() => {
+      const date = this.selectedDate();
+      if (this.dateControl.value !== date) {
+        this.dateControl.setValue(date, { emitEvent: false });
+      }
+    });
+
+    this.dateControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        if (value) {
+          this.selectedDateChange.emit(value);
+        }
+      });
   }
 
-  protected onDateChange(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    if (value) {
-      this.selectedDateChange.emit(value);
-    }
+  protected formatMoney(value: number): string {
+    return `S/ ${this.moneyFormatter.format(value)}`;
   }
 }

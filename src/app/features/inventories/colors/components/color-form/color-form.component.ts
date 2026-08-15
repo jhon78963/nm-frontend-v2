@@ -16,7 +16,9 @@ import {
   required,
 } from '@angular/forms/signals';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { ColorPickerInputComponent } from '../../../../../shared/ui/color-picker-input/color-picker-input.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
 import { normalizeColorHash } from '../../data-access/color.adapter';
 import { ColorService } from '../../data-access/color.service';
@@ -31,7 +33,7 @@ const HEX_PATTERN = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
 
 @Component({
   selector: 'app-color-form',
-  imports: [FormField, InputComponent, ButtonComponent],
+  imports: [FormField, InputComponent, ButtonComponent, ColorPickerInputComponent, TableActionButtonComponent],
   templateUrl: './color-form.component.html',
 })
 export class ColorFormComponent implements OnInit {
@@ -162,13 +164,7 @@ export class ColorFormComponent implements OnInit {
     this.closed.emit();
   }
 
-  protected onColorPickerChange(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.updateHash(value);
-  }
-
-  protected onHashTextInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
+  protected onHashChange(value: string): void {
     this.updateHash(value);
     this.hashInputError.set('');
   }

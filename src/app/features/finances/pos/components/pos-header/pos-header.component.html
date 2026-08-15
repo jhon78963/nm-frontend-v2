@@ -1,34 +1,20 @@
 <header class="shrink-0 border-b border-gray-100 bg-white px-4 py-3">
   <!-- Customer search -->
   <div class="relative flex items-center gap-2">
-    <div class="relative flex-1">
-      <span
-        class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-        aria-hidden="true"
-      >
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-        </svg>
-      </span>
-      <input
-        type="tel"
-        inputmode="numeric"
-        autocomplete="off"
+    <div class="relative flex-1" (keydown.enter)="search()">
+      <app-input
+        #dniInputHost
         placeholder="DNI / RUC del cliente…"
-        [value]="dniQuery()"
-        (input)="onDniInput($event)"
-        (keydown.enter)="search()"
-        class="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-10 pr-4 text-sm font-medium text-gray-800 placeholder:text-gray-400 focus:border-violet-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-400/20 transition-all"
-        aria-label="Buscar cliente por DNI o RUC"
+        [formControl]="dniControl"
+        autocomplete="off"
       />
     </div>
 
-    <button
-      type="button"
-      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-600 text-white shadow-sm transition-colors hover:bg-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 disabled:opacity-60"
-      [disabled]="isSearching() || !dniQuery().trim()"
-      (click)="search()"
-      aria-label="Buscar cliente"
+    <app-table-action-button
+      label="Buscar cliente"
+      tone="violet"
+      [disabled]="isSearching() || !dniControl.value.trim()"
+      (clicked)="search()"
     >
       @if (isSearching()) {
         <svg class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
@@ -40,7 +26,7 @@
           <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
         </svg>
       }
-    </button>
+    </app-table-action-button>
   </div>
 
   <!-- Customer card -->
@@ -63,16 +49,15 @@
           </p>
         </div>
       </div>
-      <button
-        type="button"
-        class="ml-2 shrink-0 rounded-lg p-1 text-emerald-600 transition-colors hover:bg-emerald-200 hover:text-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-        (click)="reset()"
-        aria-label="Quitar cliente seleccionado"
+      <app-table-action-button
+        label="Quitar cliente seleccionado"
+        tone="emerald"
+        (clicked)="reset()"
       >
         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
         </svg>
-      </button>
+      </app-table-action-button>
     </div>
   }
 </header>

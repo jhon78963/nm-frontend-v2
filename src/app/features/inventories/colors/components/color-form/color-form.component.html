@@ -41,16 +41,15 @@
         </p>
       </div>
     </div>
-    <button
-      type="button"
-      class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300"
-      aria-label="Cerrar panel"
-      (click)="close()"
+    <app-table-action-button
+      label="Cerrar panel"
+      tone="neutral"
+      (clicked)="close()"
     >
       <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
       </svg>
-    </button>
+    </app-table-action-button>
   </div>
 
   @if (loadingData()) {
@@ -102,41 +101,15 @@
           </div>
 
           <div class="rounded-xl border border-gray-200 bg-gray-50/60 p-4">
-            <div class="flex items-center gap-4">
-              <label for="color-picker" class="sr-only">Selector de color</label>
-              <input
-                id="color-picker"
-                type="color"
-                class="h-12 w-14 cursor-pointer rounded-xl border border-gray-200 bg-white p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
-                [value]="previewHash()"
-                (input)="onColorPickerChange($event)"
-              />
-              <div class="flex-1">
-                <label for="color-hash" class="mb-1.5 block text-xs font-medium text-gray-600">
-                  Código hexadecimal
-                </label>
-                <input
-                  id="color-hash"
-                  type="text"
-                  class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2.5 font-mono text-sm text-gray-900 placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-rose-500"
-                  placeholder="#000000"
-                  [value]="formModel().hash"
-                  (input)="onHashTextInput($event)"
-                  aria-describedby="color-hash-hint"
-                />
-              </div>
-              <span
-                class="h-12 w-12 shrink-0 rounded-xl ring-2 ring-inset ring-gray-200"
-                [style.background-color]="previewHash()"
-                aria-hidden="true"
-              ></span>
-            </div>
+            <app-color-picker-input
+              label="Código hexadecimal"
+              [value]="previewHash()"
+              [errorMessage]="hashInputError()"
+              (valueChange)="onHashChange($event)"
+            />
             <p id="color-hash-hint" class="mt-3 text-xs text-gray-400">
               Elige un tono o escribe el código hex. Se usará como referencia visual en catálogo y POS.
             </p>
-            @if (hashInputError()) {
-              <p class="mt-2 text-xs text-red-600" role="alert">{{ hashInputError() }}</p>
-            }
           </div>
         </section>
 

@@ -7,7 +7,12 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import {
   TableDataColumn,
@@ -44,7 +49,7 @@ import {
 
 @Component({
   selector: 'app-team-attendance',
-  imports: [RouterLink, TableDataComponent],
+  imports: [RouterLink, FormsModule, InputComponent, ButtonComponent, CheckboxComponent, TableActionButtonComponent, TableDataComponent],
   templateUrl: './team-attendance.component.html',
 })
 export class TeamAttendanceComponent implements OnInit {

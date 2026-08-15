@@ -15,7 +15,9 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { AuthService } from '../../../../../auth/data-access/auth.service';
+import { ButtonComponent } from '../../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { InputComponent } from '../../../../../../shared/ui/input/input.component';
 import {
   TableDataComponent,
   TableDataColumn,
@@ -39,6 +41,8 @@ import { ExchangeResponse } from '../../models/sale.model';
   imports: [
     ReactiveFormsModule,
     RouterLink,
+    ButtonComponent,
+    InputComponent,
     SaleFormComponent,
     SaleExchangeComponent,
     ConfirmDialogComponent,

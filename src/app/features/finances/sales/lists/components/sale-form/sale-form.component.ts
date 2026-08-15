@@ -18,6 +18,10 @@ import {
 import { AlertComponent } from '../../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { DateInputComponent } from '../../../../../../shared/ui/date-input/date-input.component';
+import { InputComponent } from '../../../../../../shared/ui/input/input.component';
+import { MoneyInputComponent } from '../../../../../../shared/ui/money-input/money-input.component';
+import { TableActionButtonComponent } from '../../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataColumn,
   TableDataComponent,
@@ -56,6 +60,10 @@ interface PaymentRow extends SalePayment {
     AlertComponent,
     ButtonComponent,
     ConfirmDialogComponent,
+    DateInputComponent,
+    InputComponent,
+    MoneyInputComponent,
+    TableActionButtonComponent,
     TableDataComponent,
     SaleProductSelectorComponent,
   ],
@@ -234,8 +242,8 @@ export class SaleFormComponent implements OnInit {
     this.closeProductSelector();
   }
 
-  protected updateItemQuantity(index: number, event: Event): void {
-    const value = Number((event.target as HTMLInputElement).value);
+  protected updateItemQuantity(index: number, rawValue: string | number): void {
+    const value = Number(rawValue);
     const quantity = Number.isFinite(value) && value >= 1 ? value : 1;
     this.items.update((rows) =>
       rows.map((row, i) =>
@@ -246,8 +254,8 @@ export class SaleFormComponent implements OnInit {
     );
   }
 
-  protected updateItemPrice(index: number, event: Event): void {
-    const value = Number((event.target as HTMLInputElement).value);
+  protected updateItemPrice(index: number, rawValue: string | number | null): void {
+    const value = Number(rawValue);
     const unitPrice = Number.isFinite(value) && value >= 0 ? value : 0;
     this.items.update((rows) =>
       rows.map((row, i) =>
@@ -297,8 +305,8 @@ export class SaleFormComponent implements OnInit {
     );
   }
 
-  protected updatePaymentAmount(index: number, event: Event): void {
-    const value = Number((event.target as HTMLInputElement).value);
+  protected updatePaymentAmount(index: number, rawValue: string | number | null): void {
+    const value = Number(rawValue);
     const amount = Number.isFinite(value) && value >= 0 ? value : 0;
     this.payments.update((rows) =>
       rows.map((row, i) => (i === index ? { ...row, amount } : row)),

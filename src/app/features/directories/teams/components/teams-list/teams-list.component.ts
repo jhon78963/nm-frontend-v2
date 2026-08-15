@@ -14,7 +14,9 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import {
   TableDataComponent,
   TableDataColumn,
@@ -47,6 +49,8 @@ const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.teams;
   imports: [
     ReactiveFormsModule,
     RouterLink,
+    ButtonComponent,
+    InputComponent,
     TeamFormComponent,
     TeamDailyAttendanceComponent,
     ConfirmDialogComponent,

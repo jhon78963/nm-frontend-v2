@@ -5,7 +5,7 @@
     @for (method of methods(); track method.id) {
       <div class="flex flex-1 flex-col gap-1.5">
         <!-- Toggle chip -->
-        <button
+        <app-button
           type="button"
           class="payment-chip"
           [class.payment-chip--cash]="method.id === 'CASH' && method.active"
@@ -13,7 +13,7 @@
           [class.payment-chip--card]="method.id === 'CARD' && method.active"
           [class.payment-chip--inactive]="!method.active"
           [attr.aria-pressed]="method.active"
-          (click)="toggleMethod(method.id)"
+          (clicked)="toggleMethod(method.id)"
         >
           @if (method.id === 'CASH') {
             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -36,7 +36,7 @@
               </svg>
             </span>
           }
-        </button>
+        </app-button>
 
         <!-- Amount input (hybrid mode) -->
         @if (isHybrid() && method.active) {
@@ -44,15 +44,10 @@
             <span class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">
               S/
             </span>
-            <input
-              type="number"
-              min="0"
-              step="0.10"
-              placeholder="0.00"
-              [value]="method.amount ?? ''"
-              (input)="updateAmount(method.id, $event)"
-              class="amount-input"
-              [attr.aria-label]="'Monto para ' + method.label"
+            <app-money-input
+              class="amount-input-field"
+              [ngModel]="method.amount"
+              (ngModelChange)="updateAmount(method.id, $event)"
             />
           </div>
         }
@@ -90,16 +85,16 @@
     </p>
     <div class="flex gap-1.5" role="group" aria-label="Tipo de comprobante">
       @for (opt of docTypes; track opt.value) {
-        <button
+        <app-button
           type="button"
-          class="flex-1 rounded-lg border py-1.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1"
+          class="doc-type-btn flex-1"
           [class.doc-type-active]="posService.documentType() === opt.value"
           [class.doc-type-inactive]="posService.documentType() !== opt.value"
           [attr.aria-pressed]="posService.documentType() === opt.value"
-          (click)="posService.documentType.set(opt.value)"
+          (clicked)="posService.documentType.set(opt.value)"
         >
           {{ opt.label }}
-        </button>
+        </app-button>
       }
     </div>
     @if (posService.documentType() !== 'TICKET_INTERNO') {
@@ -118,24 +113,19 @@
   </div>
 
   <!-- Checkout button -->
-  <button
+  <app-button
     type="button"
-    class="checkout-btn"
-    [class.checkout-btn--disabled]="isCheckoutDisabled()"
+    variant="primary"
+    class="checkout-btn w-full"
     [disabled]="isCheckoutDisabled()"
-    (click)="handleCheckout()"
+    [loading]="posService.isLoading()"
+    (clicked)="handleCheckout()"
   >
-    @if (posService.isLoading()) {
-      <svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-      </svg>
-      <span>Procesando…</span>
-    } @else {
+    @if (!posService.isLoading()) {
       <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
       </svg>
-      <span>COBRAR</span>
     }
-  </button>
+    <span>{{ posService.isLoading() ? 'Procesando…' : 'COBRAR' }}</span>
+  </app-button>
 </div>

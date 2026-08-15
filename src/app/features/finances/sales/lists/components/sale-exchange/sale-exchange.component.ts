@@ -9,11 +9,15 @@ import {
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 import { AuthService } from '../../../../../auth/data-access/auth.service';
 import { AlertComponent } from '../../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../../shared/ui/button/button.component';
 import { CheckboxComponent } from '../../../../../../shared/ui/checkbox/checkbox.component';
+import { InputComponent } from '../../../../../../shared/ui/input/input.component';
+import { MoneyInputComponent } from '../../../../../../shared/ui/money-input/money-input.component';
+import { TableActionButtonComponent } from '../../../../../../shared/ui/table-action-button/table-action-button.component';
 import { ToastService } from '../../../../../../shared/ui/toast/toast.service';
 import { SaleExchangeService } from '../../data-access/sale-exchange.service';
 import { SaleService } from '../../data-access/sale.service';
@@ -31,9 +35,14 @@ type ExchangeStep = 'select-return' | 'select-new' | 'confirm';
 @Component({
   selector: 'app-sale-exchange',
   imports: [
+    ReactiveFormsModule,
+    FormsModule,
     AlertComponent,
     ButtonComponent,
     CheckboxComponent,
+    InputComponent,
+    MoneyInputComponent,
+    TableActionButtonComponent,
   ],
   templateUrl: './sale-exchange.component.html',
 })
@@ -60,6 +69,7 @@ export class SaleExchangeComponent implements OnInit {
   protected readonly isConfirming = signal(false);
   protected readonly loadError = signal('');
   protected readonly searchQuery = signal('');
+  protected readonly searchControl = new FormControl('', { nonNullable: true });
   protected readonly searchResults = signal<ExchangeNewItem[]>([]);
   protected readonly isSearching = signal(false);
   protected readonly paymentMethod = signal<PaymentMethod>('CASH');
@@ -95,6 +105,13 @@ export class SaleExchangeComponent implements OnInit {
   });
 
   constructor() {
+    this.searchControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        this.searchQuery.set(value);
+        this.search$.next(value.trim());
+      });
+
     this.search$
       .pipe(
         debounceTime(350),
@@ -145,7 +162,7 @@ export class SaleExchangeComponent implements OnInit {
     });
   }
 
-  protected onReturnQuantityChange(item: ExchangeItem, rawValue: string): void {
+  protected onReturnQuantityChange(item: ExchangeItem, rawValue: string | number): void {
     const parsed = Number(rawValue);
     const max = item.quantity;
     const quantity = Number.isFinite(parsed)
@@ -176,12 +193,6 @@ export class SaleExchangeComponent implements OnInit {
     this.preview.set(null);
   }
 
-  protected onSearchInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.searchQuery.set(value);
-    this.search$.next(value.trim());
-  }
-
   protected onSearchKeydown(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -205,7 +216,7 @@ export class SaleExchangeComponent implements OnInit {
     );
   }
 
-  protected updateNewItemQuantity(variantId: number, rawValue: string): void {
+  protected updateNewItemQuantity(variantId: number, rawValue: string | number): void {
     const parsed = Number(rawValue);
     const quantity = Number.isFinite(parsed) ? Math.max(1, Math.trunc(parsed)) : 1;
 
@@ -269,12 +280,6 @@ export class SaleExchangeComponent implements OnInit {
   protected onPaymentMethodChange(event: Event): void {
     const value = (event.target as HTMLSelectElement).value as PaymentMethod;
     this.paymentMethod.set(value);
-  }
-
-  protected onNewItemPriceInput(variantId: number, event: Event): void {
-    const raw = (event.target as HTMLInputElement).value;
-    const parsed = Number(raw.replace(/,/g, ''));
-    this.updateNewItemPrice(variantId, Number.isFinite(parsed) ? parsed : 0);
   }
 
   protected loadPreviewAndConfirmStep(): void {

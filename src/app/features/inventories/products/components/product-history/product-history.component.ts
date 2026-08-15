@@ -9,7 +9,10 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { catchError, of } from 'rxjs';
+import { NgClass } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { ProductService } from '../../data-access/product.service';
 import {
@@ -33,7 +36,7 @@ interface SeverityStyle {
 
 @Component({
   selector: 'app-product-history',
-  imports: [ButtonComponent],
+  imports: [NgClass, FormsModule, ButtonComponent, InputComponent],
   templateUrl: './product-history.component.html',
 })
 export class ProductHistoryComponent implements OnInit {

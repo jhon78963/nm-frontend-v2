@@ -29,37 +29,36 @@
             Comprobante de pago
           }
         </h2>
-        <button
-          type="button"
-          class="rounded-lg p-2 text-gray-500 hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-          aria-label="Cerrar vista previa"
-          (click)="closePreview()"
+        <app-table-action-button
+          label="Cerrar vista previa"
+          tone="neutral"
+          (clicked)="closePreview()"
         >
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
           </svg>
-        </button>
+        </app-table-action-button>
       </div>
 
       @if (previewItems().length > 1) {
         <div class="flex items-center justify-between border-b border-gray-100 px-5 py-2">
-          <button
+          <app-button
             type="button"
-            class="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-40"
+            variant="secondary"
             [disabled]="previewIndex() === 0"
-            (click)="prevPreview()"
+            (clicked)="prevPreview()"
           >
             Anterior
-          </button>
+          </app-button>
           <span class="text-sm text-gray-500">{{ previewIndex() + 1 }} / {{ previewItems().length }}</span>
-          <button
+          <app-button
             type="button"
-            class="rounded-lg px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 disabled:opacity-40"
+            variant="secondary"
             [disabled]="previewIndex() === previewItems().length - 1"
-            (click)="nextPreview()"
+            (clicked)="nextPreview()"
           >
             Siguiente
-          </button>
+          </app-button>
         </div>
       }
 
@@ -126,13 +125,9 @@
           >
             Registrar más
           </a>
-          <button
-            type="button"
-            class="inline-flex items-center gap-2 rounded-xl border border-red-300 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
-            (click)="openCancelConfirm()"
-          >
+          <app-button type="button" variant="danger" (clicked)="openCancelConfirm()">
             Anular
-          </button>
+          </app-button>
         }
         <a
           routerLink="/inventories/purchases"
@@ -206,13 +201,9 @@
           <div class="mt-4 border-t border-gray-100 pt-4">
             <p class="text-sm font-medium text-gray-700">Comprobantes</p>
             @if (linkedVoucherPaths().length > 0) {
-              <button
-                type="button"
-                class="mt-2 inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-800 hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-                (click)="showLinkedVoucher()"
-              >
+              <app-button type="button" variant="secondary" (clicked)="showLinkedVoucher()">
                 Ver {{ linkedVoucherPaths().length > 1 ? linkedVoucherPaths().length + ' comprobantes' : 'comprobante' }}
-              </button>
+              </app-button>
             } @else {
               <p class="mt-2 text-sm text-gray-500">Sin comprobantes adjuntos.</p>
             }

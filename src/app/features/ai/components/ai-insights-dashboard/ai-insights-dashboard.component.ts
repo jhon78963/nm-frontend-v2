@@ -10,7 +10,9 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, debounceTime, of, Subject, switchMap, tap } from 'rxjs';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { AlertComponent } from '../../../../shared/ui/alert/alert.component';
+import { InputComponent } from '../../../../shared/ui/input/input.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
 import { ToastService } from '../../../../shared/ui/toast/toast.service';
 import { AiPredictionService } from '../../data-access/ai-prediction.service';
@@ -25,7 +27,7 @@ import {
 
 @Component({
   selector: 'app-ai-insights-dashboard',
-  imports: [DecimalPipe, RouterLink, AlertComponent, ButtonComponent],
+  imports: [DecimalPipe, RouterLink, ReactiveFormsModule, AlertComponent, ButtonComponent, InputComponent],
   providers: [AiPredictionService],
   templateUrl: './ai-insights-dashboard.component.html',
 })
@@ -43,7 +45,8 @@ export class AiInsightsDashboardComponent implements OnInit {
   protected readonly contextLoading = signal(false);
   protected readonly contextError = signal<string | null>(null);
 
-  protected readonly productQuery = signal('');
+  protected readonly productQueryControl = new FormControl('', { nonNullable: true });
+  protected readonly horizonDaysControl = new FormControl(String(DEFAULT_HORIZON_DAYS), { nonNullable: true });
   protected readonly productResults = signal<AiProductOption[]>([]);
   protected readonly productDropdownOpen = signal(false);
   protected readonly productSearching = signal(false);
@@ -117,21 +120,22 @@ export class AiInsightsDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.wireProductSearch();
+    this.horizonDaysControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => this.updateHorizonDays(value));
   }
 
   protected setActiveTab(tab: AiInsightTab): void {
     this.activeTab.set(tab);
   }
 
-  protected onProductSearchInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.productQuery.set(value);
+  protected onProductSearchInput(value: string): void {
     this.productDropdownOpen.set(true);
     this.productSearch$.next(value);
   }
 
   protected openProductDropdown(): void {
-    if (this.productQuery().trim().length >= 2) {
+    if (this.productQueryControl.value.trim().length >= 2) {
       this.productDropdownOpen.set(true);
     }
   }
@@ -142,7 +146,7 @@ export class AiInsightsDashboardComponent implements OnInit {
 
   protected onProductPicked(product: AiProductOption): void {
     this.selectedProduct.set(product);
-    this.productQuery.set(product.name);
+    this.productQueryControl.setValue(product.name);
     this.productDropdownOpen.set(false);
     this.productResults.set([]);
     this.priceResult.set(null);
@@ -156,7 +160,7 @@ export class AiInsightsDashboardComponent implements OnInit {
     this.selectedProduct.set(null);
     this.productContext.set(null);
     this.contextError.set(null);
-    this.productQuery.set('');
+    this.productQueryControl.setValue('');
     this.productResults.set([]);
     this.priceResult.set(null);
     this.demandResult.set(null);
@@ -171,6 +175,7 @@ export class AiInsightsDashboardComponent implements OnInit {
         ? Math.min(365, Math.max(1, Math.trunc(parsed)))
         : DEFAULT_HORIZON_DAYS,
     );
+    this.horizonDaysControl.setValue(String(this.horizonDays()), { emitEvent: false });
     this.demandResult.set(null);
     this.demandError.set(null);
   }
@@ -274,5 +279,9 @@ export class AiInsightsDashboardComponent implements OnInit {
         },
         error: () => this.productSearching.set(false),
       });
+
+    this.productQueryControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => this.onProductSearchInput(value));
   }
 }

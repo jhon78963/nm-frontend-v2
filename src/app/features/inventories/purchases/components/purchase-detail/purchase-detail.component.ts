@@ -8,7 +8,9 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataColumn,
   TableDataComponent,
@@ -23,7 +25,7 @@ import {
 
 @Component({
   selector: 'app-purchase-detail',
-  imports: [RouterLink, ConfirmDialogComponent, TableDataComponent],
+  imports: [RouterLink, ConfirmDialogComponent, TableDataComponent, ButtonComponent, TableActionButtonComponent],
   templateUrl: './purchase-detail.component.html',
 })
 export class PurchaseDetailComponent implements OnInit {
