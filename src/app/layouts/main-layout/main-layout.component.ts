@@ -29,6 +29,7 @@ export class MainLayoutComponent implements OnInit {
 
   protected readonly isMobileMenuOpen = signal(false);
   protected readonly isProfileMenuOpen = signal(false);
+  protected readonly isSidebarCollapsed = signal(this.readSidebarCollapsed());
   protected readonly breadcrumbPaths = signal<BreadcrumbPath[]>([]);
   protected readonly sessionReady = signal(false);
   protected readonly currentUrl = signal(this.router.url);
@@ -144,6 +145,14 @@ export class MainLayoutComponent implements OnInit {
     this.isMobileMenuOpen.set(false);
   }
 
+  protected toggleSidebarCollapsed(): void {
+    this.isSidebarCollapsed.update((collapsed) => {
+      const next = !collapsed;
+      this.persistSidebarCollapsed(next);
+      return next;
+    });
+  }
+
   protected toggleProfileMenu(): void {
     this.isProfileMenuOpen.update((open) => !open);
   }
@@ -215,5 +224,21 @@ export class MainLayoutComponent implements OnInit {
       .sort((a, b) => b.route!.length - a.route!.length)[0];
 
     return bestMatch?.route === route;
+  }
+
+  private readSidebarCollapsed(): boolean {
+    if (typeof localStorage === 'undefined') {
+      return false;
+    }
+
+    return localStorage.getItem('nm-sidebar-collapsed') === 'true';
+  }
+
+  private persistSidebarCollapsed(collapsed: boolean): void {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+
+    localStorage.setItem('nm-sidebar-collapsed', String(collapsed));
   }
 }
