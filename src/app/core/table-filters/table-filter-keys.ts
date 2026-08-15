@@ -3,6 +3,7 @@ export const TABLE_FILTER_KEYS = {
   products: 'inventories.products.v1',
   sales: 'finances.sales.v1',
   purchases: 'inventories.purchases.v1',
+  purchaseRegisterDraft: 'inventories.purchases.register.v1',
   colors: 'inventories.colors.v1',
   sizes: 'inventories.sizes.v1',
   customers: 'directories.customers.v1',

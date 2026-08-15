@@ -1,9 +1,11 @@
 import {
   Component,
+  computed,
   DestroyRef,
   inject,
   OnInit,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -18,13 +20,17 @@ import {
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   catchError,
+  concatMap,
   debounceTime,
   EMPTY,
   filter,
   finalize,
   forkJoin,
+  from,
+  last,
   map,
   merge,
+  Observable,
   of,
   Subject,
   switchMap,
@@ -59,6 +65,7 @@ import {
   PurchaseCatalogService,
   PurchaseRegisterDraftService,
   PurchaseRegisterDraftSnapshot,
+  isPurchaseRegisterDraftSnapshot,
 } from '../../data-access/purchase-catalog.service';
 import { PurchaseService } from '../../data-access/purchase.service';
 import {
@@ -69,9 +76,10 @@ import {
   PurchaseDetail,
   PurchaseDraftColorVariant,
   PurchaseLineFormValue,
+  PurchaseLinePatch,
   SizeTypeOption,
 } from '../../models/purchase.model';
-import { buildPurchaseBulkPayload } from '../../utils/purchase-payload.util';
+import { buildPurchaseBulkPayload, buildPurchaseAppendLinesPayload } from '../../utils/purchase-payload.util';
 
 const LEGACY_DRAFT_STORAGE_KEYS = [
   'nm_purchase_register_draft_v2',
@@ -113,12 +121,17 @@ export class PurchaseRegisterComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly colorSearchAc = viewChild<AutocompleteApiComponent>('colorSearchAc');
 
   private readonly persistDraft$ = new Subject<void>();
   private readonly vendorSearch$ = new Subject<string>();
   private readonly productSearch$ = new Subject<string>();
   private persistDraftEnabled = false;
   private supplierNameLockedForVendorId: string | null = null;
+  /** IDs de líneas persistidas al cargar la compra (para detectar eliminaciones). */
+  private originalLineIds: number[] = [];
+  /** Al re-editar una fila del detalle, conserva el ID de línea del backend. */
+  private editingPersistedLineId: string | null = null;
 
   protected readonly editingPurchaseId = signal<number | null>(null);
   protected readonly isEditMode = signal(false);
@@ -185,6 +198,12 @@ export class PurchaseRegisterComponent implements OnInit {
 
   protected readonly colorCatalogSearch = signal('');
   protected readonly filteredColorsForPicker = signal<ProductColorOption[]>([]);
+  private readonly draftColorQueueRevision = signal(0);
+
+  protected readonly draftColorTableRows = computed(() => {
+    this.draftColorQueueRevision();
+    return [...this.draftColorQueue.controls];
+  });
 
   protected readonly paymentMethodControl = new FormControl('CASH', { nonNullable: true });
 
@@ -274,6 +293,14 @@ export class PurchaseRegisterComponent implements OnInit {
       .get('selectedSizeId')
       ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.onCatalogSizeChosen());
+
+    this.draftColorQueue.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.bumpDraftColorQueueRevision());
+  }
+
+  private bumpDraftColorQueueRevision(): void {
+    this.draftColorQueueRevision.update((value) => value + 1);
   }
 
   protected flushPurchaseDraftOnUnload(): void {
@@ -324,13 +351,15 @@ export class PurchaseRegisterComponent implements OnInit {
 
   protected readonly colorDisplayFn = (item: unknown): string => {
     const opt = item as ProductColorOption;
-    if (this.useExistingProduct() && opt.isExists) {
-      return `${opt.description} — Ya en esta talla`;
-    }
-    if (this.useExistingProduct()) {
-      return `${opt.description} — Sin variante en esta talla`;
-    }
     return opt.description;
+  };
+
+  protected readonly colorSecondaryTextFn = (item: unknown): string => {
+    if (!this.useExistingProduct()) {
+      return '';
+    }
+    const opt = item as ProductColorOption;
+    return opt.isExists ? 'Ya en esta talla' : 'Sin variante en esta talla';
   };
 
   protected onProductAutocompleteSearch(query: string): void {
@@ -347,6 +376,7 @@ export class PurchaseRegisterComponent implements OnInit {
     this.colorCatalogSearch.set('');
     this.filteredColorsForPicker.set([]);
     this.draftColorQueue.clear({ emitEvent: false });
+    this.bumpDraftColorQueueRevision();
     this.lineDraft.patchValue(
       {
         selectedSizeId: null,
@@ -417,6 +447,7 @@ export class PurchaseRegisterComponent implements OnInit {
     this.colorCatalogSearch.set('');
     this.filteredColorsForPicker.set([]);
     this.draftColorQueue.clear({ emitEvent: false });
+    this.bumpDraftColorQueueRevision();
     this.lineDraft.patchValue(
       { selectedSizeId: null, selectedColorId: null },
       { emitEvent: false },
@@ -427,6 +458,7 @@ export class PurchaseRegisterComponent implements OnInit {
 
   protected clearDraftVariants(): void {
     this.draftColorQueue.clear({ emitEvent: false });
+    this.bumpDraftColorQueueRevision();
     this.colorCatalogSearch.set('');
     this.filteredColorsForPicker.set([]);
     this.requestPersistDraft();
@@ -553,6 +585,11 @@ export class PurchaseRegisterComponent implements OnInit {
 
   protected onColorNewToggleChecked(checked: boolean): void {
     this.lineDraft.patchValue({ colorNewToggle: checked });
+    if (checked) {
+      this.resetColorCatalogSearch();
+      return;
+    }
+    this.syncColorPickerSuggestions();
   }
 
   protected onSizeNewToggleChange(): void {
@@ -632,6 +669,23 @@ export class PurchaseRegisterComponent implements OnInit {
 
   protected selectCatalogColor(opt: unknown): void {
     this.addCatalogColorToQueue(opt as ProductColorOption, 1);
+    this.resetColorCatalogSearch();
+  }
+
+  protected onColorSearchEnter(query: string): void {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      return;
+    }
+    const opts = this.colorOptions();
+    const exact = opts.find((c) => c.description.trim().toLowerCase() === q);
+    const filtered = this.filteredColorsForPicker();
+    const single = filtered.length === 1 ? filtered[0] : null;
+    const pick = exact ?? single;
+    if (!pick?.id) {
+      return;
+    }
+    this.addCatalogColorToQueue(pick, 1);
     this.resetColorCatalogSearch();
   }
 
@@ -864,7 +918,7 @@ export class PurchaseRegisterComponent implements OnInit {
     }
 
     const lineGroup = this.fb.group({
-      lineId: [genTempId('l')],
+      lineId: [this.editingPersistedLineId ?? genTempId('l')],
       productName: [productName],
       sizeLabel: [sizeLabel],
       productMode: [productMode],
@@ -887,6 +941,7 @@ export class PurchaseRegisterComponent implements OnInit {
     this.bindLineTotals(lineGroup);
     this.lines.push(lineGroup);
     this.recalcGrandTotal();
+    this.editingPersistedLineId = null;
     this.resetConstructorAfterLineAdded();
     this.isEditingLine.set(false);
     this.toast.show('success', 'Fila agregada: talla con sus variantes de color.');
@@ -923,6 +978,10 @@ export class PurchaseRegisterComponent implements OnInit {
       return;
     }
     const raw = row.getRawValue() as Record<string, unknown>;
+    const lineIdStr = String(raw['lineId'] ?? '');
+    this.editingPersistedLineId = this.isPersistedLineId(lineIdStr)
+      ? lineIdStr
+      : null;
     this.lines.removeAt(index);
     this.recalcGrandTotal();
     this.isEditingLine.set(true);
@@ -970,6 +1029,7 @@ export class PurchaseRegisterComponent implements OnInit {
           this.createDraftColorQueueGroup(variant as unknown as Record<string, unknown>),
         );
       }
+      this.bumpDraftColorQueueRevision();
       const hasExisting = draftVariants.some((v) => v.colorId != null);
       this.lineDraft.patchValue({ colorNewToggle: !hasExisting });
     }
@@ -1005,10 +1065,7 @@ export class PurchaseRegisterComponent implements OnInit {
 
   protected registerPurchase(): void {
     if (this.isEditMode()) {
-      this.toast.show(
-        'error',
-        'En modo edición: modifica las líneas y usa "Volver al detalle" para ver los cambios aplicados.',
-      );
+      this.updatePurchase();
       return;
     }
 
@@ -1080,6 +1137,186 @@ export class PurchaseRegisterComponent implements OnInit {
       });
   }
 
+  protected updatePurchase(): void {
+    const purchaseId = this.editingPurchaseId();
+    if (!this.isEditMode() || purchaseId == null || purchaseId <= 0) {
+      return;
+    }
+
+    if (this.header.invalid) {
+      this.header.markAllAsTouched();
+      this.toast.show('error', 'Completa la cabecera (proveedor y fecha).');
+      return;
+    }
+    if (this.lines.length === 0) {
+      this.toast.show('error', 'La compra debe tener al menos una línea.');
+      return;
+    }
+
+    const lineSyncPlan = this.buildLineSyncPlan(purchaseId);
+
+    const nameTrim = String(this.header.value.supplierName ?? '').trim();
+    const existingVid = this.header.value.vendorId;
+    const ensureVendor$ =
+      existingVid != null && Number(existingVid) > 0
+        ? of(void 0)
+        : this.catalog.resolveOrCreateVendor(nameTrim).pipe(
+            tap((v) => {
+              const nm = String(v.name ?? nameTrim).trim();
+              this.header.patchValue(
+                { vendorId: v.id, supplierName: nm },
+                { emitEvent: false },
+              );
+              this.supplierNameLockedForVendorId = nm;
+            }),
+            map(() => void 0),
+          );
+
+    this.submitting.set(true);
+    ensureVendor$
+      .pipe(
+        switchMap(() => {
+          const raw = this.header.getRawValue();
+          const registeredAt = raw.registeredAt
+            ? String(raw.registeredAt).slice(0, 10)
+            : null;
+          return this.purchaseApi.patchHeader(purchaseId, {
+            supplierName: String(raw.supplierName ?? '').trim(),
+            vendorId:
+              raw.vendorId != null && Number(raw.vendorId) > 0
+                ? Number(raw.vendorId)
+                : null,
+            documentNote: raw.documentNote?.trim() || null,
+            registeredAt,
+          });
+        }),
+        switchMap(() => this.runLineSyncOps(lineSyncPlan.ops)),
+        catchError((err: unknown) => {
+          const msg =
+            typeof err === 'string'
+              ? err
+              : 'No se pudo actualizar la compra.';
+          this.toast.show('error', msg);
+          return EMPTY;
+        }),
+        finalize(() => this.submitting.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.originalLineIds = this.lines.controls
+            .map((group) => String(group.getRawValue().lineId ?? ''))
+            .filter((id) => this.isPersistedLineId(id))
+            .map((id) => Number(id));
+
+          this.toast.show('success', 'Compra actualizada correctamente.');
+          void this.router.navigate(['/inventories/purchases', purchaseId]);
+        },
+      });
+  }
+
+  private isPersistedLineId(lineId: string): boolean {
+    return /^\d+$/.test(lineId.trim());
+  }
+
+  private lineHasColorBreakdown(colors: Record<string, unknown>[]): boolean {
+    if (colors.length === 0) {
+      return false;
+    }
+    if (colors.length === 1) {
+      const label = String(colors[0]?.['displayLabel'] ?? '');
+      if (label.includes('solo talla') && colors[0]?.['colorId'] == null) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  private buildLineMutationBody(raw: Record<string, unknown>): PurchaseLinePatch {
+    const colors = (raw['colors'] as Record<string, unknown>[]) ?? [];
+    const hasColorBreakdown = this.lineHasColorBreakdown(colors);
+    const body: PurchaseLinePatch = {
+      barcode: (raw['barcode'] as string | null)?.trim() || null,
+      purchasePrice: Number(raw['purchasePrice']) || 0,
+      salePrice: Number(raw['salePrice']) || 0,
+      minSalePrice: Number(raw['minSalePrice']) || 0,
+    };
+
+    if (hasColorBreakdown) {
+      body.colorDeltas = colors
+        .filter((color) => color['colorId'] != null)
+        .map((color) => ({
+          colorId: Number(color['colorId']),
+          quantity: Math.max(1, Number(color['quantity']) || 1),
+        }));
+    } else {
+      body.sizeOnlyQuantity = Math.max(
+        1,
+        Number(colors[0]?.['quantity']) || 1,
+      );
+    }
+
+    return body;
+  }
+
+  private buildLineSyncPlan(purchaseId: number): {
+    ok: true;
+    ops: Observable<{ message: string }>[];
+  } {
+    const currentPersistedIds = new Set<number>();
+    const newLineIdSet = new Set<string>();
+    const ops: Observable<{ message: string }>[] = [];
+
+    for (const group of this.lines.controls) {
+      const raw = group.getRawValue() as Record<string, unknown>;
+      const lineIdStr = String(raw['lineId'] ?? '');
+
+      if (this.isPersistedLineId(lineIdStr)) {
+        const id = Number(lineIdStr);
+        currentPersistedIds.add(id);
+        ops.push(
+          this.purchaseApi.updateLine(
+            purchaseId,
+            id,
+            this.buildLineMutationBody(raw),
+          ),
+        );
+        continue;
+      }
+
+      newLineIdSet.add(lineIdStr);
+    }
+
+    for (const id of this.originalLineIds) {
+      if (!currentPersistedIds.has(id)) {
+        ops.unshift(this.purchaseApi.deleteLine(purchaseId, id));
+      }
+    }
+
+    if (newLineIdSet.size > 0) {
+      const newLineRows = this.collectLinesForPayload().filter((line) =>
+        newLineIdSet.has(String(line.lineId)),
+      );
+      ops.push(
+        this.purchaseApi.appendLines(
+          purchaseId,
+          buildPurchaseAppendLinesPayload(newLineRows),
+        ),
+      );
+    }
+
+    return { ok: true, ops };
+  }
+
+  private runLineSyncOps(
+    ops: Observable<{ message: string }>[],
+  ): Observable<unknown> {
+    if (ops.length === 0) {
+      return of(null);
+    }
+    return from(ops).pipe(concatMap((op) => op), last());
+  }
+
   protected goBackToDetail(): void {
     const pid = this.editingPurchaseId();
     if (pid != null && pid > 0) {
@@ -1093,6 +1330,8 @@ export class PurchaseRegisterComponent implements OnInit {
     this.persistDraftEnabled = false;
     this.purchaseDraft.clear();
     this.lines.clear({ emitEvent: false });
+    this.originalLineIds = [];
+    this.editingPersistedLineId = null;
     this.isEditingLine.set(false);
     this.totalEstimated.set(0);
     this.catalogSizes.set([]);
@@ -1132,6 +1371,7 @@ export class PurchaseRegisterComponent implements OnInit {
       { emitEvent: false },
     );
     this.draftColorQueue.clear({ emitEvent: false });
+    this.bumpDraftColorQueueRevision();
     this.clearProductSelection();
     this.clearDraftVariants();
     this.useExistingProduct.set(true);
@@ -1280,6 +1520,7 @@ export class PurchaseRegisterComponent implements OnInit {
           next: (rows) => {
             this.colorOptions.set(rows ?? []);
             this.lineDraft.patchValue({ selectedColorId: null }, { emitEvent: false });
+            this.syncColorPickerSuggestions();
           },
         });
       return;
@@ -1293,6 +1534,7 @@ export class PurchaseRegisterComponent implements OnInit {
           next: (rows) => {
             this.colorOptions.set(rows ?? []);
             this.lineDraft.patchValue({ selectedColorId: null }, { emitEvent: false });
+            this.syncColorPickerSuggestions();
           },
         });
       return;
@@ -1314,9 +1556,19 @@ export class PurchaseRegisterComponent implements OnInit {
     );
   }
 
+  private syncColorPickerSuggestions(): void {
+    if (!this.showColorCatalogPick()) {
+      return;
+    }
+    this.filterColorPicker(this.colorCatalogSearch());
+  }
+
   protected resetColorCatalogSearch(): void {
     this.colorCatalogSearch.set('');
     this.filteredColorsForPicker.set([]);
+    queueMicrotask(() => {
+      this.colorSearchAc()?.clearAndFocus();
+    });
   }
 
   private findDraftColorQueueIndexByExistingColorId(colorId: number): number {
@@ -1381,6 +1633,7 @@ export class PurchaseRegisterComponent implements OnInit {
 
   private resetConstructorAfterLineAdded(): void {
     this.draftColorQueue.clear({ emitEvent: false });
+    this.bumpDraftColorQueueRevision();
     this.lineDraft.patchValue(
       {
         selectedSizeId: null,
@@ -1492,13 +1745,13 @@ export class PurchaseRegisterComponent implements OnInit {
         : null;
 
     this.lines.clear({ emitEvent: false });
+    this.originalLineIds = (purchase.lines ?? []).map((line) => line.id);
 
     for (const line of purchase.lines ?? []) {
       this.addLineFromPurchase(line);
     }
 
     this.recalcGrandTotal();
-    this.persistDraftEnabled = true;
     this.toast.show('success', `Compra #${purchase.id} cargada para edición.`);
   }
 
@@ -1776,6 +2029,10 @@ export class PurchaseRegisterComponent implements OnInit {
   }
 
   private persistDraftInMemory(): void {
+    if (this.isEditMode()) {
+      return;
+    }
+
     const snap = this.buildDraftSnapshot();
     const supplier = String(snap.header['supplierName'] ?? '').trim();
     const hasLines = snap.lines.length > 0;
@@ -1808,13 +2065,36 @@ export class PurchaseRegisterComponent implements OnInit {
     this.purchaseDraft.save(snap);
   }
 
-  private purgeLegacyBrowserDraft(): void {
-    try {
-      for (const key of LEGACY_DRAFT_STORAGE_KEYS) {
-        localStorage.removeItem(key);
+  private migrateLegacyBrowserDraft(): void {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+
+    for (const key of LEGACY_DRAFT_STORAGE_KEYS) {
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) {
+          continue;
+        }
+
+        const parsed: unknown = JSON.parse(raw);
+        if (
+          isPurchaseRegisterDraftSnapshot(parsed) &&
+          this.purchaseDraft.read() == null
+        ) {
+          const paymentMethod =
+            typeof parsed.paymentMethod === 'string' ? parsed.paymentMethod : 'CASH';
+          this.purchaseDraft.save({ ...parsed, paymentMethod });
+        }
+      } catch {
+        // ignore invalid legacy payloads
+      } finally {
+        try {
+          localStorage.removeItem(key);
+        } catch {
+          // ignore
+        }
       }
-    } catch {
-      /* ignore */
     }
   }
 
@@ -1823,7 +2103,7 @@ export class PurchaseRegisterComponent implements OnInit {
   }
 
   private tryRestoreDraftFromMemory(): void {
-    this.purgeLegacyBrowserDraft();
+    this.migrateLegacyBrowserDraft();
 
     const parsed = this.purchaseDraft.read();
     if (!parsed || parsed.version !== 2) {
@@ -1857,6 +2137,9 @@ export class PurchaseRegisterComponent implements OnInit {
     if (parsed.paymentMethod) {
       this.selectedPaymentMethod.set(parsed.paymentMethod);
       this.paymentMethodControl.setValue(parsed.paymentMethod, { emitEvent: false });
+    } else {
+      this.selectedPaymentMethod.set('CASH');
+      this.paymentMethodControl.setValue('CASH', { emitEvent: false });
     }
 
     this.applyLineDraftFromSnapshot((parsed.lineDraft ?? {}) as Record<string, unknown>);
@@ -1872,7 +2155,7 @@ export class PurchaseRegisterComponent implements OnInit {
           this.wireDraftAutoSave();
           this.toast.show(
             'success',
-            'Se recuperó el borrador de esta sesión (cabecera, producto y líneas).',
+            'Se recuperó el borrador guardado (cabecera, producto y líneas).',
           );
         });
       } else {
@@ -1883,7 +2166,7 @@ export class PurchaseRegisterComponent implements OnInit {
         this.refreshColorsAfterSizeChange();
         this.enablePersistDraft();
         this.wireDraftAutoSave();
-        this.toast.show('success', 'Se recuperó el borrador de esta sesión.');
+        this.toast.show('success', 'Se recuperó el borrador guardado.');
       }
     };
 
@@ -2050,6 +2333,7 @@ export class PurchaseRegisterComponent implements OnInit {
     for (const row of queueSnapshot) {
       this.draftColorQueue.push(this.createDraftColorQueueGroup(row));
     }
+    this.bumpDraftColorQueueRevision();
   }
 
   private rebuildLinesFromSnapshot(rows: Record<string, unknown>[]): void {

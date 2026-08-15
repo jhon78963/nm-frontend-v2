@@ -12,9 +12,11 @@ import {
   FormGroup,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import {
   TableDataComponent,
   TableDataColumn,
@@ -62,8 +64,9 @@ function isPurchaseFilterState(value: unknown): value is PurchaseFilterState {
   selector: 'app-purchases-list',
   imports: [
     ReactiveFormsModule,
-    RouterLink,
+    ButtonComponent,
     ConfirmDialogComponent,
+    InputComponent,
     TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
@@ -293,6 +296,10 @@ export class PurchasesListComponent implements OnInit {
 
   protected viewDetail(id: number): void {
     void this.router.navigate(['/inventories/purchases', id]);
+  }
+
+  protected goToRegister(): void {
+    void this.router.navigate(['/inventories/purchases/register']);
   }
 
   protected formatMoney(value: number, currency = 'PEN'): string {

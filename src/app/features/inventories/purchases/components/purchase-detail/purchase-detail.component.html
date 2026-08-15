@@ -13,21 +13,6 @@
   </p>
 </app-confirm-dialog>
 
-<app-confirm-dialog
-  [open]="deleteLineIndex() !== null"
-  title="Eliminar línea"
-  confirmLabel="Eliminar"
-  cancelLabel="Cancelar"
-  variant="danger"
-  [loading]="deletingLine()"
-  (confirmed)="confirmDeleteLine()"
-  (cancelled)="cancelDeleteLine()"
->
-  <p class="mt-1 text-sm text-gray-500">
-    ¿Eliminar esta línea? Se revertirá el stock ingresado solo de esta fila.
-  </p>
-</app-confirm-dialog>
-
 @if (previewOpen()) {
   <div
     class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
@@ -215,9 +200,7 @@
               }
             </dl>
           } @else {
-            <p class="mt-3 text-sm text-gray-500">
-              Sin movimiento de caja vinculado. Podés adjuntar comprobantes y se registrará el egreso.
-            </p>
+            <p class="mt-3 text-sm text-gray-500">Sin movimiento de caja vinculado.</p>
           }
 
           <div class="mt-4 border-t border-gray-100 pt-4">
@@ -233,37 +216,6 @@
             } @else {
               <p class="mt-2 text-sm text-gray-500">Sin comprobantes adjuntos.</p>
             }
-
-            @if (canAddVouchers()) {
-              <div class="mt-4 space-y-3">
-                <label for="voucher-upload" class="block text-sm font-medium text-gray-700">
-                  Agregar comprobantes (PDF o imagen)
-                </label>
-                <input
-                  id="voucher-upload"
-                  type="file"
-                  accept="image/*,.pdf"
-                  multiple
-                  class="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-2 file:text-sm file:font-medium file:text-emerald-700"
-                  (change)="onVoucherSelected($event)"
-                />
-                <p class="text-xs text-gray-500">
-                  Podés agregar hasta {{ remainingVoucherSlots() }} archivo(s) más.
-                </p>
-                <app-button
-                  variant="primary"
-                  [loading]="savingVouchers()"
-                  [disabled]="selectedVoucherFiles().length === 0"
-                  (clicked)="saveVouchers()"
-                >
-                  Agregar comprobantes
-                </app-button>
-              </div>
-            } @else if (!isActive()) {
-              <p class="mt-3 text-sm text-gray-500">Compra no activa: comprobantes solo lectura.</p>
-            } @else {
-              <p class="mt-3 text-sm text-gray-500">Límite de 10 comprobantes alcanzado.</p>
-            }
           </div>
         </section>
       </div>
@@ -271,70 +223,32 @@
       <div class="xl:col-span-2">
         <section class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
           <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Cabecera</h2>
-          @if (!isActive()) {
-            <app-alert class="mt-3" variant="info" message="Compra no activa: la cabecera es solo lectura." />
-          }
-
-          <form [formGroup]="headerForm" class="mt-4 space-y-5">
-            <div class="relative">
-              <label for="supplierName" class="mb-1 block text-sm font-medium text-gray-700">Proveedor</label>
-              <input
-                id="supplierName"
-                type="text"
-                formControlName="supplierName"
-                autocomplete="off"
-                placeholder="Buscar proveedor o escribir nombre"
-                class="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-50"
-                (input)="onVendorInput($event)"
-              />
-              @if (vendorDropdownOpen() && vendorResults().length) {
-                <ul
-                  class="absolute z-20 mt-1 max-h-48 w-full overflow-auto rounded-xl border border-gray-200 bg-white py-1 shadow-lg"
-                  role="listbox"
-                >
-                  @for (vendor of vendorResults(); track vendor.id) {
-                    <li>
-                      <button
-                        type="button"
-                        class="flex w-full flex-col px-3 py-2 text-left text-sm hover:bg-emerald-50 focus-visible:bg-emerald-50 focus-visible:outline-none"
-                        role="option"
-                        (click)="selectVendor(vendor)"
-                      >
-                        <span class="font-medium text-gray-900">{{ vendor.name }}</span>
-                        @if (vendor.phone) {
-                          <span class="text-xs text-gray-500">{{ vendor.phone }}</span>
-                        }
-                      </button>
-                    </li>
-                  }
-                </ul>
-              }
-              <p class="mt-1 text-xs text-gray-500">
-                Elegí de la lista o escribí el nombre: si no existe, se creará al guardar.
-              </p>
+          <dl class="mt-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+            <div>
+              <dt class="text-gray-500">Proveedor</dt>
+              <dd class="mt-1 font-medium text-gray-900">{{ p.supplierName || '—' }}</dd>
             </div>
-
-            <app-input
-              type="text"
-              label="Nota de documento"
-              formControlName="documentNote"
-            />
-
-            <app-date-input
-              label="Fecha registrada"
-              formControlName="registeredAt"
-            />
-
-            @if (isActive()) {
-              <app-button
-                variant="primary"
-                [loading]="savingHeader()"
-                (clicked)="saveHeader()"
-              >
-                Guardar cambios
-              </app-button>
-            }
-          </form>
+            <div>
+              <dt class="text-gray-500">Almacén</dt>
+              <dd class="mt-1 font-medium text-gray-900">{{ p.warehouseName || ('Almacén #' + p.warehouseId) }}</dd>
+            </div>
+            <div>
+              <dt class="text-gray-500">Nota de documento</dt>
+              <dd class="mt-1 font-medium text-gray-900">{{ p.documentNote?.trim() || '—' }}</dd>
+            </div>
+            <div>
+              <dt class="text-gray-500">Fecha registrada</dt>
+              <dd class="mt-1 font-medium text-gray-900">{{ formatDate(p.registeredAt) }}</dd>
+            </div>
+          </dl>
+          @if (isActive()) {
+            <p class="mt-4 text-xs text-gray-500">
+              Para modificar cabecera o líneas, usá
+              <a routerLink="/inventories/purchases/edit/{{ p.id }}" class="font-medium text-amber-700 underline-offset-2 hover:underline">
+                Editar compra
+              </a>.
+            </p>
+          }
         </section>
       </div>
     </div>
@@ -342,122 +256,73 @@
     <section class="rounded-2xl border border-gray-200 bg-white shadow-sm">
       <div class="border-b border-gray-100 px-5 py-4">
         <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500">Detalle de líneas</h2>
-        @if (isActive()) {
-          <p class="mt-1 text-sm text-gray-500">
-            Corregí precios, código de barras y cantidades por color, o eliminá una fila sin anular toda la compra.
-          </p>
-        } @else {
-          <p class="mt-1 text-sm text-gray-500">Compra no activa: el detalle es solo lectura.</p>
-        }
+        <p class="mt-1 text-sm text-gray-500">Vista de solo lectura. Los cambios se realizan desde «Editar compra».</p>
       </div>
 
       <div class="overflow-x-auto">
-        @if (purchase(); as p) {
-          <app-table-data
-            [columns]="lineTableColumns()"
-            [data]="p.lines"
-            [variant]="'embedded'"
-            [theme]="'emerald'"
-            [minWidth]="'100%'"
-            [mobileCompact]="false"
-            [headerRowClass]="'bg-gray-50'"
-            [ariaLabel]="'Detalle de líneas de compra'"
-          >
-            <ng-template #headerTemplate>
-              <tr class="dt-thead-row">
-                <th scope="col" class="dt-th">Producto</th>
-                <th scope="col" class="dt-th">Talla</th>
-                <th scope="col" class="dt-th">Δ stock</th>
-                <th scope="col" class="dt-th">Colores / cantidades</th>
-                <th scope="col" class="dt-th text-right">Subtotal</th>
-                @if (isActive()) {
-                  <th scope="col" class="dt-th text-center">Acciones</th>
-                }
-              </tr>
-            </ng-template>
+        <app-table-data
+          [columns]="lineTableColumns()"
+          [data]="p.lines"
+          [variant]="'embedded'"
+          [theme]="'emerald'"
+          [minWidth]="'56rem'"
+          [mobileCompact]="false"
+          [headerRowClass]="'bg-gray-50'"
+          [ariaLabel]="'Detalle de líneas de compra'"
+        >
+          <ng-template #headerTemplate>
+            <tr class="dt-thead-row">
+              <th scope="col" class="dt-th" style="width: 14%">Producto</th>
+              <th scope="col" class="dt-th" style="width: 10%">Talla</th>
+              <th scope="col" class="dt-th" style="width: 12%">Barcode</th>
+              <th scope="col" class="dt-th" style="width: 15%">Precios</th>
+              <th scope="col" class="dt-th text-center" style="width: 7%">Δ stock</th>
+              <th scope="col" class="dt-th">Colores / cantidades</th>
+              <th scope="col" class="dt-th text-right" style="width: 10%">Subtotal</th>
+            </tr>
+          </ng-template>
 
-            <ng-template #rowTemplate let-line let-index="index">
-              <tr class="align-top hover:bg-emerald-50/30" [formGroup]="lineEditAt(index)">
-                <td class="px-4 py-4 font-medium text-gray-900">
-                  {{ line.productName ?? line.productId }}
-                </td>
-                <td class="px-4 py-4 text-gray-700">
-                  {{ line.sizeDescription ?? line.sizeId }}
-                </td>
-                <td class="px-4 py-4 tabular-nums text-gray-700">{{ line.sizeStockDelta }}</td>
-                <td class="min-w-[14rem] px-4 py-4">
-                  @if (line.hasColorBreakdown && colorDeltaControls(index).length) {
-                    <ul class="space-y-2">
-                      @for (cg of colorDeltaControls(index); track $index; let ci = $index) {
-                        <li
-                          [formGroup]="cg"
-                          class="flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
-                        >
-                          <span class="min-w-0 flex-1 text-sm font-medium text-gray-800">
-                            {{ line.colorDeltas?.[ci]?.colorDescription ?? ('Color #' + cg.get('colorId')?.value) }}
-                          </span>
-                          <input
-                            type="number"
-                            formControlName="quantity"
-                            min="1"
-                            class="w-20 rounded-lg border border-gray-300 px-2 py-1 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                            aria-label="Cantidad"
-                          />
-                        </li>
-                      }
-                    </ul>
-                  } @else {
-                    <div class="flex flex-wrap items-center gap-2">
-                      <span class="text-xs text-gray-500">Cantidad (solo talla)</span>
-                      <input
-                        type="number"
-                        formControlName="sizeOnlyQuantity"
-                        min="1"
-                        class="w-20 rounded-lg border border-gray-300 px-2 py-1 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                        aria-label="Cantidad solo talla"
-                      />
-                    </div>
-                    <p class="mt-1 text-xs text-gray-500">{{ lineColorsSummary(line) }}</p>
-                  }
-                </td>
-                <td class="px-4 py-4 text-right font-semibold tabular-nums text-gray-900">
-                  {{ formatMoney(line.subtotal, p.currency) }}
-                </td>
-                @if (isActive()) {
-                  <td class="px-4 py-4">
-                    <div class="flex min-w-[12rem] flex-col gap-2">
-                      <input
-                        type="text"
-                        formControlName="barcode"
-                        placeholder="Barcode"
-                        class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      />
-                      <div class="grid grid-cols-1 gap-2">
-                        <app-money-input label="Compra" formControlName="purchasePrice" />
-                        <app-money-input label="Venta" formControlName="salePrice" />
-                        <app-money-input label="Mín." formControlName="minSalePrice" />
-                      </div>
-                      <app-button
-                        variant="primary"
-                        [loading]="isLineBusy(line.id)"
-                        (clicked)="saveLine(index)"
-                      >
-                        Guardar línea
-                      </app-button>
-                      <app-button
-                        variant="danger"
-                        [loading]="isLineBusy(line.id)"
-                        (clicked)="openDeleteLineConfirm(index)"
-                      >
-                        Eliminar
-                      </app-button>
-                    </div>
-                  </td>
+          <ng-template #rowTemplate let-line>
+            <tr class="hover:bg-emerald-50/30">
+              <td class="px-6 py-3.5 align-middle font-medium text-gray-900">
+                {{ line.productName ?? line.productId }}
+              </td>
+              <td class="px-6 py-3.5 align-middle text-gray-700">
+                {{ line.sizeDescription ?? line.sizeId }}
+              </td>
+              <td class="px-6 py-3.5 align-middle text-sm text-gray-700">
+                {{ line.barcode?.trim() || '—' }}
+              </td>
+              <td class="px-6 py-3.5 align-middle text-sm leading-relaxed text-gray-700">
+                <p><span class="text-gray-500">Compra:</span> {{ formatMoney(line.purchasePrice, p.currency) }}</p>
+                <p><span class="text-gray-500">Venta:</span> {{ formatMoney(line.salePrice, p.currency) }}</p>
+                <p><span class="text-gray-500">Mín.:</span> {{ formatMoney(line.minSalePrice, p.currency) }}</p>
+              </td>
+              <td class="px-6 py-3.5 align-middle text-left tabular-nums text-gray-700">
+                {{ line.sizeStockDelta }}
+              </td>
+              <td class="px-6 py-3.5 align-middle">
+                @if (line.hasColorBreakdown && line.colorDeltas?.length) {
+                  <div class="flex flex-wrap gap-1.5">
+                    @for (color of line.colorDeltas; track color.colorId) {
+                      <span class="inline-flex max-w-full items-center gap-1.5 rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs">
+                        <span class="truncate font-medium text-gray-800">
+                          {{ color.colorDescription ?? ('Color #' + color.colorId) }}
+                        </span>
+                        <span class="shrink-0 tabular-nums text-gray-500">{{ color.quantity }} ud.</span>
+                      </span>
+                    }
+                  </div>
+                } @else {
+                  <span class="text-sm text-gray-700">{{ line.sizeStockDelta }} ud. (solo talla)</span>
                 }
-              </tr>
-            </ng-template>
-          </app-table-data>
-        }
+              </td>
+              <td class="px-6 py-3.5 align-middle text-left font-semibold tabular-nums text-gray-900">
+                {{ formatMoney(line.subtotal, p.currency) }}
+              </td>
+            </tr>
+          </ng-template>
+        </app-table-data>
       </div>
     </section>
   </div>

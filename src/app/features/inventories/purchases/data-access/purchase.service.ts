@@ -142,6 +142,15 @@ export class PurchaseService {
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
+  appendLines(
+    purchaseId: number,
+    payload: Pick<PurchaseBulkPayload, 'catalogUpserts' | 'lines' | 'totals'>,
+  ): Observable<{ message: string }> {
+    return this.http
+      .post<{ message: string }>(`${this.base}/${purchaseId}/lines/bulk`, payload)
+      .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
+  }
+
   getVoucherPreview(voucherPath: string): Observable<Blob> {
     const params = new HttpParams().set('path', voucherPath);
     return this.http.get(`${environment.apiUrl}/vouchers/preview`, {

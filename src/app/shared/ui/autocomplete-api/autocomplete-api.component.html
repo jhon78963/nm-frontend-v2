@@ -19,6 +19,7 @@
       [attr.aria-invalid]="errorMessage() ? true : null"
       [attr.aria-describedby]="errorMessage() ? errorId : null"
       (input)="onInput($event)"
+      (focus)="onFocus()"
       (keydown)="onKeydown($event)"
     />
 
@@ -59,10 +60,19 @@
             class="ac-option"
             role="option"
             tabindex="0"
-            (click)="selectOption(item)"
+            (mousedown)="$event.preventDefault(); selectOption(item)"
             (keydown)="onOptionKeydown($event, item)"
           >
-            {{ displayItem(item) }}
+            @if (secondaryTextFn()) {
+              <div class="ac-option-row">
+                <span class="ac-option-label">{{ displayItem(item) }}</span>
+                @if (secondaryText(item); as hint) {
+                  <span class="ac-option-hint">{{ hint }}</span>
+                }
+              </div>
+            } @else {
+              {{ displayItem(item) }}
+            }
           </li>
         }
       </ul>

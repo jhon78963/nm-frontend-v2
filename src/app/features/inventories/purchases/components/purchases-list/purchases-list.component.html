@@ -25,71 +25,50 @@
         Registro de ingresos de mercadería, pagos y comprobantes de compra.
       </p>
     </div>
-    <a
-      routerLink="/inventories/purchases/register"
-      class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
-    >
+    <app-button type="button" variant="primary" (clicked)="goToRegister()">
       <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
       </svg>
       Nueva compra
-    </a>
+    </app-button>
   </div>
 
-  <div class="flex flex-col gap-3 xl:flex-row xl:items-end" [formGroup]="filterForm">
-    <div class="relative flex-1 max-w-md">
-      <svg
-        class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
-        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true"
-      >
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-      <input
-        formControlName="search"
-        type="search"
-        placeholder="Buscar por proveedor o nota…"
-        class="w-full rounded-xl border border-gray-300 bg-white py-2.5 pl-9 pr-9 text-sm placeholder:text-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
-        aria-label="Buscar compras"
-      />
-      @if (filterForm.controls.search.value) {
-        <button
-          type="button"
-          class="absolute right-3 top-1/2 -translate-y-1/2 rounded text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
-          aria-label="Limpiar búsqueda"
-          (click)="clearSearch()"
-        >
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      }
-    </div>
+  <div
+    class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_12rem_12rem_auto] xl:items-end [&_.btn-base]:h-[2.625rem] [&_.btn-base]:py-0 [&_.input-field]:h-[2.625rem] [&_.input-field]:py-0 [&_.select-field]:h-[2.625rem] [&_.select-field]:py-0"
+    [formGroup]="filterForm"
+  >
+    <app-input
+      class="block w-full sm:col-span-2 xl:col-span-1"
+      label="Buscar"
+      placeholder="Buscar por proveedor o nota…"
+      formControlName="search"
+    />
 
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:w-auto">
-      <app-select
-        label="Almacén"
-        placeholder="Todos los almacenes"
-        [options]="warehouseOptions()"
-        formControlName="warehouseId"
-      />
-      <app-select
-        label="Estado"
-        placeholder="Todos los estados"
-        [options]="statusOptions"
-        formControlName="status"
-      />
-    </div>
+    <app-select
+      class="block w-full"
+      label="Almacén"
+      placeholder="Todos los almacenes"
+      [options]="warehouseOptions()"
+      formControlName="warehouseId"
+    />
 
-    <button
-      type="button"
-      class="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 xl:ml-auto"
-      (click)="clearFilters()"
-    >
-      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M8 4V2m8 2V2M5 8h14M6 20h12a2 2 0 002-2V8H4v10a2 2 0 002 2z"/>
-      </svg>
-      Limpiar filtros
-    </button>
+    <app-select
+      class="block w-full"
+      label="Estado"
+      placeholder="Todos los estados"
+      [options]="statusOptions"
+      formControlName="status"
+    />
+
+    <div class="flex w-full flex-col gap-2 sm:col-span-2 xl:col-span-1 xl:w-auto xl:justify-self-end">
+      <span class="text-sm font-medium text-gray-700 invisible" aria-hidden="true">Filtros</span>
+      <app-button type="button" variant="secondary" (clicked)="clearFilters()">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M8 4V2m8 2V2M5 8h14M6 20h12a2 2 0 002-2V8H4v10a2 2 0 002 2z"/>
+        </svg>
+        Limpiar filtros
+      </app-button>
+    </div>
   </div>
 
   @if (!loading()) {

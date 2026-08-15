@@ -144,3 +144,24 @@ export function buildPurchaseBulkPayload(
     },
   };
 }
+
+/** Payload para agregar líneas nuevas a una compra existente (incluye catálogo temporal). */
+export function buildPurchaseAppendLinesPayload(
+  lines: PurchaseLineFormValue[],
+): Pick<PurchaseBulkPayload, 'catalogUpserts' | 'lines' | 'totals'> {
+  const built = buildPurchaseBulkPayload(
+    {
+      supplierName: '',
+      documentNote: null,
+      registeredAt: new Date(),
+      warehouseId: 1,
+    },
+    lines,
+  );
+
+  return {
+    catalogUpserts: built.catalogUpserts,
+    lines: built.lines,
+    totals: built.totals,
+  };
+}

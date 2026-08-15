@@ -21,7 +21,7 @@ export interface HeaderShortcut {
   label: string;
   shortLabel: string;
   route: string;
-  icon: 'pos' | 'cash' | 'sale' | 'products' | 'expenses';
+  icon: 'pos' | 'cash' | 'sale' | 'products' | 'purchases' | 'expenses';
   permission?: string;
   permissions?: string[];
 }
@@ -141,6 +141,13 @@ export class MainLayoutComponent implements OnInit {
       route: '/inventories/products',
       icon: 'products',
       permissions: ['product.getAll', 'product.get'],
+    },
+    {
+      label: 'Compras',
+      shortLabel: 'Compras',
+      route: '/inventories/purchases',
+      icon: 'purchases',
+      permissions: ['purchase.getAll', 'purchase.get'],
     },
     {
       label: 'Gastos administrativos',

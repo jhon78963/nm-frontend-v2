@@ -305,10 +305,10 @@
 
                     @if (lineDraft.get('useColorVariant')?.value) {
                       @if (draftColorQueue.length > 0) {
-                        <div class="mt-3 overflow-x-auto rounded-lg border border-gray-200">
+                        <div class="mt-3 rounded-lg border border-gray-200">
                           <app-table-data
                             [columns]="draftColorTableColumns"
-                            [data]="draftColorQueue.controls"
+                            [data]="draftColorTableRows()"
                             [variant]="'embedded'"
                             [theme]="'emerald'"
                             [minWidth]="'100%'"
@@ -349,8 +349,9 @@
                             </ng-template>
                           </app-table-data>
                         </div>
-                        <p class="mt-2 text-right text-xs text-gray-600">
-                          Suma: <strong class="text-gray-900">{{ draftColorsQuantitySum() }} ud.</strong>
+                        <p class="mt-2 text-right text-sm text-gray-600">
+                          <span>Suma de cantidades</span>
+                          <strong class="ml-1 text-gray-900">{{ draftColorsQuantitySum() }} ud.</strong>
                         </p>
                       } @else {
                         <p class="mt-3 text-sm text-gray-500">
@@ -359,25 +360,41 @@
                       }
 
                       @if (canPickExistingColors()) {
-                        <app-checkbox
-                          label="Color nuevo en el sistema (nombre y hex)"
-                          [value]="!!lineDraft.get('colorNewToggle')?.value"
-                          (valueChange)="onColorNewToggleChecked($event)"
-                        />
+                        <div class="mt-3 space-y-2">
+                          <app-checkbox
+                            label="Color nuevo en el sistema (nombre y hex)"
+                            [value]="!!lineDraft.get('colorNewToggle')?.value"
+                            (valueChange)="onColorNewToggleChecked($event)"
+                          />
+                          <p class="text-xs leading-relaxed text-gray-500">
+                            @if (useExistingProduct()) {
+                              El listado incluye todos los colores del catálogo. Si ya existe pero esta talla aún no lo tiene, elegilo aquí (no hace falta crearlo de nuevo).
+                            } @else {
+                              Si el color ya existe en la base, buscalo abajo. Activá la casilla solo para crear uno que no exista aún.
+                            }
+                          </p>
+                        </div>
                       }
 
                       @if (showColorCatalogPick()) {
-                        <div class="mt-3">
+                        <div class="mt-3 space-y-2">
                           <app-autocomplete-api
+                            #colorSearchAc
                             label="Buscar color del catálogo"
-                            placeholder="Ej. Rojo — clic para agregar (cantidad 1)"
+                            placeholder="Ej. Rojo — Enter o clic para agregar (cantidad 1)"
                             [minChars]="0"
+                            [completeOnFocus]="true"
                             [options]="filteredColorsForPicker()"
                             [displayFn]="colorDisplayFn"
+                            [secondaryTextFn]="useExistingProduct() ? colorSecondaryTextFn : null"
                             (search)="onColorAutocompleteSearch($event)"
                             (selected)="selectCatalogColor($event)"
+                            (enterPressed)="onColorSearchEnter($event)"
                             (cleared)="resetColorCatalogSearch()"
                           />
+                          <p class="text-xs text-gray-500">
+                            El foco vuelve al buscador para seguir cargando colores sin usar el mouse.
+                          </p>
                         </div>
                       }
 
@@ -433,96 +450,111 @@
             }
           </h2>
 
-          <div class="mt-4 overflow-x-auto rounded-xl border border-gray-200">
+          <div
+            class="mt-4 overflow-x-auto rounded-xl border border-gray-200"
+          >
             <app-table-data
               [columns]="purchaseLinesTableColumns"
               [data]="lines.controls"
               [emptyState]="lines.length === 0 ? linesEmptyState : null"
               [variant]="'embedded'"
               [theme]="'emerald'"
-              [minWidth]="'42rem'"
+              [minWidth]="'56rem'"
               [mobileCompact]="false"
               [ariaLabel]="'Líneas de compra'"
             >
               <ng-template #headerTemplate>
                 <tr class="dt-thead-row">
-                  <th class="dt-th" scope="col">Producto</th>
-                  <th class="dt-th" scope="col">Talla</th>
-                  <th class="dt-th" scope="col">Barcode</th>
-                  <th class="dt-th" scope="col">Precios</th>
+                  <th class="dt-th" scope="col" style="width: 14%">Producto</th>
+                  <th class="dt-th text-center" scope="col" style="width: 9%">Talla</th>
+                  <th class="dt-th text-center" scope="col" style="width: 11%">Barcode</th>
+                  <th class="dt-th" scope="col" style="width: 14%">Precios</th>
                   <th class="dt-th" scope="col">Colores y cantidades</th>
-                  <th class="dt-th text-right" scope="col">Subtotal</th>
-                  <th class="dt-th w-24" scope="col"></th>
+                  <th class="dt-th text-right" scope="col" style="width: 9%">Subtotal</th>
+                  <th class="dt-th text-center" scope="col" style="width: 6rem"></th>
                 </tr>
               </ng-template>
 
               <ng-template #rowTemplate let-row let-index="index">
-                <tr [formGroup]="row" class="align-top hover:bg-emerald-50/30">
-                  <td class="px-4 py-3 font-medium text-gray-900">{{ row.get('productName')?.value }}</td>
-                  <td class="px-4 py-3 text-gray-700">{{ row.get('sizeLabel')?.value }}</td>
-                  <td class="min-w-[8rem] px-4 py-3">
-                    <app-input formControlName="barcode" />
+                <tr [formGroup]="row" class="hover:bg-emerald-50/30">
+                  <td class="px-6 py-3.5 align-middle font-medium text-gray-900">
+                    {{ row.get('productName')?.value }}
                   </td>
-                  <td class="min-w-[12rem] px-4 py-3">
+                  <td class="px-6 py-3.5 align-middle text-center text-gray-700">
+                    {{ row.get('sizeLabel')?.value }}
+                  </td>
+                  <td class="px-6 py-3.5 align-middle">
+                    <div class="mx-auto w-full max-w-[9rem]">
+                      <app-input formControlName="barcode" />
+                    </div>
+                  </td>
+                  <td class="px-6 py-3.5 align-middle">
                     <div class="space-y-2">
                       <app-money-input label="Compra" formControlName="purchasePrice" />
                       <app-money-input label="Venta" formControlName="salePrice" />
                       <app-money-input label="Mín." formControlName="minSalePrice" />
                     </div>
                   </td>
-                  <td class="min-w-[14rem] px-4 py-3">
+                  <td class="px-6 py-3.5 align-middle">
                     <ul class="space-y-2">
                       @for (colorGroup of lineColors(row).controls; track trackLineColorKey(colorGroup); let ci = $index) {
                         <li
                           [formGroup]="colorGroup"
-                          class="flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 p-2"
+                          class="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 p-2"
                         >
-                          <span class="min-w-0 flex-1 text-sm font-medium text-gray-900">
+                          <span class="min-w-0 flex-1 truncate text-sm font-medium text-gray-900">
                             {{ colorGroup.get('displayLabel')?.value }}
                           </span>
-                          <app-input
+                          <input
                             type="number"
                             formControlName="quantity"
+                            min="1"
+                            class="w-20 shrink-0 rounded-lg border border-gray-300 px-2 py-1 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            [attr.aria-label]="'Cantidad de ' + (colorGroup.get('displayLabel')?.value ?? 'color')"
                           />
-                          <app-table-action-button
-                            label="Quitar variante de color"
-                            tone="danger"
-                            [disabled]="lineColors(row).length <= 1"
-                            (clicked)="removeLineColorVariant(index, ci)"
-                          >
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </app-table-action-button>
+                          <div class="shrink-0">
+                            <app-table-action-button
+                              label="Quitar variante de color"
+                              tone="danger"
+                              [disabled]="lineColors(row).length <= 1"
+                              (clicked)="removeLineColorVariant(index, ci)"
+                            >
+                              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </app-table-action-button>
+                          </div>
                         </li>
                       }
                     </ul>
                     <p class="mt-2 text-xs leading-relaxed text-gray-500">{{ colorsSummaryText(row) }}</p>
                   </td>
-                  <td class="px-4 py-3 text-right font-semibold tabular-nums text-gray-900">
+                  <td class="px-6 py-3.5 align-middle text-left font-semibold tabular-nums text-gray-900">
                     {{ formatMoney(row.get('subtotal')?.value ?? 0) }}
                   </td>
-                  <td class="px-4 py-3">
-                    <app-table-actions>
-                      <app-table-action-button
-                        label="Editar en constructor"
-                        tone="emerald"
-                        (clicked)="editLine(index)"
-                      >
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </app-table-action-button>
-                      <app-table-action-button
-                        label="Eliminar línea"
-                        tone="danger"
-                        (clicked)="removeLine(index)"
-                      >
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </app-table-action-button>
-                    </app-table-actions>
+                  <td class="px-6 py-3.5 align-middle">
+                    <div class="flex justify-center">
+                      <app-table-actions>
+                        <app-table-action-button
+                          label="Editar en constructor"
+                          tone="emerald"
+                          (clicked)="editLine(index)"
+                        >
+                          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </app-table-action-button>
+                        <app-table-action-button
+                          label="Eliminar línea"
+                          tone="danger"
+                          (clicked)="removeLine(index)"
+                        >
+                          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </app-table-action-button>
+                      </app-table-actions>
+                    </div>
                   </td>
                 </tr>
               </ng-template>
@@ -544,9 +576,12 @@
           <app-button type="button" variant="secondary" (clicked)="goBackToDetail()">
             Volver al detalle
           </app-button>
+          <app-button type="button" [loading]="submitting()" (clicked)="registerPurchase()">
+            Actualizar compra
+          </app-button>
           <app-alert
             variant="info"
-            message="Modo edición: agrega o modifica líneas. Los cambios se aplican automáticamente al inventario."
+            message="Modo edición: agrega o modifica líneas y pulsa «Actualizar compra» para guardar en el servidor."
           />
         } @else {
           <app-button type="button" variant="secondary" (clicked)="resetAll()">
@@ -578,6 +613,9 @@
         @if (isEditMode()) {
           <app-button type="button" variant="secondary" (clicked)="goBackToDetail()">
             Volver al detalle
+          </app-button>
+          <app-button type="button" [loading]="submitting()" (clicked)="registerPurchase()">
+            Actualizar compra
           </app-button>
         } @else {
           <app-button type="button" variant="secondary" (clicked)="resetAll()">

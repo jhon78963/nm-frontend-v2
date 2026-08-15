@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Service, signal } from '@angular/core';
 import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
+import { TABLE_FILTER_KEYS } from '../../../../core/table-filters/table-filter-keys';
+import { TableFilterStorageService } from '../../../../core/table-filters/table-filter-storage.service';
 import { Vendor } from '../../../directories/vendors/models/vendor.model';
 import { adaptVendor, adaptVendorList } from '../../../directories/vendors/data-access/vendor.adapter';
 import { Product } from '../../products/models/product.model';
@@ -31,20 +33,64 @@ export interface PurchaseRegisterDraftSnapshot {
   paymentMethod: string;
 }
 
+const PURCHASE_REGISTER_DRAFT_KEY = TABLE_FILTER_KEYS.purchaseRegisterDraft;
+
+export function isPurchaseRegisterDraftSnapshot(
+  value: unknown,
+): value is PurchaseRegisterDraftSnapshot {
+  if (!value || typeof value !== 'object') {
+    return false;
+  }
+
+  const draft = value as Record<string, unknown>;
+  return (
+    draft['version'] === 2 &&
+    typeof draft['header'] === 'object' &&
+    draft['header'] !== null &&
+    typeof draft['lineDraft'] === 'object' &&
+    draft['lineDraft'] !== null &&
+    Array.isArray(draft['lines']) &&
+    typeof draft['useExistingProduct'] === 'boolean' &&
+    (draft['selectedProductId'] === null || typeof draft['selectedProductId'] === 'number') &&
+    (draft['activeNewProductTempId'] === null ||
+      typeof draft['activeNewProductTempId'] === 'string') &&
+    typeof draft['isEditingLine'] === 'boolean' &&
+    (draft['paymentMethod'] === undefined || typeof draft['paymentMethod'] === 'string')
+  );
+}
+
 @Service()
 export class PurchaseRegisterDraftService {
+  private readonly storage = inject(TableFilterStorageService);
+
   readonly snapshot = signal<PurchaseRegisterDraftSnapshot | null>(null);
 
   read(): PurchaseRegisterDraftSnapshot | null {
-    return this.snapshot();
+    const cached = this.snapshot();
+    if (cached) {
+      return cached;
+    }
+
+    const saved = this.storage.load(
+      PURCHASE_REGISTER_DRAFT_KEY,
+      isPurchaseRegisterDraftSnapshot,
+    );
+    if (saved) {
+      this.snapshot.set(saved);
+      return saved;
+    }
+
+    return null;
   }
 
   save(draft: PurchaseRegisterDraftSnapshot): void {
     this.snapshot.set(draft);
+    this.storage.save(PURCHASE_REGISTER_DRAFT_KEY, draft);
   }
 
   clear(): void {
     this.snapshot.set(null);
+    this.storage.remove(PURCHASE_REGISTER_DRAFT_KEY);
   }
 }
 

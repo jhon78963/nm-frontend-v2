@@ -19,6 +19,8 @@ export class AutocompleteApiComponent {
   readonly minChars = input(2);
   readonly debounceMs = input(300);
   readonly displayFn = input<(item: unknown) => string>((item) => String(item));
+  readonly secondaryTextFn = input<((item: unknown) => string) | null>(null);
+  readonly completeOnFocus = input(false);
   readonly disabled = input(false);
   readonly errorMessage = input('');
   readonly options = input<unknown[]>([]);
@@ -27,6 +29,7 @@ export class AutocompleteApiComponent {
   readonly search = output<string>();
   readonly selected = output<unknown>();
   readonly cleared = output<void>();
+  readonly enterPressed = output<string>();
 
   protected readonly inputId = `app-autocomplete-${AutocompleteApiComponent.nextId++}`;
   protected readonly listboxId = `${this.inputId}-listbox`;
@@ -80,9 +83,35 @@ export class AutocompleteApiComponent {
     this.cleared.emit();
   }
 
+  clearAndFocus(): void {
+    this.inputValue.set('');
+    this.hasSelection.set(false);
+    this.isOpen.set(false);
+    if (this.debounceTimer) {
+      clearTimeout(this.debounceTimer);
+    }
+    queueMicrotask(() => {
+      document.getElementById(this.inputId)?.focus();
+    });
+  }
+
+  protected onFocus(): void {
+    if (this.disabled()) {
+      return;
+    }
+    if (!this.completeOnFocus()) {
+      return;
+    }
+    this.isOpen.set(true);
+    this.search.emit(this.inputValue());
+  }
+
   protected onKeydown(event: KeyboardEvent): void {
     if (event.key === 'Escape') {
       this.isOpen.set(false);
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      this.enterPressed.emit(this.inputValue());
     } else if (event.key === 'ArrowDown' && this.showDropdown()) {
       event.preventDefault();
       const first = document.querySelector<HTMLElement>(`#${this.listboxId} [role="option"]`);
@@ -115,5 +144,10 @@ export class AutocompleteApiComponent {
 
   protected displayItem(item: unknown): string {
     return this.displayFn()(item);
+  }
+
+  protected secondaryText(item: unknown): string {
+    const fn = this.secondaryTextFn();
+    return fn ? fn(item) : '';
   }
 }
