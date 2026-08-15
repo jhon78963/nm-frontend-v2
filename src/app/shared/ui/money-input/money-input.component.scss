@@ -17,7 +17,10 @@
 }
 
 .money-field {
-  @apply w-full rounded-md border border-gray-300 bg-white py-2 pr-3 pl-9 text-sm text-gray-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1;
+  @apply w-full rounded-md border border-gray-300 bg-white pr-3 pl-9 text-sm text-gray-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1;
+  height: var(--control-height);
+  padding-top: 0;
+  padding-bottom: 0;
 
   &:disabled {
     @apply cursor-not-allowed bg-gray-100 opacity-60;

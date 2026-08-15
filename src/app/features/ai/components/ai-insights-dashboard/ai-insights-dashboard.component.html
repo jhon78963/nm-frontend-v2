@@ -50,26 +50,34 @@
         role="tablist"
         aria-label="Tipo de predicción"
       >
-        <app-button
+        <button
           type="button"
           role="tab"
-          [variant]="activeTab() === 'price' ? 'primary' : 'secondary'"
-          class="min-w-[140px] flex-1"
+          class="min-w-[140px] flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+          [class.bg-white]="activeTab() === 'price'"
+          [class.text-violet-700]="activeTab() === 'price'"
+          [class.shadow-sm]="activeTab() === 'price'"
+          [class.bg-transparent]="activeTab() !== 'price'"
+          [class.text-gray-600]="activeTab() !== 'price'"
           [attr.aria-selected]="activeTab() === 'price'"
-          (clicked)="setActiveTab('price')"
+          (click)="setActiveTab('price')"
         >
           Optimizar precio
-        </app-button>
-        <app-button
+        </button>
+        <button
           type="button"
           role="tab"
-          [variant]="activeTab() === 'demand' ? 'primary' : 'secondary'"
-          class="min-w-[140px] flex-1"
+          class="min-w-[140px] flex-1 rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+          [class.bg-white]="activeTab() === 'demand'"
+          [class.text-violet-700]="activeTab() === 'demand'"
+          [class.shadow-sm]="activeTab() === 'demand'"
+          [class.bg-transparent]="activeTab() !== 'demand'"
+          [class.text-gray-600]="activeTab() !== 'demand'"
           [attr.aria-selected]="activeTab() === 'demand'"
-          (clicked)="setActiveTab('demand')"
+          (click)="setActiveTab('demand')"
         >
           Predicción de demanda
-        </app-button>
+        </button>
       </div>
     </div>
   </header>

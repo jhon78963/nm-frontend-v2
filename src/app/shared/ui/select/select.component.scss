@@ -9,7 +9,10 @@
 }
 
 .select-field {
-  @apply w-full rounded-md border border-gray-300 bg-white px-3.5 py-2.5 text-sm text-gray-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1;
+  @apply w-full rounded-md border border-gray-300 bg-white px-3.5 text-sm text-gray-800 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1;
+  height: var(--control-height);
+  padding-top: 0;
+  padding-bottom: 0;
 
   &:disabled {
     @apply cursor-not-allowed bg-gray-100 opacity-60;

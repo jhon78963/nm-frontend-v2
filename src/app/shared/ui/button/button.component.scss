@@ -1,7 +1,14 @@
 @reference '../../../../tailwind.css';
 
+:host {
+  display: inline-flex;
+  vertical-align: middle;
+}
+
 .btn-base {
-  @apply inline-flex items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer;
+  @apply inline-flex w-full h-control items-center justify-center gap-2 rounded-md px-4 text-sm font-medium transition-all outline-none focus-visible:ring-2 focus-visible:ring-offset-2 cursor-pointer;
+  padding-top: 0;
+  padding-bottom: 0;
 
   &:disabled {
     @apply pointer-events-none cursor-not-allowed opacity-50;

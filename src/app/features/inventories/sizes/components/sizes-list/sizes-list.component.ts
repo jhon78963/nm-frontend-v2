@@ -1,4 +1,3 @@
-import { NgClass } from '@angular/common';
 import {
   Component,
   computed,
@@ -62,7 +61,6 @@ const SIZE_TYPE_BADGE_CLASSES = [
 @Component({
   selector: 'app-sizes-list',
   imports: [
-    NgClass,
     ReactiveFormsModule,
     ButtonComponent,
     InputComponent,

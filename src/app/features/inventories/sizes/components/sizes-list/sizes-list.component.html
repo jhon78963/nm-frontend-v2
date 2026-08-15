@@ -44,18 +44,48 @@
   </div>
 
   <!-- ── Toolbar ── -->
-  <div class="flex flex-col gap-3">
-    <div
-      class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto] lg:items-end [&_.btn-base]:h-[2.625rem] [&_.btn-base]:py-0 [&_.input-field]:h-[2.625rem] [&_.input-field]:py-0"
-      [formGroup]="filterForm"
-    >
-      <app-input
-        class="block w-full max-w-sm"
-        label="Buscar"
-        formControlName="search"
-        placeholder="Buscar por talla o tipo…"
-      />
+  <div
+    class="flex flex-col gap-3 lg:flex-row lg:flex-wrap filter-toolbar"
+    [formGroup]="filterForm"
+  >
+    <app-input
+      class="block w-full max-w-xs shrink-0"
+      label="Buscar"
+      formControlName="search"
+      placeholder="Buscar por talla o tipo…"
+    />
 
+    @if (sizeTypes().length) {
+      <div class="flex min-w-0 flex-1 flex-col gap-2">
+        <span class="text-sm font-medium text-gray-700 invisible" aria-hidden="true">Tipo</span>
+        <div
+          class="flex h-control flex-wrap items-center gap-2"
+          role="group"
+          aria-label="Filtrar por tipo de talla"
+        >
+          @for (type of sizeTypes(); track type.id) {
+            <button
+              type="button"
+              class="inline-flex h-full items-center rounded-md px-3.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+              [class.bg-violet-600]="isSizeTypeSelected(type.id)"
+              [class.text-white]="isSizeTypeSelected(type.id)"
+              [class.shadow-sm]="isSizeTypeSelected(type.id)"
+              [class.border]="!isSizeTypeSelected(type.id)"
+              [class.border-gray-300]="!isSizeTypeSelected(type.id)"
+              [class.bg-white]="!isSizeTypeSelected(type.id)"
+              [class.text-gray-700]="!isSizeTypeSelected(type.id)"
+              [class.hover:bg-gray-50]="!isSizeTypeSelected(type.id)"
+              [attr.aria-pressed]="isSizeTypeSelected(type.id)"
+              (click)="toggleSizeType(type.id)"
+            >
+              {{ type.description }}
+            </button>
+          }
+        </div>
+      </div>
+    }
+
+    <div class="flex shrink-0 items-end gap-3">
       @if (hasActiveFilters()) {
         <div class="flex flex-col gap-2">
           <span class="text-sm font-medium text-gray-700 invisible" aria-hidden="true">Acciones</span>
@@ -74,40 +104,15 @@
       }
 
       @if (!loading()) {
-        <div class="inline-flex items-center gap-1.5 self-end rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm lg:justify-self-end">
-          <span class="font-semibold text-gray-900">{{ total() }}</span>
-          <span class="text-gray-400">{{ total() === 1 ? 'talla' : 'tallas' }}</span>
+        <div class="flex flex-col gap-2">
+          <span class="text-sm font-medium text-gray-700 invisible" aria-hidden="true">Total</span>
+          <div class="control-badge gap-1.5">
+            <span class="font-semibold text-gray-900">{{ total() }}</span>
+            <span class="text-gray-400">{{ total() === 1 ? 'talla' : 'tallas' }}</span>
+          </div>
         </div>
       }
     </div>
-
-    @if (sizeTypes().length) {
-      <div
-        class="flex flex-wrap gap-2"
-        role="group"
-        aria-label="Filtrar por tipo de talla"
-      >
-        @for (type of sizeTypes(); track type.id) {
-          <div
-            class="[&_.btn-base]:rounded-full [&_.btn-base]:px-3.5 [&_.btn-base]:py-1.5 [&_.btn-base]:text-sm [&_.btn-base]:font-medium [&_.btn-base]:shadow-none [&_.btn-base]:ring-1 [&_.btn-base]:ring-inset"
-            [ngClass]="
-              isSizeTypeSelected(type.id)
-                ? '[&_.btn-base]:bg-violet-600 [&_.btn-base]:text-white [&_.btn-base]:ring-violet-600 hover:[&_.btn-base]:bg-violet-600'
-                : '[&_.btn-base]:border [&_.btn-base]:border-gray-300 [&_.btn-base]:bg-white [&_.btn-base]:text-gray-700 [&_.btn-base]:ring-transparent hover:[&_.btn-base]:bg-gray-50'
-            "
-          >
-            <app-button
-              type="button"
-              variant="secondary"
-              [attr.aria-pressed]="isSizeTypeSelected(type.id)"
-              (clicked)="toggleSizeType(type.id)"
-            >
-              {{ type.description }}
-            </app-button>
-          </div>
-        }
-      </div>
-    }
   </div>
 
   <app-table-data

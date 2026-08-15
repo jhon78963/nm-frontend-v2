@@ -18,6 +18,8 @@
   --color-warning: var(--color-warning);
   --color-danger:  var(--color-danger);
   --color-info:    var(--color-info);
+
+  --height-control: var(--control-height);
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -73,6 +75,16 @@
 
   .form-stack {
     @apply flex flex-col gap-5;
+  }
+
+  /* Toolbars de filtros: alinea inputs, selects y botones al borde inferior */
+  .filter-toolbar {
+    @apply items-end;
+  }
+
+  /* Badge/contador alineado con controles de 42px */
+  .control-badge {
+    @apply inline-flex h-control items-center rounded-xl border border-gray-200 bg-white px-3 text-sm;
   }
 
   :is(
