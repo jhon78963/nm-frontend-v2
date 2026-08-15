@@ -1,8 +1,8 @@
 import { Component, computed, input, output } from '@angular/core';
 import {
-  DataTableColumn,
-  DataTableComponent,
-} from '../../../../../shared/ui/data-table/data-table.component';
+  TableDataColumn,
+  TableDataComponent,
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { MonthlySalesReport } from '../../../models/sales-report.model';
 
 interface MonthlySalesRow {
@@ -18,7 +18,7 @@ interface MonthlySalesRow {
 
 @Component({
   selector: 'app-sales-monthly-tab',
-  imports: [DataTableComponent],
+  imports: [TableDataComponent],
   templateUrl: './sales-monthly-tab.component.html',
 })
 export class SalesMonthlyTabComponent {
@@ -28,7 +28,7 @@ export class SalesMonthlyTabComponent {
 
   readonly selectedMonthChange = output<string>();
 
-  protected readonly tableColumns: DataTableColumn<MonthlySalesRow>[] = [
+  protected readonly tableColumns: TableDataColumn<MonthlySalesRow>[] = [
     { key: 'day', label: 'Día' },
     { key: 'date', label: 'Fecha' },
     { key: 'quantity', label: 'Cantidad', align: 'right' },

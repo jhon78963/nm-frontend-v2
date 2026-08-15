@@ -11,9 +11,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../../../auth/data-access/auth.service';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import {
-  DataTableColumn,
-  DataTableComponent,
-} from '../../../../../shared/ui/data-table/data-table.component';
+  TableDataColumn,
+  TableDataComponent,
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import {
   formatViewDate,
@@ -41,7 +41,7 @@ type CashRegisterDisplayRow =
 
 @Component({
   selector: 'app-cash-register',
-  imports: [DecimalPipe, ConfirmDialogComponent, MovementFormComponent, DataTableComponent],
+  imports: [DecimalPipe, ConfirmDialogComponent, MovementFormComponent, TableDataComponent],
   templateUrl: './cash-register.component.html',
 })
 export class CashRegisterComponent implements OnInit {
@@ -123,8 +123,8 @@ export class CashRegisterComponent implements OnInit {
     return `¿Eliminar este ${kind} (S/ ${item.amount.toFixed(2)})? Esta acción no se puede deshacer.`;
   });
 
-  protected readonly movementTableColumns = computed<DataTableColumn<CashRegisterDisplayRow>[]>(() => {
-    const cols: DataTableColumn<CashRegisterDisplayRow>[] = [
+  protected readonly movementTableColumns = computed<TableDataColumn<CashRegisterDisplayRow>[]>(() => {
+    const cols: TableDataColumn<CashRegisterDisplayRow>[] = [
       { key: 'time', label: 'Hora', width: '5rem' },
       { key: 'type', label: '', width: '2.5rem', align: 'center' },
       { key: 'description', label: 'Descripción' },

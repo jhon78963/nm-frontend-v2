@@ -1,8 +1,8 @@
 import { Component, computed, input, output } from '@angular/core';
 import {
-  DataTableColumn,
-  DataTableComponent,
-} from '../../../../../shared/ui/data-table/data-table.component';
+  TableDataColumn,
+  TableDataComponent,
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { DailySalesReport, SalesDailyTransaction } from '../../../models/sales-report.model';
 
 interface HourlySalesRow {
@@ -17,7 +17,7 @@ interface HourlySalesRow {
 
 @Component({
   selector: 'app-sales-daily-tab',
-  imports: [DataTableComponent],
+  imports: [TableDataComponent],
   templateUrl: './sales-daily-tab.component.html',
 })
 export class SalesDailyTabComponent {
@@ -27,7 +27,7 @@ export class SalesDailyTabComponent {
 
   readonly selectedDateChange = output<string>();
 
-  protected readonly hourlyColumns: DataTableColumn<HourlySalesRow>[] = [
+  protected readonly hourlyColumns: TableDataColumn<HourlySalesRow>[] = [
     { key: 'hour', label: 'Hora' },
     { key: 'quantity', label: 'Cantidad', align: 'right' },
     { key: 'total', label: 'Total', align: 'right' },
@@ -36,7 +36,7 @@ export class SalesDailyTabComponent {
     { key: 'card', label: 'Tarjeta', align: 'right' },
   ];
 
-  protected readonly transactionColumns: DataTableColumn<SalesDailyTransaction>[] = [
+  protected readonly transactionColumns: TableDataColumn<SalesDailyTransaction>[] = [
     { key: 'time', label: 'Hora' },
     { key: 'source', label: 'Tipo' },
     { key: 'detail', label: 'Detalle' },

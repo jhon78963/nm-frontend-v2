@@ -12,13 +12,13 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../../auth/data-access/auth.service';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import {
-  DataTableColumn,
-  DataTableComponent,
-  DataTableEmptyState,
+  TableDataColumn,
+  TableDataComponent,
+  TableDataEmptyState,
   DtCellDirective,
   DtExpandCellComponent,
   DtRowDirective,
-} from '../../../../../shared/ui/data-table/data-table.component';
+} from '../../../../../shared/ui/table-data/table-data.component';
 import {
   categoryBadgeClass,
   formatGrowthLabel,
@@ -31,7 +31,7 @@ import { QuickTransactionFormComponent } from '../quick-transaction-form/quick-t
 
 @Component({
   selector: 'app-financial-summary-dashboard',
-  imports: [DecimalPipe, RouterLink, QuickTransactionFormComponent, DataTableComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
+  imports: [DecimalPipe, RouterLink, QuickTransactionFormComponent, TableDataComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
   providers: [FinancialSummaryService],
   templateUrl: './financial-summary-dashboard.component.html',
 })
@@ -62,7 +62,7 @@ export class FinancialSummaryDashboardComponent implements OnInit {
     growthBadgeClass(this.cards().salesIncome.growth),
   );
 
-  protected readonly tableColumns: DataTableColumn<RecentTransaction>[] = [
+  protected readonly tableColumns: TableDataColumn<RecentTransaction>[] = [
     { key: 'concept', label: 'Concepto', mobilePrimary: true },
     { key: 'category', label: 'Categoría' },
     { key: 'date', label: 'Fecha', className: 'hidden sm:table-cell' },
@@ -70,7 +70,7 @@ export class FinancialSummaryDashboardComponent implements OnInit {
     { key: 'amount', label: 'Monto', align: 'right' },
   ];
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+  protected readonly emptyState = computed<TableDataEmptyState>(() => ({
     title: 'Sin movimientos recientes',
     description: 'No hay ventas POS ni movimientos de caja registrados.',
     actionLabel: this.canManageCashflow() ? 'Registrar primer ingreso' : undefined,

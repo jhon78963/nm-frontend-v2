@@ -10,6 +10,7 @@ import {
   AbstractControl,
   FormArray,
   FormBuilder,
+  FormControl,
   FormGroup,
   ReactiveFormsModule,
   Validators,
@@ -30,18 +31,24 @@ import {
   tap,
 } from 'rxjs';
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
+import { AutocompleteApiComponent } from '../../../../../shared/ui/autocomplete-api/autocomplete-api.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
 import { DateInputComponent } from '../../../../../shared/ui/date-input/date-input.component';
+import { FileDropzoneComponent } from '../../../../../shared/ui/file-dropzone/file-dropzone.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
+import { RadioGroupComponent } from '../../../../../shared/ui/radio-group/radio-group.component';
 import {
   SelectComponent,
   SelectOption,
 } from '../../../../../shared/ui/select/select.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
+import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import {
-  DataTableColumn,
-  DataTableComponent,
-} from '../../../../../shared/ui/data-table/data-table.component';
+  TableDataColumn,
+  TableDataComponent,
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { Vendor } from '../../../../directories/vendors/models/vendor.model';
 import { ProductLookupService } from '../../../products/data-access/product-lookup.service';
@@ -77,12 +84,18 @@ const LEGACY_DRAFT_STORAGE_KEYS = [
     ReactiveFormsModule,
     RouterLink,
     AlertComponent,
+    AutocompleteApiComponent,
     ButtonComponent,
+    CheckboxComponent,
     DateInputComponent,
+    FileDropzoneComponent,
     InputComponent,
     MoneyInputComponent,
+    RadioGroupComponent,
     SelectComponent,
-    DataTableComponent,
+    TableActionButtonComponent,
+    TableActionsComponent,
+    TableDataComponent,
   ],
   templateUrl: './purchase-register.component.html',
   host: {
@@ -168,12 +181,12 @@ export class PurchaseRegisterComponent implements OnInit {
   protected readonly vendorSearching = signal(false);
 
   protected readonly productResults = signal<Product[]>([]);
-  protected readonly productDropdownOpen = signal(false);
   protected readonly productSearching = signal(false);
 
   protected readonly colorCatalogSearch = signal('');
   protected readonly filteredColorsForPicker = signal<ProductColorOption[]>([]);
-  protected readonly colorDropdownOpen = signal(false);
+
+  protected readonly paymentMethodControl = new FormControl('CASH', { nonNullable: true });
 
   protected readonly paymentMethods: SelectOption<string>[] = [
     { label: 'Efectivo', value: 'CASH' },
@@ -192,13 +205,13 @@ export class PurchaseRegisterComponent implements OnInit {
   protected readonly sizeTypeOptions = signal<SelectOption<number>[]>([]);
   protected readonly catalogSizeOptions = signal<SelectOption<number>[]>([]);
 
-  protected readonly draftColorTableColumns: DataTableColumn<FormGroup>[] = [
+  protected readonly draftColorTableColumns: TableDataColumn<FormGroup>[] = [
     { key: 'color', label: 'Color' },
     { key: 'quantity', label: 'Cantidad', align: 'right' },
     { key: 'actions', label: '', width: '2.5rem' },
   ];
 
-  protected readonly purchaseLinesTableColumns: DataTableColumn<FormGroup>[] = [
+  protected readonly purchaseLinesTableColumns: TableDataColumn<FormGroup>[] = [
     { key: 'product', label: 'Producto' },
     { key: 'size', label: 'Talla' },
     { key: 'barcode', label: 'Barcode' },
@@ -235,11 +248,21 @@ export class PurchaseRegisterComponent implements OnInit {
       .get('supplierName')
       ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((val) => {
+        const strVal = String(val ?? '');
         const lock = this.supplierNameLockedForVendorId;
-        if (lock != null && String(val ?? '').trim() !== lock) {
+        if (lock != null && strVal.trim() !== lock) {
           this.header.patchValue({ vendorId: null }, { emitEvent: false });
           this.supplierNameLockedForVendorId = null;
         }
+        this.vendorSearch$.next(strVal);
+        this.vendorDropdownOpen.set(strVal.trim().length >= 2);
+      });
+
+    this.paymentMethodControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        this.selectedPaymentMethod.set(value);
+        this.requestPersistDraft();
       });
 
     this.lineDraft
@@ -251,11 +274,6 @@ export class PurchaseRegisterComponent implements OnInit {
       .get('selectedSizeId')
       ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.onCatalogSizeChosen());
-  }
-
-  protected onColorSearchFocus(): void {
-    this.colorDropdownOpen.set(true);
-    this.filterColorPicker(this.colorCatalogSearch());
   }
 
   protected flushPurchaseDraftOnUnload(): void {
@@ -272,27 +290,23 @@ export class PurchaseRegisterComponent implements OnInit {
     return `S/ ${formatted}`;
   }
 
-  protected onSupplierInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.header.patchValue({ supplierName: value }, { emitEvent: true });
-    this.vendorSearch$.next(value);
-    this.vendorDropdownOpen.set(value.trim().length >= 2);
-  }
-
-  protected onSupplierFocus(): void {
-    const q = String(this.header.value.supplierName ?? '').trim();
-    if (q.length >= 2 && this.vendorResults().length > 0) {
-      this.vendorDropdownOpen.set(true);
+  protected onSupplierFocusOut(event: FocusEvent): void {
+    const related = event.relatedTarget as Node | null;
+    const current = event.currentTarget as HTMLElement;
+    if (related && current.contains(related)) {
+      return;
     }
+    setTimeout(() => this.closeVendorDropdown(), 150);
   }
 
   protected closeVendorDropdown(): void {
     this.vendorDropdownOpen.set(false);
   }
 
-  protected selectVendor(vendor: Vendor): void {
-    const id = Number(vendor.id);
-    const nm = String(vendor.name ?? '').trim();
+  protected selectVendor(vendor: unknown): void {
+    const picked = vendor as Vendor;
+    const id = Number(picked.id);
+    const nm = String(picked.name ?? '').trim();
     if (Number.isFinite(id) && id > 0) {
       this.header.patchValue({ supplierName: nm, vendorId: id });
       this.supplierNameLockedForVendorId = nm;
@@ -303,17 +317,32 @@ export class PurchaseRegisterComponent implements OnInit {
     this.vendorDropdownOpen.set(false);
   }
 
-  protected onProductSearchInput(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.productSearch$.next(value);
-    this.productDropdownOpen.set(value.trim().length >= 2);
+  protected readonly productDisplayFn = (item: unknown): string => {
+    const product = item as Product;
+    return product.name;
+  };
+
+  protected readonly colorDisplayFn = (item: unknown): string => {
+    const opt = item as ProductColorOption;
+    if (this.useExistingProduct() && opt.isExists) {
+      return `${opt.description} — Ya en esta talla`;
+    }
+    if (this.useExistingProduct()) {
+      return `${opt.description} — Sin variante en esta talla`;
+    }
+    return opt.description;
+  };
+
+  protected onProductAutocompleteSearch(query: string): void {
+    this.productSearch$.next(query);
   }
 
   protected closeProductDropdown(): void {
-    this.productDropdownOpen.set(false);
+    // Compatibilidad con el evento cleared del autocomplete de producto.
   }
 
-  protected onProductPicked(product: Product): void {
+  protected onProductPicked(product: unknown): void {
+    const picked = product as Product;
     this.colorOptions.set([]);
     this.colorCatalogSearch.set('');
     this.filteredColorsForPicker.set([]);
@@ -329,8 +358,8 @@ export class PurchaseRegisterComponent implements OnInit {
     );
 
     forkJoin({
-      sizes: this.catalog.getProductSizes(product.id),
-      full: this.productService.getOne(product.id).pipe(catchError(() => of(product))),
+      sizes: this.catalog.getProductSizes(picked.id),
+      full: this.productService.getOne(picked.id).pipe(catchError(() => of(picked))),
     })
       .pipe(
         switchMap(({ sizes, full }) => {
@@ -368,13 +397,12 @@ export class PurchaseRegisterComponent implements OnInit {
             this.catalogSizes.set(rows ?? []);
             this.syncCatalogSizeOptions();
           }
-          this.productDropdownOpen.set(false);
           this.refreshColorsAfterSizeChange();
           this.requestPersistDraft();
         },
         error: () => {
-          this.selectedProduct.set(product);
-          this.productResults.set([product]);
+          this.selectedProduct.set(picked);
+          this.productResults.set([picked]);
           this.productPivotBySizeId.set(new Map());
           this.requestPersistDraft();
         },
@@ -513,6 +541,20 @@ export class PurchaseRegisterComponent implements OnInit {
     this.refreshColorsAfterSizeChange();
   }
 
+  protected onSizeNewToggleChecked(checked: boolean): void {
+    this.lineDraft.patchValue({ sizeNewToggle: checked });
+    this.onSizeNewToggleChange();
+  }
+
+  protected onUseColorVariantChecked(checked: boolean): void {
+    this.lineDraft.patchValue({ useColorVariant: checked });
+    this.onUseColorVariantChange();
+  }
+
+  protected onColorNewToggleChecked(checked: boolean): void {
+    this.lineDraft.patchValue({ colorNewToggle: checked });
+  }
+
   protected onSizeNewToggleChange(): void {
     this.clearDraftVariants();
     const on = !!this.lineDraft.get('sizeNewToggle')?.value;
@@ -537,6 +579,10 @@ export class PurchaseRegisterComponent implements OnInit {
       );
       this.refreshColorsAfterSizeChange();
     }
+  }
+
+  protected onProductSourceChange(value: unknown): void {
+    this.toggleProductSource(value === true);
   }
 
   protected toggleProductSource(isExisting: boolean): void {
@@ -579,39 +625,13 @@ export class PurchaseRegisterComponent implements OnInit {
     return sum;
   }
 
-  protected onColorSearchInput(event: Event): void {
-    const q = (event.target as HTMLInputElement).value;
-    this.colorCatalogSearch.set(q);
-    this.filterColorPicker(q);
-    this.colorDropdownOpen.set(true);
+  protected onColorAutocompleteSearch(query: string): void {
+    this.colorCatalogSearch.set(query);
+    this.filterColorPicker(query);
   }
 
-  protected onColorSearchKeydown(event: KeyboardEvent): void {
-    if (event.key !== 'Enter') {
-      return;
-    }
-    const q = this.colorCatalogSearch().trim().toLowerCase();
-    if (!q) {
-      return;
-    }
-    const opts = this.colorOptions();
-    const exact = opts.find((c) => c.description.trim().toLowerCase() === q);
-    const single =
-      this.filteredColorsForPicker().length === 1
-        ? this.filteredColorsForPicker()[0]
-        : null;
-    const pick = exact ?? single;
-    if (!pick?.id) {
-      return;
-    }
-    event.preventDefault();
-    event.stopPropagation();
-    this.addCatalogColorToQueue(pick, 1);
-    this.resetColorCatalogSearch();
-  }
-
-  protected selectCatalogColor(opt: ProductColorOption): void {
-    this.addCatalogColorToQueue(opt, 1);
+  protected selectCatalogColor(opt: unknown): void {
+    this.addCatalogColorToQueue(opt as ProductColorOption, 1);
     this.resetColorCatalogSearch();
   }
 
@@ -1117,25 +1137,18 @@ export class PurchaseRegisterComponent implements OnInit {
     this.useExistingProduct.set(true);
     this.activeNewProductTempId = null;
     this.selectedPaymentMethod.set('CASH');
+    this.paymentMethodControl.setValue('CASH', { emitEvent: false });
     this.voucherFiles.set([]);
     this.persistDraftEnabled = true;
   }
 
-  protected onVoucherSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.voucherFiles.set(input.files ? Array.from(input.files) : []);
+  protected onVoucherFilesChange(files: File[]): void {
+    this.voucherFiles.set(files);
   }
 
   protected onUseColorVariantChange(): void {
     if (!this.lineDraft.get('useColorVariant')?.value) {
       this.clearDraftVariants();
-    }
-  }
-
-  protected onPaymentMethodChange(value: string | null): void {
-    if (value) {
-      this.selectedPaymentMethod.set(value);
-      this.requestPersistDraft();
     }
   }
 
@@ -1301,10 +1314,9 @@ export class PurchaseRegisterComponent implements OnInit {
     );
   }
 
-  private resetColorCatalogSearch(): void {
+  protected resetColorCatalogSearch(): void {
     this.colorCatalogSearch.set('');
     this.filteredColorsForPicker.set([]);
-    this.colorDropdownOpen.set(false);
   }
 
   private findDraftColorQueueIndexByExistingColorId(colorId: number): number {
@@ -1844,6 +1856,7 @@ export class PurchaseRegisterComponent implements OnInit {
 
     if (parsed.paymentMethod) {
       this.selectedPaymentMethod.set(parsed.paymentMethod);
+      this.paymentMethodControl.setValue(parsed.paymentMethod, { emitEvent: false });
     }
 
     this.applyLineDraftFromSnapshot((parsed.lineDraft ?? {}) as Record<string, unknown>);

@@ -15,14 +15,14 @@ import {
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import {
-  DataTableComponent,
-  DataTableColumn,
-  DataTablePagination,
-  DataTableEmptyState,
+  TableDataComponent,
+  TableDataColumn,
+  TableDataPagination,
+  TableDataEmptyState,
   DtCellDirective,
   DtExpandCellComponent,
   DtRowDirective,
-} from '../../../../../shared/ui/data-table/data-table.component';
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -45,7 +45,7 @@ const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.vendors;
     ReactiveFormsModule,
     VendorFormComponent,
     ConfirmDialogComponent,
-    DataTableComponent,
+    TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
     DtRowDirective,
@@ -105,7 +105,7 @@ export class VendorsListComponent implements OnInit {
     return pages;
   });
 
-  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+  protected readonly paginationData = computed<TableDataPagination | null>(() => {
     if (this.totalPages() <= 1) return null;
     return {
       currentPage: this.page(),
@@ -116,14 +116,14 @@ export class VendorsListComponent implements OnInit {
     };
   });
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+  protected readonly emptyState = computed<TableDataEmptyState>(() => ({
     icon: undefined as never,
     title: 'Aún no hay proveedores registrados',
     description: 'Agrega proveedores para gestionar compras e inventario.',
     actionLabel: 'Nuevo proveedor',
   }));
 
-  protected readonly tableColumns = signal<DataTableColumn<Vendor>[]>([
+  protected readonly tableColumns = signal<TableDataColumn<Vendor>[]>([
     { key: 'id', label: '#', align: 'left', width: '16' },
     { key: 'vendor', label: 'Proveedor', align: 'left', mobilePrimary: true },
     { key: 'phone', label: 'Celular', align: 'left' },

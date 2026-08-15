@@ -15,14 +15,14 @@ import {
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import {
-  DataTableComponent,
-  DataTableColumn,
-  DataTablePagination,
-  DataTableEmptyState,
+  TableDataComponent,
+  TableDataColumn,
+  TableDataPagination,
+  TableDataEmptyState,
   DtCellDirective,
   DtExpandCellComponent,
   DtRowDirective,
-} from '../../../../../shared/ui/data-table/data-table.component';
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -45,7 +45,7 @@ const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.customers;
     ReactiveFormsModule,
     CustomerFormComponent,
     ConfirmDialogComponent,
-    DataTableComponent,
+    TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
     DtRowDirective,
@@ -106,7 +106,7 @@ export class CustomersListComponent implements OnInit {
     return pages;
   });
 
-  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+  protected readonly paginationData = computed<TableDataPagination | null>(() => {
     if (this.totalPages() <= 1) return null;
     return {
       currentPage: this.page(),
@@ -117,14 +117,14 @@ export class CustomersListComponent implements OnInit {
     };
   });
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+  protected readonly emptyState = computed<TableDataEmptyState>(() => ({
     icon: undefined as never,
     title: 'Aún no hay clientes registrados',
     description: 'Crea el primer cliente para usarlo en ventas y POS.',
     actionLabel: 'Nuevo cliente',
   }));
 
-  protected readonly tableColumns = signal<DataTableColumn<Customer>[]>([
+  protected readonly tableColumns = signal<TableDataColumn<Customer>[]>([
     { key: 'customer', label: 'Cliente', align: 'left', mobilePrimary: true },
     { key: 'dni', label: 'DNI', align: 'left' },
     { key: 'actions', label: 'Acciones', align: 'right', width: '100px' },

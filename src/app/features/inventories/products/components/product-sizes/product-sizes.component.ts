@@ -11,9 +11,9 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import {
-  DataTableColumn,
-  DataTableComponent,
-} from '../../../../../shared/ui/data-table/data-table.component';
+  TableDataColumn,
+  TableDataComponent,
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { ProductService } from '../../data-access/product.service';
 import { ProductSizesService } from '../../data-access/product-sizes.service';
@@ -34,7 +34,7 @@ interface SizeFieldSnapshot {
 
 @Component({
   selector: 'app-product-sizes',
-  imports: [FormsModule, RouterLink, ButtonComponent, DataTableComponent],
+  imports: [FormsModule, RouterLink, ButtonComponent, TableDataComponent],
   templateUrl: './product-sizes.component.html',
 })
 export class ProductSizesComponent implements OnInit {
@@ -53,7 +53,7 @@ export class ProductSizesComponent implements OnInit {
   protected readonly selectedSizeTypeIds = signal<number[]>([1]);
   protected readonly selectedSizes = signal<ProductSize[]>([]);
 
-  protected readonly sizeTableColumns: DataTableColumn<ProductSize>[] = [
+  protected readonly sizeTableColumns: TableDataColumn<ProductSize>[] = [
     { key: 'select', label: '', width: '3rem' },
     { key: 'id', label: '#' },
     { key: 'description', label: 'Talla' },

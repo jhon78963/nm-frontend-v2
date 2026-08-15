@@ -353,7 +353,7 @@
 
       <div class="overflow-x-auto">
         @if (purchase(); as p) {
-          <app-data-table
+          <app-table-data
             [columns]="lineTableColumns()"
             [data]="p.lines"
             [variant]="'embedded'"
@@ -456,7 +456,7 @@
                 }
               </tr>
             </ng-template>
-          </app-data-table>
+          </app-table-data>
         }
       </div>
     </section>

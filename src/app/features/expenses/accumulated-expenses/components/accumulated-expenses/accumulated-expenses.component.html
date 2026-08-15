@@ -126,7 +126,7 @@
 
     <h2 class="text-sm font-semibold text-gray-900">Historial del mes</h2>
 
-    <app-data-table
+    <app-table-data
       [columns]="tableColumns()"
       [data]="expenses()"
       [loading]="loading()"
@@ -196,6 +196,6 @@
           }
         </tr>
       </ng-template>
-    </app-data-table>
+    </app-table-data>
   </main>
 </div>

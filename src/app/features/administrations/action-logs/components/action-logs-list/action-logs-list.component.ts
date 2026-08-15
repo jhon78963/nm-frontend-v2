@@ -18,14 +18,14 @@ import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filte
 import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
 import { isSearchPageFilterState } from '../../../../../core/table-filters/table-filter-state.util';
 import {
-  DataTableComponent,
-  DataTableColumn,
-  DataTableEmptyState,
-  DataTablePagination,
+  TableDataComponent,
+  TableDataColumn,
+  TableDataEmptyState,
+  TableDataPagination,
   DtCellDirective,
   DtExpandCellComponent,
   DtRowDirective,
-} from '../../../../../shared/ui/data-table/data-table.component';
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { AuthService } from '../../../../auth/data-access/auth.service';
 import { UserService } from '../../../users/data-access/user.service';
@@ -86,7 +86,7 @@ function isActionLogFilterState(value: unknown): value is ActionLogFilterState {
 
 @Component({
   selector: 'app-action-logs-list',
-  imports: [ReactiveFormsModule, DataTableComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
+  imports: [ReactiveFormsModule, TableDataComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
   providers: [ActionLogService, WarehouseService, UserService],
   templateUrl: './action-logs-list.component.html',
 })
@@ -154,7 +154,7 @@ export class ActionLogsListComponent implements OnInit {
     return pages;
   });
 
-  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+  protected readonly paginationData = computed<TableDataPagination | null>(() => {
     if (this.totalPages() <= 1) return null;
     return {
       currentPage: this.page(),
@@ -165,7 +165,7 @@ export class ActionLogsListComponent implements OnInit {
     };
   });
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+  protected readonly emptyState = computed<TableDataEmptyState>(() => ({
     icon: undefined as never,
     title: 'Sin registros de auditoría',
     description:
@@ -187,7 +187,7 @@ export class ActionLogsListComponent implements OnInit {
     return '';
   });
 
-  protected readonly tableColumns = signal<DataTableColumn<ActionLog>[]>([
+  protected readonly tableColumns = signal<TableDataColumn<ActionLog>[]>([
     { key: 'creationTime', label: 'Fecha y hora', align: 'left', width: '168px' },
     { key: 'action', label: 'Acción', align: 'left', width: '180px' },
     { key: 'description', label: 'Detalle', align: 'left', mobilePrimary: true },

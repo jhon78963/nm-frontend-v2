@@ -78,7 +78,7 @@
   } @else {
     <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
       <div class="overflow-x-auto">
-        <app-data-table
+        <app-table-data
           [columns]="sizeTableColumns"
           [data]="sizes()"
           [variant]="'embedded'"
@@ -207,7 +207,7 @@
               </td>
             </tr>
           </ng-template>
-        </app-data-table>
+        </app-table-data>
       </div>
     </div>
   }

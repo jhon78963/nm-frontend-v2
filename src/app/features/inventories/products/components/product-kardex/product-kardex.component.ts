@@ -17,13 +17,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, of, switchMap } from 'rxjs';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import {
-  DataTableComponent,
-  DataTableColumn,
-  DataTablePagination,
+  TableDataComponent,
+  TableDataColumn,
+  TableDataPagination,
   DtCellDirective,
   DtExpandCellComponent,
   DtRowDirective,
-} from '../../../../../shared/ui/data-table/data-table.component';
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { DateInputComponent } from '../../../../../shared/ui/date-input/date-input.component';
 import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -66,7 +66,7 @@ function toIsoDate(date: Date): string {
   imports: [
     FormField,
     ButtonComponent,
-    DataTableComponent,
+    TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
     DtRowDirective,
@@ -201,7 +201,7 @@ export class ProductKardexComponent implements OnInit {
     return this.filteredMovements().slice(start, start + PAGE_SIZE);
   });
 
-  protected readonly pagination = computed<DataTablePagination | null>(() => {
+  protected readonly pagination = computed<TableDataPagination | null>(() => {
     const totalItems = this.filteredMovements().length;
     if (totalItems === 0) {
       return null;
@@ -269,7 +269,7 @@ export class ProductKardexComponent implements OnInit {
     { id: 'last-30-days', label: 'Últimos 30 días' },
   ];
 
-  protected readonly tableColumns: DataTableColumn<KardexMovement>[] = [
+  protected readonly tableColumns: TableDataColumn<KardexMovement>[] = [
     { key: 'occurredAt', label: 'Fecha' },
     { key: 'movementTypeLabel', label: 'Motivo' },
     { key: 'document', label: 'Documento', mobilePrimary: true },

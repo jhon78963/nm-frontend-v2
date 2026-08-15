@@ -20,13 +20,13 @@ import {
 import { AdminExpenseService } from '../../data-access/admin-expense.service';
 import { AdminExpense } from '../../models/admin-expense.model';
 import {
-  DataTableColumn,
-  DataTableComponent,
-  DataTableEmptyState,
+  TableDataColumn,
+  TableDataComponent,
+  TableDataEmptyState,
   DtCellDirective,
   DtExpandCellComponent,
   DtRowDirective,
-} from '../../../../../shared/ui/data-table/data-table.component';
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { AdminExpenseFormComponent } from '../admin-expense-form/admin-expense-form.component';
 import { VoucherPreviewDialogComponent } from '../voucher-preview-dialog/voucher-preview-dialog.component';
 
@@ -36,7 +36,7 @@ import { VoucherPreviewDialogComponent } from '../voucher-preview-dialog/voucher
     DecimalPipe,
     AdminExpenseFormComponent,
     VoucherPreviewDialogComponent,
-    DataTableComponent,
+    TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
     DtRowDirective,
@@ -95,8 +95,8 @@ export class AdminExpensesComponent implements OnInit {
 
   protected readonly expenseCount = computed(() => this.expenses().length);
 
-  protected readonly tableColumns = computed<DataTableColumn<AdminExpense>[]>(() => {
-    const columns: DataTableColumn<AdminExpense>[] = [
+  protected readonly tableColumns = computed<TableDataColumn<AdminExpense>[]>(() => {
+    const columns: TableDataColumn<AdminExpense>[] = [
       { key: 'date', label: 'Fecha pago' },
       { key: 'period', label: 'Período' },
       { key: 'category', label: 'Categoría' },
@@ -118,7 +118,7 @@ export class AdminExpensesComponent implements OnInit {
     return columns;
   });
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+  protected readonly emptyState = computed<TableDataEmptyState>(() => ({
     title: 'Sin gastos en este mes',
     description: `No hay gastos administrativos registrados para ${this.formattedMonth()}.`,
     actionLabel: this.canStore() ? 'Registrar primer gasto' : undefined,

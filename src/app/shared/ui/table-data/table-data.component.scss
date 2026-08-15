@@ -1,6 +1,6 @@
 @reference '../../../../tailwind.css';
 
-app-data-table {
+app-table-data {
   display: block;
 }
 
@@ -24,7 +24,7 @@ app-data-table {
 }
 
 @media (max-width: 767px) {
-  app-data-table.dt-mobile-enabled {
+  app-table-data.dt-mobile-enabled {
     .dt-table--mobile {
       min-width: 0 !important;
       width: 100%;
@@ -144,7 +144,7 @@ app-data-table {
 }
 
 @media (min-width: 768px) {
-  app-data-table.dt-mobile-enabled {
+  app-table-data.dt-mobile-enabled {
     .dt-table--mobile tbody tr.dt-row {
       display: table-row;
     }

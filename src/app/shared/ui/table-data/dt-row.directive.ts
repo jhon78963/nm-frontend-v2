@@ -5,7 +5,7 @@ import {
   inject,
   input,
 } from '@angular/core';
-import { DataTableComponent } from './data-table.component';
+import { TableDataComponent } from './table-data.component';
 
 @Directive({
   selector: 'tr[appDtRow]',
@@ -14,7 +14,7 @@ export class DtRowDirective {
   readonly rowIndex = input.required<number>({ alias: 'dtRowIndex' });
 
   private readonly host = inject(ElementRef<HTMLTableRowElement>);
-  private readonly table = inject(DataTableComponent);
+  private readonly table = inject(TableDataComponent);
 
   constructor() {
     this.host.nativeElement.classList.add('dt-row');

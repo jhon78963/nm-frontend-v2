@@ -10,9 +10,9 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import {
-  DataTableColumn,
-  DataTableComponent,
-} from '../../../../../shared/ui/data-table/data-table.component';
+  TableDataColumn,
+  TableDataComponent,
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import {
   buildLineChartGeometry,
@@ -39,7 +39,7 @@ interface AccumulatedHistoryRow extends MonthlyHistoryRow {
 
 @Component({
   selector: 'app-management-dashboard',
-  imports: [DecimalPipe, RouterLink, DataTableComponent],
+  imports: [DecimalPipe, RouterLink, TableDataComponent],
   providers: [ReportDashboardService],
   templateUrl: './management-dashboard.component.html',
 })
@@ -52,14 +52,14 @@ export class ManagementDashboardComponent implements OnInit {
   protected readonly selectedMonth = signal(new Date());
   protected readonly activeTab = signal<DashboardTab>('summary');
 
-  protected readonly salesHistoryColumns: DataTableColumn<MonthlyHistoryRow>[] = [
+  protected readonly salesHistoryColumns: TableDataColumn<MonthlyHistoryRow>[] = [
     { key: 'dateLabel', label: 'Fecha' },
     { key: 'cash', label: 'Efectivo', align: 'right' },
     { key: 'digital', label: 'Bancos / Digital', align: 'right' },
     { key: 'monthlyTotal', label: 'Total mensual', align: 'right', className: 'bg-indigo-50/50 font-bold' },
   ];
 
-  protected readonly accumulatedColumns: DataTableColumn<AccumulatedHistoryRow>[] = [
+  protected readonly accumulatedColumns: TableDataColumn<AccumulatedHistoryRow>[] = [
     { key: 'dateLabel', label: 'Fecha' },
     { key: 'cash', label: 'Efectivo', align: 'right' },
     { key: 'digital', label: 'Bancos / Digital', align: 'right' },

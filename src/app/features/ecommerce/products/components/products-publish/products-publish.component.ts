@@ -14,14 +14,14 @@ import {
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import {
-  DataTableComponent,
-  DataTableColumn,
-  DataTableEmptyState,
-  DataTablePagination,
+  TableDataComponent,
+  TableDataColumn,
+  TableDataEmptyState,
+  TableDataPagination,
   DtCellDirective,
   DtExpandCellComponent,
   DtRowDirective,
-} from '../../../../../shared/ui/data-table/data-table.component';
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { PublishProductService } from '../../data-access/publish-product.service';
 import { PublishProduct } from '../../models/publish-product.model';
@@ -33,7 +33,7 @@ import { ProductPublishPanelComponent } from '../product-publish-panel/product-p
   selector: 'app-products-publish',
   imports: [
     ReactiveFormsModule,
-    DataTableComponent,
+    TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
     DtRowDirective,
@@ -68,7 +68,7 @@ export class ProductsPublishComponent implements OnInit {
     search: new FormControl('', { nonNullable: true }),
   });
 
-  protected readonly tableColumns = signal<DataTableColumn<PublishProduct>[]>([
+  protected readonly tableColumns = signal<TableDataColumn<PublishProduct>[]>([
     { key: 'id', label: '#', width: '16' },
     { key: 'name', label: 'Producto', align: 'left', mobilePrimary: true },
     { key: 'barcode', label: 'Código', align: 'left' },
@@ -77,7 +77,7 @@ export class ProductsPublishComponent implements OnInit {
     { key: 'actions', label: '', align: 'right', width: '120px' },
   ]);
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+  protected readonly emptyState = computed<TableDataEmptyState>(() => ({
     icon: undefined as never,
     title: currentSearchEmpty(this.currentSearch())
       ? 'No se encontraron productos'
@@ -108,7 +108,7 @@ export class ProductsPublishComponent implements OnInit {
     return pages;
   });
 
-  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+  protected readonly paginationData = computed<TableDataPagination | null>(() => {
     if (this.totalPages() <= 1) return null;
     return {
       currentPage: this.page(),

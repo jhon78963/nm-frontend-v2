@@ -188,7 +188,7 @@
             Este producto no tiene variantes talla × color. Agrégalas en los pasos anteriores para publicarlas.
           </p>
         } @else {
-          <app-data-table
+          <app-table-data
             [columns]="variantColumns"
             [data]="variants()"
             [variant]="'plain'"
@@ -227,7 +227,7 @@
                 </td>
               </tr>
             </ng-template>
-          </app-data-table>
+          </app-table-data>
         }
       </section>
     }

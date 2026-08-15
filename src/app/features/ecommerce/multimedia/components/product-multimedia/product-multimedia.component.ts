@@ -14,14 +14,14 @@ import {
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import {
-  DataTableComponent,
-  DataTableColumn,
-  DataTableEmptyState,
-  DataTablePagination,
+  TableDataComponent,
+  TableDataColumn,
+  TableDataEmptyState,
+  TableDataPagination,
   DtCellDirective,
   DtExpandCellComponent,
   DtRowDirective,
-} from '../../../../../shared/ui/data-table/data-table.component';
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { PublishProductService } from '../../../products/data-access/publish-product.service';
 import { PublishProduct } from '../../../products/models/publish-product.model';
@@ -30,7 +30,7 @@ import { ProductGalleryComponent } from '../../../products/components/product-ga
 
 @Component({
   selector: 'app-product-multimedia',
-  imports: [ReactiveFormsModule, DataTableComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective, ProductGalleryComponent],
+  imports: [ReactiveFormsModule, TableDataComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective, ProductGalleryComponent],
   templateUrl: './product-multimedia.component.html',
 })
 export class ProductMultimediaComponent implements OnDestroy {
@@ -58,7 +58,7 @@ export class ProductMultimediaComponent implements OnDestroy {
     search: new FormControl('', { nonNullable: true }),
   });
 
-  protected readonly tableColumns = signal<DataTableColumn<PublishProduct>[]>([
+  protected readonly tableColumns = signal<TableDataColumn<PublishProduct>[]>([
     { key: 'id', label: '#', width: '16' },
     { key: 'thumb', label: 'Foto', align: 'center', width: '56px' },
     { key: 'name', label: 'Producto', align: 'left', mobilePrimary: true },
@@ -67,7 +67,7 @@ export class ProductMultimediaComponent implements OnDestroy {
     { key: 'actions', label: '', align: 'right', width: '120px' },
   ]);
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+  protected readonly emptyState = computed<TableDataEmptyState>(() => ({
     icon: undefined as never,
     title: this.currentSearch().trim()
       ? 'No se encontraron productos'
@@ -97,7 +97,7 @@ export class ProductMultimediaComponent implements OnDestroy {
     return pages;
   });
 
-  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+  protected readonly paginationData = computed<TableDataPagination | null>(() => {
     if (this.totalPages() <= 1) return null;
     return {
       currentPage: this.page(),

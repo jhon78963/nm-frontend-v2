@@ -10,9 +10,9 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import {
-  DataTableColumn,
-  DataTableComponent,
-} from '../../../../../shared/ui/data-table/data-table.component';
+  TableDataColumn,
+  TableDataComponent,
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { AttendanceService } from '../../data-access/attendance.service';
 import { TeamService } from '../../data-access/team.service';
 import {
@@ -44,7 +44,7 @@ import {
 
 @Component({
   selector: 'app-team-attendance',
-  imports: [RouterLink, DataTableComponent],
+  imports: [RouterLink, TableDataComponent],
   templateUrl: './team-attendance.component.html',
 })
 export class TeamAttendanceComponent implements OnInit {
@@ -69,7 +69,7 @@ export class TeamAttendanceComponent implements OnInit {
   protected readonly quincenaOptions = QUINCENA_OPTIONS;
   protected readonly valdeoNthOptions = VALDEO_NTH_OPTIONS;
 
-  protected readonly attendanceTableColumns: DataTableColumn<AttendanceDayRow>[] = [
+  protected readonly attendanceTableColumns: TableDataColumn<AttendanceDayRow>[] = [
     { key: 'day', label: 'Día' },
     { key: 'weekday', label: 'Sem.' },
     { key: 'status', label: 'Estado' },

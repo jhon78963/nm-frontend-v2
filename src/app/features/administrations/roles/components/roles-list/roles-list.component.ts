@@ -16,14 +16,14 @@ import { Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import {
-  DataTableComponent,
-  DataTableColumn,
-  DataTablePagination,
-  DataTableEmptyState,
-} from '../../../../../shared/ui/data-table/data-table.component';
-import { DtCellDirective } from '../../../../../shared/ui/data-table/dt-cell.directive';
-import { DtExpandCellComponent } from '../../../../../shared/ui/data-table/dt-expand-cell.component';
-import { DtRowDirective } from '../../../../../shared/ui/data-table/dt-row.directive';
+  TableDataComponent,
+  TableDataColumn,
+  TableDataPagination,
+  TableDataEmptyState,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -46,7 +46,7 @@ const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.roles;
     ReactiveFormsModule,
     RoleFormComponent,
     ConfirmDialogComponent,
-    DataTableComponent,
+    TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
     DtRowDirective,
@@ -107,7 +107,7 @@ export class RolesListComponent implements OnInit {
     return pages;
   });
 
-  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+  protected readonly paginationData = computed<TableDataPagination | null>(() => {
     if (this.totalPages() <= 1) return null;
     return {
       currentPage: this.page(),
@@ -118,14 +118,14 @@ export class RolesListComponent implements OnInit {
     };
   });
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+  protected readonly emptyState = computed<TableDataEmptyState>(() => ({
     icon: undefined as never,
     title: 'No hay roles creados aún',
     description: 'Crea el primer rol haciendo clic en «Nuevo rol».',
     actionLabel: 'Nuevo rol',
   }));
 
-  protected readonly tableColumns = signal<DataTableColumn<Role>[]>([
+  protected readonly tableColumns = signal<TableDataColumn<Role>[]>([
     { key: 'id', label: '#', align: 'left', width: '16' },
     { key: 'name', label: 'Nombre del rol', align: 'left', mobilePrimary: true },
     { key: 'actions', label: 'Acciones', align: 'right' },

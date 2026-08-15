@@ -15,14 +15,14 @@ import {
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import {
-  DataTableComponent,
-  DataTableColumn,
-  DataTableEmptyState,
-  DataTablePagination,
+  TableDataComponent,
+  TableDataColumn,
+  TableDataEmptyState,
+  TableDataPagination,
   DtCellDirective,
   DtExpandCellComponent,
   DtRowDirective,
-} from '../../../../../shared/ui/data-table/data-table.component';
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -62,7 +62,7 @@ const SIZE_TYPE_BADGE_CLASSES = [
     ReactiveFormsModule,
     SizeFormComponent,
     ConfirmDialogComponent,
-    DataTableComponent,
+    TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
     DtRowDirective,
@@ -142,7 +142,7 @@ export class SizesListComponent implements OnInit {
     return count;
   });
 
-  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+  protected readonly paginationData = computed<TableDataPagination | null>(() => {
     if (this.totalPages() <= 1) return null;
     return {
       currentPage: this.page(),
@@ -153,7 +153,7 @@ export class SizesListComponent implements OnInit {
     };
   });
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => {
+  protected readonly emptyState = computed<TableDataEmptyState>(() => {
     if (this.hasActiveFilters()) {
       return {
         icon: undefined as never,
@@ -170,7 +170,7 @@ export class SizesListComponent implements OnInit {
     };
   });
 
-  protected readonly tableColumns = signal<DataTableColumn<Size>[]>([
+  protected readonly tableColumns = signal<TableDataColumn<Size>[]>([
     { key: 'id', label: '#', align: 'left', width: '64px', className: 'w-16' },
     { key: 'size', label: 'Talla', align: 'left', mobilePrimary: true },
     { key: 'type', label: 'Tipo', align: 'left' },

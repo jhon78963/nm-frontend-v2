@@ -16,14 +16,14 @@ import { Router, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import {
-  DataTableComponent,
-  DataTableColumn,
-  DataTablePagination,
-  DataTableEmptyState,
+  TableDataComponent,
+  TableDataColumn,
+  TableDataPagination,
+  TableDataEmptyState,
   DtCellDirective,
   DtExpandCellComponent,
   DtRowDirective,
-} from '../../../../../shared/ui/data-table/data-table.component';
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -50,7 +50,7 @@ const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.teams;
     TeamFormComponent,
     TeamDailyAttendanceComponent,
     ConfirmDialogComponent,
-    DataTableComponent,
+    TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
     DtRowDirective,
@@ -115,7 +115,7 @@ export class TeamsListComponent implements OnInit {
 
   protected readonly firstTeamOnPage = computed(() => this.teams()[0] ?? null);
 
-  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+  protected readonly paginationData = computed<TableDataPagination | null>(() => {
     if (this.totalPages() <= 1) return null;
     return {
       currentPage: this.page(),
@@ -126,14 +126,14 @@ export class TeamsListComponent implements OnInit {
     };
   });
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+  protected readonly emptyState = computed<TableDataEmptyState>(() => ({
     icon: undefined as never,
     title: 'Aún no hay colaboradores registrados',
     description: 'Agrega la primera colaboradora para gestionar asistencia y nómina.',
     actionLabel: 'Nuevo colaborador',
   }));
 
-  protected readonly tableColumns = signal<DataTableColumn<Team>[]>([
+  protected readonly tableColumns = signal<TableDataColumn<Team>[]>([
     { key: 'id', label: '#', align: 'left', width: '16' },
     { key: 'member', label: 'Colaborador', align: 'left', mobilePrimary: true },
     { key: 'dni', label: 'DNI', align: 'left' },

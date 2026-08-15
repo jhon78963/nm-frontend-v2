@@ -23,9 +23,9 @@ import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
 import {
-  DataTableColumn,
-  DataTableComponent,
-} from '../../../../../shared/ui/data-table/data-table.component';
+  TableDataColumn,
+  TableDataComponent,
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
 import { ProductService } from '../../../products/data-access/product.service';
@@ -80,7 +80,7 @@ type ReconciliationTableRow =
     ConfirmDialogComponent,
     InputComponent,
     SelectComponent,
-    DataTableComponent,
+    TableDataComponent,
   ],
   templateUrl: './inventory-reconciliation.component.html',
 })
@@ -193,7 +193,7 @@ export class InventoryReconciliationComponent implements OnInit {
     }
     return rows;
   });
-  protected readonly reconciliationTableColumns: DataTableColumn<ReconciliationTableRow>[] = [
+  protected readonly reconciliationTableColumns: TableDataColumn<ReconciliationTableRow>[] = [
     { key: 'label', label: 'Talla / color' },
     { key: 'purchasePrice', label: 'P. compra', align: 'right' },
     { key: 'salePrice', label: 'P. venta', align: 'right' },

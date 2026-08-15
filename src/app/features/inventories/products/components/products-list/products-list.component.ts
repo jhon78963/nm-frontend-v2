@@ -21,14 +21,14 @@ import { downloadFile } from '../../../../../core/utils/file-download.util';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { ExportButtonComponent } from '../../../../../shared/ui/export-button/export-button.component';
 import {
-  DataTableComponent,
-  DataTableColumn,
-  DataTableEmptyState,
-  DataTablePagination,
-} from '../../../../../shared/ui/data-table/data-table.component';
-import { DtCellDirective } from '../../../../../shared/ui/data-table/dt-cell.directive';
-import { DtExpandCellComponent } from '../../../../../shared/ui/data-table/dt-expand-cell.component';
-import { DtRowDirective } from '../../../../../shared/ui/data-table/dt-row.directive';
+  TableDataComponent,
+  TableDataColumn,
+  TableDataEmptyState,
+  TableDataPagination,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -63,7 +63,7 @@ function isProductFilterState(value: unknown): value is ProductFilterState {
     CommonModule,
     ReactiveFormsModule,
     ConfirmDialogComponent,
-    DataTableComponent,
+    TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
     DtRowDirective,
@@ -132,7 +132,7 @@ export class ProductsListComponent implements OnInit {
     return pages;
   });
 
-  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+  protected readonly paginationData = computed<TableDataPagination | null>(() => {
     if (this.totalPages() <= 1) return null;
     return {
       currentPage: this.page(),
@@ -154,14 +154,14 @@ export class ProductsListComponent implements OnInit {
     return this.currentSearch().trim() || 'los filtros seleccionados';
   });
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+  protected readonly emptyState = computed<TableDataEmptyState>(() => ({
     icon: undefined as never,
     title: 'Aún no hay productos registrados',
     description: 'Crea el primer producto para comenzar a gestionar tu inventario.',
     actionLabel: 'Nuevo producto',
   }));
 
-  protected readonly tableColumns = signal<DataTableColumn<Product>[]>([
+  protected readonly tableColumns = signal<TableDataColumn<Product>[]>([
     { key: 'id', label: '#', align: 'left', width: '80px', className: 'w-20' },
     { key: 'name', label: 'Nombre', align: 'left', mobilePrimary: true },
     { key: 'gender', label: 'Género', align: 'left', width: '128px', className: 'w-32' },

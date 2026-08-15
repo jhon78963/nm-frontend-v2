@@ -19,9 +19,9 @@ import { AlertComponent } from '../../../../../../shared/ui/alert/alert.componen
 import { ButtonComponent } from '../../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import {
-  DataTableColumn,
-  DataTableComponent,
-} from '../../../../../../shared/ui/data-table/data-table.component';
+  TableDataColumn,
+  TableDataComponent,
+} from '../../../../../../shared/ui/table-data/table-data.component';
 import { SelectOption } from '../../../../../../shared/ui/select/select.component';
 import {
   formatDateTime,
@@ -56,7 +56,7 @@ interface PaymentRow extends SalePayment {
     AlertComponent,
     ButtonComponent,
     ConfirmDialogComponent,
-    DataTableComponent,
+    TableDataComponent,
     SaleProductSelectorComponent,
   ],
   templateUrl: './sale-form.component.html',
@@ -135,8 +135,8 @@ export class SaleFormComponent implements OnInit {
     return 'Editar venta';
   });
 
-  protected readonly itemTableColumns = computed<DataTableColumn<ItemRow>[]>(() => {
-    const cols: DataTableColumn<ItemRow>[] = [
+  protected readonly itemTableColumns = computed<TableDataColumn<ItemRow>[]>(() => {
+    const cols: TableDataColumn<ItemRow>[] = [
       { key: 'quantity', label: 'Cant.' },
       { key: 'description', label: 'Descripción' },
       { key: 'unitPrice', label: 'Precio', align: 'right' },

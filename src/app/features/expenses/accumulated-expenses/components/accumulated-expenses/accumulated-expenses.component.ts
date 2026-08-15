@@ -23,13 +23,13 @@ import { AccountSetupPanelComponent } from '../account-setup-panel/account-setup
 import { AccumulatedExpenseFormComponent } from '../accumulated-expense-form/accumulated-expense-form.component';
 import { MonthEndTransferPanelComponent } from '../month-end-transfer-panel/month-end-transfer-panel.component';
 import {
-  DataTableColumn,
-  DataTableComponent,
-  DataTableEmptyState,
+  TableDataColumn,
+  TableDataComponent,
+  TableDataEmptyState,
   DtCellDirective,
   DtExpandCellComponent,
   DtRowDirective,
-} from '../../../../../shared/ui/data-table/data-table.component';
+} from '../../../../../shared/ui/table-data/table-data.component';
 
 @Component({
   selector: 'app-accumulated-expenses',
@@ -39,7 +39,7 @@ import {
     MonthEndTransferPanelComponent,
     AccumulatedExpenseFormComponent,
     VoucherPreviewDialogComponent,
-    DataTableComponent,
+    TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
     DtRowDirective,
@@ -99,8 +99,8 @@ export class AccumulatedExpensesComponent implements OnInit {
   protected readonly expenseCount = computed(() => this.expenses().length);
   protected readonly isAccountInitialized = computed(() => this.account().isInitialized);
 
-  protected readonly tableColumns = computed<DataTableColumn<AccumulatedExpense>[]>(() => {
-    const columns: DataTableColumn<AccumulatedExpense>[] = [
+  protected readonly tableColumns = computed<TableDataColumn<AccumulatedExpense>[]>(() => {
+    const columns: TableDataColumn<AccumulatedExpense>[] = [
       { key: 'date', label: 'Fecha' },
       { key: 'description', label: 'Descripción', mobilePrimary: true },
       { key: 'method', label: 'Método', align: 'center' },
@@ -120,7 +120,7 @@ export class AccumulatedExpensesComponent implements OnInit {
     return columns;
   });
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+  protected readonly emptyState = computed<TableDataEmptyState>(() => ({
     title: 'Sin egresos en este mes',
     description: `No hay movimientos de Cuenta Acumulada en ${this.formattedMonth()}.`,
     actionLabel: this.canStore() ? 'Registrar egreso' : undefined,

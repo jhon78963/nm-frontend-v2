@@ -15,14 +15,14 @@ import {
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import {
-  DataTableComponent,
-  DataTableColumn,
-  DataTableEmptyState,
-  DataTablePagination,
+  TableDataComponent,
+  TableDataColumn,
+  TableDataEmptyState,
+  TableDataPagination,
   DtCellDirective,
   DtExpandCellComponent,
   DtRowDirective,
-} from '../../../../../shared/ui/data-table/data-table.component';
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -46,7 +46,7 @@ const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.colors;
     ReactiveFormsModule,
     ColorFormComponent,
     ConfirmDialogComponent,
-    DataTableComponent,
+    TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
     DtRowDirective,
@@ -107,7 +107,7 @@ export class ColorsListComponent implements OnInit {
     return pages;
   });
 
-  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+  protected readonly paginationData = computed<TableDataPagination | null>(() => {
     if (this.totalPages() <= 1) return null;
     return {
       currentPage: this.page(),
@@ -118,14 +118,14 @@ export class ColorsListComponent implements OnInit {
     };
   });
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+  protected readonly emptyState = computed<TableDataEmptyState>(() => ({
     icon: undefined as never,
     title: 'Aún no hay colores registrados',
     description: 'Crea el primer color para usarlo en productos y variantes.',
     actionLabel: 'Nuevo color',
   }));
 
-  protected readonly tableColumns = signal<DataTableColumn<Color>[]>([
+  protected readonly tableColumns = signal<TableDataColumn<Color>[]>([
     { key: 'id', label: '#', align: 'left', width: '64px', className: 'w-16' },
     { key: 'color', label: 'Color', align: 'left', mobilePrimary: true },
     { key: 'sample', label: 'Muestra', align: 'left' },

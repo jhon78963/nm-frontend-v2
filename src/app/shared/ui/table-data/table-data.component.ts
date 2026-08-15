@@ -14,7 +14,7 @@ export { DtCellDirective } from './dt-cell.directive';
 export { DtExpandCellComponent } from './dt-expand-cell.component';
 export { DtRowDirective } from './dt-row.directive';
 
-export interface DataTableColumn<T = unknown> {
+export interface TableDataColumn<T = unknown> {
   key: string;
   label: string;
   width?: string;
@@ -25,14 +25,14 @@ export interface DataTableColumn<T = unknown> {
   mobilePrimary?: boolean;
 }
 
-export interface DataTableEmptyState {
+export interface TableDataEmptyState {
   icon?: TemplateRef<void>;
   title: string;
   description: string;
   actionLabel?: string;
 }
 
-export interface DataTablePagination {
+export interface TableDataPagination {
   currentPage: number;
   totalPages: number;
   pageSize: number;
@@ -40,7 +40,7 @@ export interface DataTablePagination {
   pages: (number | '...')[];
 }
 
-export type DataTableTheme =
+export type TableDataTheme =
   | 'sky'
   | 'violet'
   | 'amber'
@@ -48,29 +48,29 @@ export type DataTableTheme =
   | 'emerald'
   | 'rose';
 
-export type DataTableVariant = 'card' | 'plain' | 'embedded';
+export type TableDataVariant = 'card' | 'plain' | 'embedded';
 
 @Component({
-  selector: 'app-data-table',
+  selector: 'app-table-data',
   imports: [CommonModule],
-  templateUrl: './data-table.component.html',
-  styleUrl: './data-table.component.scss',
+  templateUrl: './table-data.component.html',
+  styleUrl: './table-data.component.scss',
   encapsulation: ViewEncapsulation.None,
   host: {
-    class: 'app-data-table',
+    class: 'app-table-data',
     '[class.dt-mobile-enabled]': 'mobileLayoutEnabled()',
   },
 })
-export class DataTableComponent<T> {
-  columns = input<DataTableColumn<T>[]>([]);
+export class TableDataComponent<T> {
+  columns = input<TableDataColumn<T>[]>([]);
   data = input.required<T[]>();
   loading = input(false);
-  emptyState = input<DataTableEmptyState | null>(null);
+  emptyState = input<TableDataEmptyState | null>(null);
   emptyIcon = contentChild<TemplateRef<void>>('emptyIcon');
   emptySearch = input<string>('');
-  pagination = input<DataTablePagination | null>(null);
-  theme = input<DataTableTheme>('sky');
-  variant = input<DataTableVariant>('card');
+  pagination = input<TableDataPagination | null>(null);
+  theme = input<TableDataTheme>('sky');
+  variant = input<TableDataVariant>('card');
   minWidth = input('640px');
   rowHoverEffect = input(true);
   showRowActions = input(true);
@@ -142,11 +142,11 @@ export class DataTableComponent<T> {
     return key === 'actions';
   }
 
-  isPrimaryColumn(col: DataTableColumn<T>): boolean {
+  isPrimaryColumn(col: TableDataColumn<T>): boolean {
     return this.isPrimaryColumnKey(col.key);
   }
 
-  isColumnHeaderVisibleOnMobile(col: DataTableColumn<T>): boolean {
+  isColumnHeaderVisibleOnMobile(col: TableDataColumn<T>): boolean {
     return this.isPrimaryColumn(col);
   }
 

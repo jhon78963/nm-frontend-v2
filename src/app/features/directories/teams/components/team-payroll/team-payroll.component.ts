@@ -16,13 +16,13 @@ import {
 } from '@angular/forms';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import {
-  DataTableColumn,
-  DataTableComponent,
-  DataTableEmptyState,
+  TableDataColumn,
+  TableDataComponent,
+  TableDataEmptyState,
   DtCellDirective,
   DtExpandCellComponent,
   DtRowDirective,
-} from '../../../../../shared/ui/data-table/data-table.component';
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { PayrollService } from '../../data-access/payroll.service';
 import { TeamService } from '../../data-access/team.service';
@@ -45,7 +45,7 @@ import {
 
 @Component({
   selector: 'app-team-payroll',
-  imports: [ReactiveFormsModule, RouterLink, ConfirmDialogComponent, DataTableComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
+  imports: [ReactiveFormsModule, RouterLink, ConfirmDialogComponent, TableDataComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
   templateUrl: './team-payroll.component.html',
 })
 export class TeamPayrollComponent implements OnInit {
@@ -124,7 +124,7 @@ export class TeamPayrollComponent implements OnInit {
     () => this.data()?.paymentItems ?? [],
   );
 
-  protected readonly tableColumns: DataTableColumn<PayrollPaymentItem>[] = [
+  protected readonly tableColumns: TableDataColumn<PayrollPaymentItem>[] = [
     { key: 'date', label: 'Fecha' },
     { key: 'type', label: 'Tipo', mobilePrimary: true },
     { key: 'period', label: 'Quincena' },
@@ -132,7 +132,7 @@ export class TeamPayrollComponent implements OnInit {
     { key: 'actions', label: '', align: 'right', className: 'w-16' },
   ];
 
-  protected readonly emptyState: DataTableEmptyState = {
+  protected readonly emptyState: TableDataEmptyState = {
     title: 'Sin movimientos',
     description: 'No hay movimientos registrados en este periodo.',
   };

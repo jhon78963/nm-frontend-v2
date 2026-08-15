@@ -6,7 +6,7 @@ import {
   OnInit,
   Renderer2,
 } from '@angular/core';
-import { DataTableComponent } from './data-table.component';
+import { TableDataComponent } from './table-data.component';
 
 @Directive({
   selector: 'td[dtCell]',
@@ -16,7 +16,7 @@ export class DtCellDirective implements OnInit {
 
   private readonly host = inject(ElementRef<HTMLTableCellElement>);
   private readonly renderer = inject(Renderer2);
-  private readonly table = inject(DataTableComponent);
+  private readonly table = inject(TableDataComponent);
 
   ngOnInit(): void {
     const key = this.dtCell();

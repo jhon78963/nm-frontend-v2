@@ -13,9 +13,9 @@ import { downloadFile } from '../../../core/utils/file-download.util';
 import { ExportButtonComponent } from '../../../shared/ui/export-button/export-button.component';
 import { ButtonComponent } from '../../../shared/ui/button/button.component';
 import {
-  DataTableColumn,
-  DataTableComponent,
-} from '../../../shared/ui/data-table/data-table.component';
+  TableDataColumn,
+  TableDataComponent,
+} from '../../../shared/ui/table-data/table-data.component';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
 import {
   firstDayOfMonthIsoDate,
@@ -48,7 +48,7 @@ interface PeriodProductRow {
 
 @Component({
   selector: 'app-sales-period-report',
-  imports: [RouterLink, ButtonComponent, ExportButtonComponent, DataTableComponent],
+  imports: [RouterLink, ButtonComponent, ExportButtonComponent, TableDataComponent],
   providers: [SalesReportService],
   templateUrl: './sales-period-report.component.html',
 })
@@ -68,7 +68,7 @@ export class SalesPeriodReportComponent implements OnInit {
   protected readonly isLoading = signal(false);
   protected readonly isExporting = signal(false);
 
-  protected readonly periodColumns: DataTableColumn<PeriodSalesRow>[] = [
+  protected readonly periodColumns: TableDataColumn<PeriodSalesRow>[] = [
     { key: 'expand', label: '', width: '3rem' },
     { key: 'date', label: 'Fecha' },
     { key: 'quantity', label: 'Cantidad', align: 'right' },
@@ -78,7 +78,7 @@ export class SalesPeriodReportComponent implements OnInit {
     { key: 'card', label: 'Tarjeta', align: 'right' },
   ];
 
-  protected readonly productDetailColumns: DataTableColumn<PeriodProductRow>[] = [
+  protected readonly productDetailColumns: TableDataColumn<PeriodProductRow>[] = [
     { key: 'name', label: 'Producto' },
     { key: 'size', label: 'Talla' },
     { key: 'color', label: 'Color' },

@@ -15,9 +15,9 @@ import { catchError, concat, of } from 'rxjs';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import {
-  DataTableColumn,
-  DataTableComponent,
-} from '../../../../../shared/ui/data-table/data-table.component';
+  TableDataColumn,
+  TableDataComponent,
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { ProductColorsService } from '../../data-access/product-colors.service';
 import {
@@ -51,7 +51,7 @@ const SELECTED_SIZE_KEY = 'selectedSize';
 
 @Component({
   selector: 'app-product-colors',
-  imports: [FormsModule, RouterLink, ButtonComponent, ConfirmDialogComponent, DataTableComponent],
+  imports: [FormsModule, RouterLink, ButtonComponent, ConfirmDialogComponent, TableDataComponent],
   templateUrl: './product-colors.component.html',
 })
 export class ProductColorsComponent implements OnInit {
@@ -253,7 +253,7 @@ export class ProductColorsComponent implements OnInit {
         .length,
   );
 
-  protected readonly colorTableColumns: DataTableColumn<ProductColorVariantRow>[] = [
+  protected readonly colorTableColumns: TableDataColumn<ProductColorVariantRow>[] = [
     { key: 'select', label: 'Sel.', width: '3rem' },
     { key: 'id', label: '#', className: 'hidden w-16 md:table-cell' },
     { key: 'color', label: 'Color' },

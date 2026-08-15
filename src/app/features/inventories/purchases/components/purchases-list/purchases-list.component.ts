@@ -16,14 +16,14 @@ import { Router, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import {
-  DataTableComponent,
-  DataTableColumn,
-  DataTableEmptyState,
-  DataTablePagination,
+  TableDataComponent,
+  TableDataColumn,
+  TableDataEmptyState,
+  TableDataPagination,
   DtCellDirective,
   DtExpandCellComponent,
   DtRowDirective,
-} from '../../../../../shared/ui/data-table/data-table.component';
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
@@ -64,7 +64,7 @@ function isPurchaseFilterState(value: unknown): value is PurchaseFilterState {
     ReactiveFormsModule,
     RouterLink,
     ConfirmDialogComponent,
-    DataTableComponent,
+    TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
     DtRowDirective,
@@ -139,7 +139,7 @@ export class PurchasesListComponent implements OnInit {
     return pages;
   });
 
-  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+  protected readonly paginationData = computed<TableDataPagination | null>(() => {
     if (this.totalPages() <= 1) return null;
     return {
       currentPage: this.page(),
@@ -150,14 +150,14 @@ export class PurchasesListComponent implements OnInit {
     };
   });
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+  protected readonly emptyState = computed<TableDataEmptyState>(() => ({
     icon: undefined as never,
     title: 'Aún no hay compras registradas',
     description: 'Registra tu primera compra para actualizar inventario y cuenta acumulada.',
     actionLabel: 'Nueva compra',
   }));
 
-  protected readonly tableColumns = signal<DataTableColumn<PurchaseRow>[]>([
+  protected readonly tableColumns = signal<TableDataColumn<PurchaseRow>[]>([
     { key: 'id', label: '#', align: 'left', width: '16' },
     { key: 'date', label: 'Fecha doc.', align: 'left' },
     { key: 'supplier', label: 'Proveedor', align: 'left', mobilePrimary: true },

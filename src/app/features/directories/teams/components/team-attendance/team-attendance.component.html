@@ -122,7 +122,7 @@
       <div class="p-8 text-center text-sm text-gray-500" aria-busy="true">Cargando asistencia…</div>
     } @else {
       <div class="max-h-[min(70vh,720px)] overflow-auto">
-        <app-data-table
+        <app-table-data
           [columns]="attendanceTableColumns"
           [data]="visibleMonthRows()"
           [variant]="'embedded'"
@@ -245,7 +245,7 @@
               </td>
             </tr>
           </ng-template>
-        </app-data-table>
+        </app-table-data>
       </div>
     }
   </div>

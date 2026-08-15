@@ -23,9 +23,9 @@ import { DateInputComponent } from '../../../../../shared/ui/date-input/date-inp
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
 import {
-  DataTableColumn,
-  DataTableComponent,
-} from '../../../../../shared/ui/data-table/data-table.component';
+  TableDataColumn,
+  TableDataComponent,
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { PurchaseCatalogService } from '../../data-access/purchase-catalog.service';
 import { PurchaseService } from '../../data-access/purchase.service';
@@ -52,7 +52,7 @@ interface VendorSuggestion {
     DateInputComponent,
     InputComponent,
     MoneyInputComponent,
-    DataTableComponent,
+    TableDataComponent,
   ],
   templateUrl: './purchase-detail.component.html',
 })
@@ -124,8 +124,8 @@ export class PurchaseDetailComponent implements OnInit {
     () => this.isActive() && this.remainingVoucherSlots() > 0,
   );
 
-  protected readonly lineTableColumns = computed<DataTableColumn<PurchaseLineRow>[]>(() => {
-    const cols: DataTableColumn<PurchaseLineRow>[] = [
+  protected readonly lineTableColumns = computed<TableDataColumn<PurchaseLineRow>[]>(() => {
+    const cols: TableDataColumn<PurchaseLineRow>[] = [
       { key: 'product', label: 'Producto' },
       { key: 'size', label: 'Talla' },
       { key: 'stockDelta', label: 'Δ stock' },

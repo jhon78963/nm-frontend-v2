@@ -17,14 +17,14 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { AuthService } from '../../../../../auth/data-access/auth.service';
 import { ConfirmDialogComponent } from '../../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import {
-  DataTableComponent,
-  DataTableColumn,
-  DataTableEmptyState,
-  DataTablePagination,
-} from '../../../../../../shared/ui/data-table/data-table.component';
-import { DtCellDirective } from '../../../../../../shared/ui/data-table/dt-cell.directive';
-import { DtExpandCellComponent } from '../../../../../../shared/ui/data-table/dt-expand-cell.component';
-import { DtRowDirective } from '../../../../../../shared/ui/data-table/dt-row.directive';
+  TableDataComponent,
+  TableDataColumn,
+  TableDataEmptyState,
+  TableDataPagination,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
+} from '../../../../../../shared/ui/table-data/table-data.component';
 import { TableActionButtonComponent } from '../../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../../shared/ui/toast/toast.service';
@@ -42,7 +42,7 @@ import { ExchangeResponse } from '../../models/sale.model';
     SaleFormComponent,
     SaleExchangeComponent,
     ConfirmDialogComponent,
-    DataTableComponent,
+    TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
     DtRowDirective,
@@ -125,7 +125,7 @@ export class SalesListComponent implements OnInit {
     return pages;
   });
 
-  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+  protected readonly paginationData = computed<TableDataPagination | null>(() => {
     if (this.totalPages() <= 1) return null;
     return {
       currentPage: this.page(),
@@ -136,14 +136,14 @@ export class SalesListComponent implements OnInit {
     };
   });
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+  protected readonly emptyState = computed<TableDataEmptyState>(() => ({
     icon: undefined as never,
     title: 'Aún no hay ventas registradas',
     description: 'Registra la primera venta desde el punto de venta (POS).',
     actionLabel: 'Ir al POS',
   }));
 
-  protected readonly tableColumns = signal<DataTableColumn<Sale>[]>([
+  protected readonly tableColumns = signal<TableDataColumn<Sale>[]>([
     { key: 'code', label: 'Venta', align: 'left', mobilePrimary: true },
     { key: 'customer', label: 'Cliente', align: 'left' },
     { key: 'total', label: 'Total', align: 'right' },

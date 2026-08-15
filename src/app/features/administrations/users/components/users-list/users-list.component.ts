@@ -15,14 +15,14 @@ import {
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import {
-  DataTableComponent,
-  DataTableColumn,
-  DataTableEmptyState,
-  DataTablePagination,
-} from '../../../../../shared/ui/data-table/data-table.component';
-import { DtCellDirective } from '../../../../../shared/ui/data-table/dt-cell.directive';
-import { DtExpandCellComponent } from '../../../../../shared/ui/data-table/dt-expand-cell.component';
-import { DtRowDirective } from '../../../../../shared/ui/data-table/dt-row.directive';
+  TableDataComponent,
+  TableDataColumn,
+  TableDataEmptyState,
+  TableDataPagination,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
+} from '../../../../../shared/ui/table-data/table-data.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -47,7 +47,7 @@ const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.users;
     UserFormComponent,
     UserPasswordResetComponent,
     ConfirmDialogComponent,
-    DataTableComponent,
+    TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,
     DtRowDirective,
@@ -111,7 +111,7 @@ export class UsersListComponent implements OnInit {
     return pages;
   });
 
-  protected readonly paginationData = computed<DataTablePagination | null>(() => {
+  protected readonly paginationData = computed<TableDataPagination | null>(() => {
     if (this.totalPages() <= 1) return null;
     return {
       currentPage: this.page(),
@@ -122,14 +122,14 @@ export class UsersListComponent implements OnInit {
     };
   });
 
-  protected readonly emptyState = computed<DataTableEmptyState>(() => ({
+  protected readonly emptyState = computed<TableDataEmptyState>(() => ({
     icon: undefined as never,
     title: 'Aún no hay usuarios registrados',
     description: 'Crea el primero haciendo clic en «Nuevo usuario».',
     actionLabel: 'Nuevo usuario',
   }));
 
-  protected readonly tableColumns = signal<DataTableColumn<User>[]>([
+  protected readonly tableColumns = signal<TableDataColumn<User>[]>([
     { key: 'user', label: 'Usuario', align: 'left', mobilePrimary: true },
     { key: 'fullName', label: 'Nombre completo', align: 'left' },
     { key: 'role', label: 'Rol', align: 'left' },

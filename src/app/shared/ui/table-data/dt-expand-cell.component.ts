@@ -1,5 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
-import { DataTableComponent } from './data-table.component';
+import { TableDataComponent } from './table-data.component';
 
 @Component({
   selector: 'td[appDtExpandCell]',
@@ -31,7 +31,7 @@ import { DataTableComponent } from './data-table.component';
 export class DtExpandCellComponent {
   readonly rowIndex = input.required<number>({ alias: 'appDtExpandCell' });
 
-  private readonly table = inject(DataTableComponent);
+  private readonly table = inject(TableDataComponent);
 
   protected readonly expanded = computed(() =>
     this.table.isRowExpanded(this.rowIndex()),

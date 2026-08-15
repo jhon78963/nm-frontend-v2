@@ -49,7 +49,7 @@
         </article>
       </div>
 
-      <app-data-table
+      <app-table-data
         [columns]="hourlyColumns"
         [data]="hourlyRows()"
         [variant]="'plain'"
@@ -79,14 +79,14 @@
             <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.card) }}</td>
           </tr>
         </ng-template>
-      </app-data-table>
+      </app-table-data>
 
       @if (data.transactions.length > 0) {
         <section aria-labelledby="daily-transactions-title">
           <h3 id="daily-transactions-title" class="mb-3 text-sm font-semibold uppercase tracking-wide text-gray-500">
             Detalle de operaciones
           </h3>
-          <app-data-table
+          <app-table-data
             [columns]="transactionColumns"
             [data]="data.transactions"
             [variant]="'plain'"
@@ -114,7 +114,7 @@
                 </td>
               </tr>
             </ng-template>
-          </app-data-table>
+          </app-table-data>
         </section>
       }
     }
