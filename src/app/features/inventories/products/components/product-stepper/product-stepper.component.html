@@ -1,101 +1,101 @@
-<div class="flex flex-col gap-6 p-6">
-  <!-- Header -->
-  <div class="flex items-center justify-between">
-    <div>
-      <h1 class="text-3xl font-bold text-gray-900">
-        {{ productId() === null ? 'Nuevo producto' : 'Editar producto' }}
-      </h1>
-      <p class="mt-1 text-sm text-gray-500">
-        Complete la información del producto en cada paso
-      </p>
-    </div>
+<div class="flex flex-col gap-4 p-4 md:gap-6 md:p-6">
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900 md:text-3xl">
+      {{ productId() === null ? 'Nuevo producto' : 'Editar producto' }}
+    </h1>
+    <p class="mt-1 text-sm text-gray-500">
+      Complete la información del producto en cada paso
+    </p>
   </div>
 
-  <!-- Stepper -->
-  <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-900/5">
-    <nav aria-label="Progreso">
-      <div class="flex items-center justify-between">
-        <!-- Botón Anterior -->
+  <div class="rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-900/5 md:p-6">
+    <nav aria-label="Progreso" class="space-y-3">
+      <p class="text-center text-xs font-medium text-gray-500 lg:hidden">
+        {{ stepProgressLabel() }} — {{ currentStep().label }}
+      </p>
+
+      <div class="flex items-center gap-2 md:gap-3">
         @if (productId() !== null) {
           <button
             type="button"
             [disabled]="!canGoBack()"
             (click)="goBack()"
-            class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40">
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 19l-7-7 7-7" />
+            class="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 sm:px-3"
+            aria-label="Ir al paso anterior"
+          >
+            <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
-            Anterior
+            <span class="hidden sm:inline">Anterior</span>
           </button>
         } @else {
-          <div></div>
+          <div class="hidden w-[72px] shrink-0 sm:block" aria-hidden="true"></div>
         }
 
-        <!-- Steps -->
-        <ol class="flex flex-1 items-center justify-center gap-4 px-8">
+        <ol
+          class="flex min-w-0 flex-1 snap-x snap-mandatory items-center gap-1 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] md:justify-center md:gap-2 lg:gap-3 lg:overflow-visible lg:px-4 [&::-webkit-scrollbar]:hidden"
+        >
           @for (step of steps(); track $index) {
-            <li class="flex items-center gap-2">
+            <li class="flex shrink-0 snap-center items-center gap-1 lg:gap-2">
               @if ($index > 0) {
-                <div class="h-px w-8 bg-gray-300"></div>
+                <div class="hidden h-px w-4 shrink-0 bg-gray-300 lg:block xl:w-8" aria-hidden="true"></div>
               }
               <button
                 type="button"
                 [disabled]="step.disabled"
                 (click)="goToStep($index)"
+                [attr.aria-current]="currentStepIndex() === $index ? 'step' : null"
+                [attr.aria-label]="step.label"
                 [class]="[
-                  'flex flex-col items-center gap-2 rounded-lg px-4 py-2 transition-colors',
+                  'flex shrink-0 flex-col items-center gap-1 rounded-lg px-2.5 py-2 transition-colors sm:gap-1.5 sm:px-3 md:px-3.5 lg:px-4',
                   currentStepIndex() === $index
-                    ? 'bg-sky-50 text-sky-700'
+                    ? 'bg-sky-50 text-sky-700 ring-1 ring-sky-200'
                     : step.disabled
                       ? 'cursor-not-allowed text-gray-400'
                       : 'text-gray-600 hover:bg-gray-50'
-                ].join(' ')">
+                ].join(' ')"
+              >
                 <svg
-                  class="h-6 w-6"
+                  class="h-5 w-5 shrink-0 sm:h-6 sm:w-6"
                   fill="none"
                   stroke="currentColor"
-                  viewBox="0 0 24 24">
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
                     stroke-width="2"
-                    [attr.d]="step.icon" />
+                    [attr.d]="step.icon"
+                  />
                 </svg>
-                <span class="text-xs font-medium">{{ step.label }}</span>
+                <span class="hidden text-xs font-medium sm:block">{{ step.label }}</span>
               </button>
             </li>
           }
         </ol>
 
-        <!-- Botón Siguiente -->
         @if (productId() !== null) {
           <button
             type="button"
             [disabled]="!canGoNext()"
             (click)="goNext()"
-            class="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40">
-            Siguiente
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M9 5l7 7-7 7" />
+            class="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 sm:px-3"
+            aria-label="Ir al paso siguiente"
+          >
+            <span class="hidden sm:inline">Siguiente</span>
+            <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
           </button>
         } @else {
-          <div></div>
+          <div class="hidden w-[72px] shrink-0 sm:block" aria-hidden="true"></div>
         }
       </div>
     </nav>
   </div>
 
-  <!-- Contenido del paso actual -->
-  <div class="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-900/5">
+  <div class="rounded-xl bg-white p-4 shadow-sm ring-1 ring-gray-900/5 md:p-6">
     <router-outlet />
   </div>
 </div>

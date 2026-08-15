@@ -81,6 +81,14 @@ export class ProductStepperComponent implements OnInit {
     () => this.currentStepIndex() < this.steps().length - 1 && this.productId() !== null,
   );
 
+  protected readonly currentStep = computed(
+    () => this.steps()[this.currentStepIndex()],
+  );
+
+  protected readonly stepProgressLabel = computed(
+    () => `Paso ${this.currentStepIndex() + 1} de ${this.steps().length}`,
+  );
+
   ngOnInit(): void {
     this.updateFromRoute();
 
