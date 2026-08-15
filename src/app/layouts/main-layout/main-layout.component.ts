@@ -17,6 +17,15 @@ export interface NavItem {
   items?: NavItem[];
 }
 
+export interface HeaderShortcut {
+  label: string;
+  shortLabel: string;
+  route: string;
+  icon: 'pos' | 'cash' | 'sale' | 'products' | 'expenses';
+  permission?: string;
+  permissions?: string[];
+}
+
 @Component({
   selector: 'app-main-layout',
   imports: [RouterOutlet, RouterLink, BreadcrumbComponent],
@@ -104,6 +113,44 @@ export class MainLayoutComponent implements OnInit {
     },
   ];
 
+  private readonly headerShortcuts: HeaderShortcut[] = [
+    {
+      label: 'POS',
+      shortLabel: 'POS',
+      route: '/finances/pos',
+      icon: 'pos',
+      permission: 'pos.checkout',
+    },
+    {
+      label: 'Caja',
+      shortLabel: 'Caja',
+      route: '/finances/cash-movements',
+      icon: 'cash',
+      permission: 'cashflow.getDaily',
+    },
+    {
+      label: 'Ventas',
+      shortLabel: 'Ventas',
+      route: '/finances/sales',
+      icon: 'sale',
+      permissions: ['sale.getAll', 'sale.get'],
+    },
+    {
+      label: 'Productos',
+      shortLabel: 'Prod.',
+      route: '/inventories/products',
+      icon: 'products',
+      permissions: ['product.getAll', 'product.get'],
+    },
+    {
+      label: 'Gastos administrativos',
+      shortLabel: 'Gastos',
+      route: '/expenses/admin-expenses',
+      icon: 'expenses',
+      permission: 'cashflow.getAdminMonthlyReport',
+    },
+  ];
+
   protected readonly navItems = computed(() =>
     this.allNavItems
       .map((group) => ({
@@ -111,6 +158,10 @@ export class MainLayoutComponent implements OnInit {
         items: (group.items ?? []).filter((item) => this.canSeeNavItem(item)),
       }))
       .filter((group) => (group.items?.length ?? 0) > 0),
+  );
+
+  protected readonly visibleHeaderShortcuts = computed(() =>
+    this.headerShortcuts.filter((item) => this.canSeeShortcut(item)),
   );
 
   ngOnInit(): void {
@@ -189,6 +240,10 @@ export class MainLayoutComponent implements OnInit {
   }
 
   private canSeeNavItem(item: NavItem): boolean {
+    return this.canSeeShortcut(item);
+  }
+
+  private canSeeShortcut(item: Pick<HeaderShortcut, 'permission' | 'permissions'>): boolean {
     if (item.permission) {
       return this.authService.hasPermission(item.permission);
     }
@@ -198,6 +253,11 @@ export class MainLayoutComponent implements OnInit {
     }
 
     return true;
+  }
+
+  protected isHeaderShortcutActive(item: HeaderShortcut): boolean {
+    const url = this.currentUrl().split('?')[0];
+    return url === item.route || url.startsWith(`${item.route}/`);
   }
 
   protected isHomeActive(): boolean {

@@ -99,53 +99,102 @@
   </aside>
 
   <div class="flex min-w-0 flex-1 flex-col overflow-hidden">
-    <header
-      class="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-gray-200 bg-white px-4 md:px-6"
-    >
-      <div class="flex min-w-0 flex-1 items-center gap-3">
-        <button
-          type="button"
-          class="inline-flex shrink-0 items-center justify-center rounded-md p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 md:hidden"
-          [attr.aria-expanded]="isMobileMenuOpen()"
-          aria-controls="main-navigation"
-          aria-label="Abrir menú de navegación"
-          (click)="toggleMobileMenu()"
-        >
-          <svg
-            class="h-6 w-6"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <line x1="3" y1="12" x2="21" y2="12"></line>
-            <line x1="3" y1="6" x2="21" y2="6"></line>
-            <line x1="3" y1="18" x2="21" y2="18"></line>
-          </svg>
-        </button>
-
-        @if (isSidebarCollapsed()) {
+    <header class="shrink-0 border-b border-gray-200 bg-white">
+      <div class="flex h-16 items-center gap-2 px-4 md:gap-3 md:px-6">
+        <div class="flex min-w-0 flex-1 items-center gap-2 md:gap-3">
           <button
             type="button"
-            class="hidden shrink-0 items-center justify-center rounded-md p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 md:inline-flex"
+            class="inline-flex shrink-0 items-center justify-center rounded-md p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 md:hidden"
+            [attr.aria-expanded]="isMobileMenuOpen()"
             aria-controls="main-navigation"
-            aria-label="Mostrar menú lateral"
-            (click)="toggleSidebarCollapsed()"
+            aria-label="Abrir menú de navegación"
+            (click)="toggleMobileMenu()"
           >
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+            <svg
+              class="h-6 w-6"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
             </svg>
           </button>
+
+          @if (isSidebarCollapsed()) {
+            <button
+              type="button"
+              class="hidden shrink-0 items-center justify-center rounded-md p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2 md:inline-flex"
+              aria-controls="main-navigation"
+              aria-label="Mostrar menú lateral"
+              (click)="toggleSidebarCollapsed()"
+            >
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
+            </button>
+          }
+
+          <div class="hidden min-w-0 sm:block">
+            <app-breadcrumb [paths]="breadcrumbPaths()" />
+          </div>
+        </div>
+
+        @if (visibleHeaderShortcuts().length) {
+          <nav
+            class="hidden max-w-[38vw] shrink-0 items-center gap-0.5 overflow-x-auto md:flex lg:max-w-none lg:gap-1"
+            aria-label="Accesos directos"
+          >
+            @for (item of visibleHeaderShortcuts(); track item.route) {
+              <a
+                class="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-1"
+                [class.bg-orange-50]="isHeaderShortcutActive(item)"
+                [class.text-orange-600]="isHeaderShortcutActive(item)"
+                [routerLink]="item.route"
+                [attr.title]="item.label"
+                [attr.aria-current]="isHeaderShortcutActive(item) ? 'page' : null"
+              >
+                @switch (item.icon) {
+                  @case ('pos') {
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m-7 4h8m-8 4h4M5.25 5.25h13.5A1.5 1.5 0 0120.25 6.75v10.5a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5V6.75a1.5 1.5 0 011.5-1.5z" />
+                    </svg>
+                  }
+                  @case ('cash') {
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  }
+                  @case ('sale') {
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75c0-1.728 1.522-3.125 3.4-3.125h12.7c1.878 0 3.4 1.397 3.4 3.125M15 10.5a3 3 0 11-6 0 3 3 0 016 0zM4.5 18.75A8.25 8.25 0 0112 12.75a8.25 8.25 0 017.5 6" />
+                    </svg>
+                  }
+                  @case ('products') {
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                    </svg>
+                  }
+                  @case ('expenses') {
+                    <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+                    </svg>
+                  }
+                }
+                <span class="hidden lg:inline">{{ item.label }}</span>
+                <span class="hidden md:inline lg:hidden">{{ item.shortLabel }}</span>
+              </a>
+            }
+          </nav>
         }
 
-        <app-breadcrumb [paths]="breadcrumbPaths()" />
-      </div>
-
-      <div class="relative shrink-0">
+        <div class="relative shrink-0">
 
         <!-- Backdrop invisible — cierra el menú al hacer click fuera -->
         @if (isProfileMenuOpen()) {
@@ -255,7 +304,54 @@
             </div>
           </div>
         }
+        </div>
       </div>
+
+      @if (visibleHeaderShortcuts().length) {
+        <nav
+          class="flex gap-1 overflow-x-auto border-t border-gray-100 px-4 py-2 md:hidden"
+          aria-label="Accesos directos"
+        >
+          @for (item of visibleHeaderShortcuts(); track item.route) {
+            <a
+              class="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-1"
+              [class.bg-orange-50]="isHeaderShortcutActive(item)"
+              [class.text-orange-600]="isHeaderShortcutActive(item)"
+              [routerLink]="item.route"
+              [attr.aria-current]="isHeaderShortcutActive(item) ? 'page' : null"
+            >
+              @switch (item.icon) {
+                @case ('pos') {
+                  <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m-7 4h8m-8 4h4M5.25 5.25h13.5A1.5 1.5 0 0120.25 6.75v10.5a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5V6.75a1.5 1.5 0 011.5-1.5z" />
+                  </svg>
+                }
+                @case ('cash') {
+                  <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                }
+                @case ('sale') {
+                  <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75c0-1.728 1.522-3.125 3.4-3.125h12.7c1.878 0 3.4 1.397 3.4 3.125M15 10.5a3 3 0 11-6 0 3 3 0 016 0zM4.5 18.75A8.25 8.25 0 0112 12.75a8.25 8.25 0 017.5 6" />
+                  </svg>
+                }
+                @case ('products') {
+                  <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+                  </svg>
+                }
+                @case ('expenses') {
+                  <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
+                  </svg>
+                }
+              }
+              {{ item.shortLabel }}
+            </a>
+          }
+        </nav>
+      }
     </header>
 
     <main class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
