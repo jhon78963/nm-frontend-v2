@@ -326,19 +326,12 @@
                     {{ formatMoney(summary.difference) }}
                   </p>
                   <div class="mt-4 max-w-xs">
-                    <label class="mb-1 block text-sm font-medium text-gray-700" for="exchange-payment-method">
-                      Método de pago
-                    </label>
-                    <select
-                      id="exchange-payment-method"
-                      class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      [value]="paymentMethod()"
-                      (change)="onPaymentMethodChange($event)"
-                    >
-                      @for (option of paymentMethodOptions; track option.value) {
-                        <option [value]="option.value">{{ option.label }}</option>
-                      }
-                    </select>
+                    <app-select
+                      label="Método de pago"
+                      [options]="paymentMethodOptions"
+                      [ngModel]="paymentMethod()"
+                      (ngModelChange)="onPaymentMethodChange($event)"
+                    />
                   </div>
                 } @else if (summary.difference < 0) {
                   <p class="text-sm font-medium text-blue-800">

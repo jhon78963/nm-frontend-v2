@@ -21,6 +21,7 @@ import { DateInputComponent } from '../../../../../shared/ui/date-input/date-inp
 import { FileDropzoneComponent } from '../../../../../shared/ui/file-dropzone/file-dropzone.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
+import { SelectComponent } from '../../../../../shared/ui/select/select.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataColumn,
@@ -52,7 +53,7 @@ import {
 
 @Component({
   selector: 'app-team-payroll',
-  imports: [ReactiveFormsModule, RouterLink, ConfirmDialogComponent, InputComponent, DateInputComponent, MoneyInputComponent, CheckboxComponent, FileDropzoneComponent, ButtonComponent, TableActionButtonComponent, TableDataComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
+  imports: [ReactiveFormsModule, RouterLink, ConfirmDialogComponent, InputComponent, DateInputComponent, MoneyInputComponent, SelectComponent, CheckboxComponent, FileDropzoneComponent, ButtonComponent, TableActionButtonComponent, TableDataComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
   templateUrl: './team-payroll.component.html',
 })
 export class TeamPayrollComponent implements OnInit {

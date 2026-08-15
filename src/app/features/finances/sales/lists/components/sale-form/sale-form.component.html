@@ -214,21 +214,14 @@
             @for (pay of payments(); track pay.localId; let i = $index) {
               <div class="flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 p-3">
                 <div class="min-w-[140px] flex-1">
-                  <label class="mb-1 block text-xs font-medium text-gray-600" [for]="'pay-method-' + i">
-                    Método
-                  </label>
-                  <select
-                    [id]="'pay-method-' + i"
-                    class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-50"
+                  <app-select
+                    label="Método"
+                    [options]="paymentMethodOptions"
                     [disabled]="!isEditable()"
                     [ngModel]="pay.method"
                     [ngModelOptions]="{ standalone: true }"
                     (ngModelChange)="updatePaymentMethod(i, $event)"
-                  >
-                    @for (option of paymentMethodOptions; track option.value) {
-                      <option [value]="option.value">{{ option.label }}</option>
-                    }
-                  </select>
+                  />
                 </div>
                 <div class="w-36">
                   <app-money-input

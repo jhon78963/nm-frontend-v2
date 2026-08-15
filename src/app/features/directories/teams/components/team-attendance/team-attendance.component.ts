@@ -12,6 +12,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import {
@@ -49,7 +50,7 @@ import {
 
 @Component({
   selector: 'app-team-attendance',
-  imports: [RouterLink, FormsModule, InputComponent, ButtonComponent, CheckboxComponent, TableActionButtonComponent, TableDataComponent],
+  imports: [RouterLink, FormsModule, InputComponent, SelectComponent, ButtonComponent, CheckboxComponent, TableActionButtonComponent, TableDataComponent],
   templateUrl: './team-attendance.component.html',
 })
 export class TeamAttendanceComponent implements OnInit {
@@ -70,9 +71,9 @@ export class TeamAttendanceComponent implements OnInit {
   protected readonly quincenaView = signal<QuincenaView>('full');
   protected readonly valdeoWednesdayNth = signal<1 | 2>(1);
 
-  protected readonly statusOptions = ATTENDANCE_STATUS_OPTIONS;
+  protected readonly statusOptions: SelectOption<string>[] = [...ATTENDANCE_STATUS_OPTIONS];
   protected readonly quincenaOptions = QUINCENA_OPTIONS;
-  protected readonly valdeoNthOptions = VALDEO_NTH_OPTIONS;
+  protected readonly valdeoNthOptions: SelectOption<number>[] = [...VALDEO_NTH_OPTIONS];
 
   protected readonly attendanceTableColumns: TableDataColumn<AttendanceDayRow>[] = [
     { key: 'day', label: 'Día' },
@@ -165,8 +166,12 @@ export class TeamAttendanceComponent implements OnInit {
     this.refreshDerivedState();
   }
 
-  protected onValdeoNthChange(value: string): void {
-    this.valdeoWednesdayNth.set(Number(value) === 2 ? 2 : 1);
+  protected onValdeoNthChange(value: number | null): void {
+    if (value !== 1 && value !== 2) {
+      return;
+    }
+
+    this.valdeoWednesdayNth.set(value);
     localStorage.setItem(this.valdeoKey(), String(this.valdeoWednesdayNth()));
     this.rebuildRows();
   }
@@ -238,8 +243,12 @@ export class TeamAttendanceComponent implements OnInit {
       });
   }
 
-  protected onStatusSelect(row: AttendanceDayRow, event: Event): void {
-    row.status = (event.target as HTMLSelectElement).value as AttendanceStatus;
+  protected onRowStatusChange(row: AttendanceDayRow, status: AttendanceStatus | null): void {
+    if (!status) {
+      return;
+    }
+
+    row.status = status;
     this.onStatusChange(row);
   }
 

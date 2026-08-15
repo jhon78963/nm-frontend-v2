@@ -101,26 +101,22 @@
           </p>
 
           <form class="mt-4 space-y-4" [formGroup]="paymentForm" (submit)="$event.preventDefault(); submitPayment()">
-            <div>
-              <label for="pay-type" class="text-sm font-medium text-gray-700">Tipo</label>
-              <select id="pay-type" formControlName="type" class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                @for (opt of paymentTypeOptions; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              </select>
-            </div>
+            <app-select
+              label="Tipo"
+              [options]="paymentTypeOptions"
+              formControlName="type"
+            />
 
             <div class="grid gap-3 sm:grid-cols-2">
               <div>
                 <app-money-input label="Monto (S/)" formControlName="amount" />
               </div>
               <div>
-                <label for="pay-method" class="text-sm font-medium text-gray-700">Medio de pago</label>
-                <select id="pay-method" formControlName="paymentMethod" class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                  @for (opt of paymentMethodOptions; track opt.value) {
-                    <option [value]="opt.value">{{ opt.label }}</option>
-                  }
-                </select>
+                <app-select
+                  label="Medio de pago"
+                  [options]="paymentMethodOptions"
+                  formControlName="paymentMethod"
+                />
               </div>
             </div>
 
@@ -133,14 +129,11 @@
               </div>
             </div>
 
-            <div>
-              <label for="pay-period" class="text-sm font-medium text-gray-700">Quincena de cierre</label>
-              <select id="pay-period" formControlName="payrollPeriod" class="mt-1 w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                @for (opt of payrollQuincenaOptions; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              </select>
-            </div>
+            <app-select
+              label="Quincena de cierre"
+              [options]="payrollQuincenaOptions"
+              formControlName="payrollPeriod"
+            />
 
             <div>
               <label for="pay-desc" class="text-sm font-medium text-gray-700">Descripción</label>

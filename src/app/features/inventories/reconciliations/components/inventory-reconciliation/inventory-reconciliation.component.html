@@ -448,16 +448,13 @@
       @if (catalogColorsLoading()) {
         <p class="mt-4 text-sm text-gray-500">Cargando colores…</p>
       } @else {
-        <label for="replace-color-select" class="mt-4 block text-sm font-medium text-gray-700">Color destino</label>
-        <select
-          id="replace-color-select"
-          class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
-          (change)="onReplaceColorSelected($any($event.target).value ? +$any($event.target).value : null)">
-          <option value="">Buscar color destino…</option>
-          @for (option of replaceColorOptions(); track option.value) {
-            <option [value]="option.value">{{ option.label }}</option>
-          }
-        </select>
+        <app-select
+          label="Color destino"
+          placeholder="Buscar color destino…"
+          [options]="replaceColorOptions()"
+          [ngModel]="replaceTargetColorId()"
+          (ngModelChange)="onReplaceColorSelected($event)"
+        />
       }
       <div class="mt-5 flex justify-end gap-3">
         <app-button type="button" variant="secondary" [disabled]="replacingVariantColor()" (clicked)="closeReplaceColorDialog()">
@@ -560,16 +557,14 @@
         @if (catalogColorsLoading()) {
           <p class="mt-4 text-sm text-gray-500">Cargando colores…</p>
         } @else {
-          <label for="add-color-select" class="mt-4 block text-sm font-medium text-gray-700">Color</label>
-          <select
-            id="add-color-select"
-            class="mt-1 block w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-sky-500 focus:ring-sky-500"
-            (change)="onAddColorSelected($any($event.target).value ? +$any($event.target).value : null)">
-            <option value="">Seleccionar color…</option>
-            @for (option of addColorOptions(); track option.value) {
-              <option [value]="option.value">{{ option.label }}</option>
-            }
-          </select>
+          <app-select
+            class="mt-4 block"
+            label="Color"
+            placeholder="Seleccionar color…"
+            [options]="addColorOptions()"
+            [ngModel]="addColorTargetId()"
+            (ngModelChange)="onAddColorSelected($event)"
+          />
         }
       } @else {
         <app-input

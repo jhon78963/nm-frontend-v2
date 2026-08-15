@@ -59,31 +59,18 @@
     </div>
   } @else {
     <!-- Stats Bar -->
-    <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-      <!-- Search -->
-      <div class="relative flex-1 max-w-sm">
-        <app-input
-          placeholder="Buscar módulo, submódulo o permiso…"
-          [ngModel]="search()"
-          (ngModelChange)="onSearchValueChange($event)"
-          aria-label="Buscar permisos"
-        />
-        @if (search()) {
-          <div class="absolute right-3 top-1/2 -translate-y-1/2">
-            <app-table-action-button
-              label="Limpiar búsqueda"
-              tone="neutral"
-              (clicked)="clearSearch()"
-            >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </app-table-action-button>
-          </div>
-        }
-      </div>
+    <div
+      class="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end [&_.btn-base]:h-[2.625rem] [&_.btn-base]:py-0 [&_.input-field]:h-[2.625rem] [&_.input-field]:py-0"
+    >
+      <app-input
+        class="block w-full max-w-sm"
+        label="Buscar"
+        placeholder="Buscar módulo, submódulo o permiso…"
+        [ngModel]="search()"
+        (ngModelChange)="onSearchValueChange($event)"
+      />
 
-      <div class="flex items-center gap-3 flex-wrap">
+      <div class="flex flex-wrap items-center gap-3 self-end">
         <!-- Counter pill -->
         <div class="inline-flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-xl text-sm">
           <span class="font-bold text-indigo-600">{{ selectedCount() }}</span>

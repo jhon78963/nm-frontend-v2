@@ -148,25 +148,13 @@
         }
       </div>
 
-      <div class="relative mt-4 max-w-md">
+      <div class="mt-4 max-w-md">
         <app-input
-          class="block w-full [&_.input-control]:relative"
+          class="block w-full"
+          label="Buscar"
           placeholder="Buscar producto, talla, código o color…"
-          aria-label="Buscar en inventario"
           [formControl]="searchControl"
         />
-        @if (searchQuery()) {
-          <app-table-action-button
-            class="absolute right-3 top-1/2 z-10 -translate-y-1/2"
-            label="Limpiar búsqueda"
-            tone="neutral"
-            (clicked)="clearSearch()"
-          >
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </app-table-action-button>
-        }
       </div>
     </div>
   </header>

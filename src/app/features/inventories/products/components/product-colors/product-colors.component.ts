@@ -18,6 +18,7 @@ import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.co
 import { ColorPickerInputComponent } from '../../../../../shared/ui/color-picker-input/color-picker-input.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataColumn,
@@ -65,6 +66,7 @@ const SELECTED_SIZE_KEY = 'selectedSize';
     ColorPickerInputComponent,
     ConfirmDialogComponent,
     InputComponent,
+    SelectComponent,
     TableActionButtonComponent,
     TableDataComponent,
   ],
@@ -114,6 +116,16 @@ export class ProductColorsComponent implements OnInit {
       size.description.toLowerCase().includes(query),
     );
   });
+
+  protected readonly sizeSelectOptions = computed<SelectOption<number>[]>(() =>
+    this.filteredSizeOptions().map((size) => ({
+      label:
+        size.stock != null
+          ? `${size.description} · ${size.stock} uds`
+          : size.description,
+      value: size.id,
+    })),
+  );
 
   protected readonly selectedColors = computed(() =>
     this.colors().filter((color) => this.selectedColorIds().has(color.id)),
@@ -295,8 +307,8 @@ export class ProductColorsComponent implements OnInit {
     this.loadSizes(value);
   }
 
-  protected onSizeSelect(sizeId: string): void {
-    if (!sizeId) {
+  protected onSizeSelect(sizeId: number | null): void {
+    if (sizeId == null) {
       this.clearSizeSelection();
       return;
     }

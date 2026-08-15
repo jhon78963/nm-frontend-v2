@@ -1,8 +1,5 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
-import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
 import { PosService } from '../../data-access/pos.service';
 import { DocumentType, PaymentEntry, PaymentMethodId } from '../../models/pos.model';
 
@@ -15,7 +12,7 @@ interface PaymentMethodState {
 
 @Component({
   selector: 'app-pos-footer',
-  imports: [DecimalPipe, FormsModule, ButtonComponent, MoneyInputComponent],
+  imports: [DecimalPipe],
   templateUrl: './pos-footer.component.html',
   styleUrl: './pos-footer.component.scss',
 })
@@ -83,9 +80,9 @@ export class PosFooterComponent {
     this.paymentError.set(null);
   }
 
-  protected updateAmount(id: PaymentMethodId, value: number | null): void {
-    const amount = value ?? 0;
-    this.methods.update((list) => list.map((m) => (m.id === id ? { ...m, amount } : m)));
+  protected updateAmount(id: PaymentMethodId, event: Event): void {
+    const value = parseFloat((event.target as HTMLInputElement).value) || 0;
+    this.methods.update((list) => list.map((m) => (m.id === id ? { ...m, amount: value } : m)));
     this.paymentError.set(null);
   }
 

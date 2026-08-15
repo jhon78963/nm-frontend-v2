@@ -17,6 +17,7 @@ import { ButtonComponent } from '../../../../../../shared/ui/button/button.compo
 import { CheckboxComponent } from '../../../../../../shared/ui/checkbox/checkbox.component';
 import { InputComponent } from '../../../../../../shared/ui/input/input.component';
 import { MoneyInputComponent } from '../../../../../../shared/ui/money-input/money-input.component';
+import { SelectComponent, SelectOption } from '../../../../../../shared/ui/select/select.component';
 import { TableActionButtonComponent } from '../../../../../../shared/ui/table-action-button/table-action-button.component';
 import { ToastService } from '../../../../../../shared/ui/toast/toast.service';
 import { SaleExchangeService } from '../../data-access/sale-exchange.service';
@@ -42,6 +43,7 @@ type ExchangeStep = 'select-return' | 'select-new' | 'confirm';
     CheckboxComponent,
     InputComponent,
     MoneyInputComponent,
+    SelectComponent,
     TableActionButtonComponent,
   ],
   templateUrl: './sale-exchange.component.html',
@@ -93,7 +95,7 @@ export class SaleExchangeComponent implements OnInit {
     }
   });
 
-  protected readonly paymentMethodOptions: Array<{ label: string; value: PaymentMethod }> = [
+  protected readonly paymentMethodOptions: SelectOption<PaymentMethod>[] = [
     { label: 'Efectivo', value: 'CASH' },
     { label: 'Yape / Plin', value: 'YAPE' },
     { label: 'Tarjeta', value: 'CARD' },
@@ -277,8 +279,11 @@ export class SaleExchangeComponent implements OnInit {
     });
   }
 
-  protected onPaymentMethodChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value as PaymentMethod;
+  protected onPaymentMethodChange(value: PaymentMethod | null): void {
+    if (!value) {
+      return;
+    }
+
     this.paymentMethod.set(value);
   }
 

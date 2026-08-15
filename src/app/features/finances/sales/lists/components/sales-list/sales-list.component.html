@@ -53,34 +53,26 @@
     </a>
   </div>
 
-  <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
-    <div class="relative flex-1 max-w-md" [formGroup]="filterForm">
-      <app-input
-        class="block w-full"
-        formControlName="search"
-        placeholder="Buscar por código, cliente o comprobante…"
-        aria-label="Buscar ventas"
-      />
-      @if (filterForm.controls.search.value) {
-        <app-table-action-button
-          class="absolute right-3 top-1/2 z-10 -translate-y-1/2"
-          label="Limpiar búsqueda"
-          tone="neutral"
-          (clicked)="clearSearch()"
-        >
-          <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </app-table-action-button>
-      }
-    </div>
+  <div
+    class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end [&_.btn-base]:h-[2.625rem] [&_.btn-base]:py-0 [&_.input-field]:h-[2.625rem] [&_.input-field]:py-0"
+    [formGroup]="filterForm"
+  >
+    <app-input
+      class="block w-full max-w-md"
+      label="Buscar"
+      formControlName="search"
+      placeholder="Buscar por código, cliente o comprobante…"
+    />
 
-    <app-button type="button" variant="secondary" class="lg:ml-auto" (clicked)="clearFilters()">
-      <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M8 4V2m8 2V2M5 8h14M6 20h12a2 2 0 002-2V8H4v10a2 2 0 002 2z"/>
-      </svg>
-      Limpiar filtros
-    </app-button>
+    <div class="flex flex-col gap-2">
+      <span class="text-sm font-medium text-gray-700 invisible" aria-hidden="true">Acciones</span>
+      <app-button type="button" variant="secondary" (clicked)="clearFilters()">
+        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 4h18M8 4V2m8 2V2M5 8h14M6 20h12a2 2 0 002-2V8H4v10a2 2 0 002 2z"/>
+        </svg>
+        Limpiar filtros
+      </app-button>
+    </div>
   </div>
 
   @if (showsCurrentMonthHint()) {

@@ -74,21 +74,14 @@
             Cargando tallas…
           </div>
         } @else {
-          <select
-            id="size-select"
-            class="mt-2 block w-full rounded-lg border-0 py-2.5 pl-3 pr-10 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
-            [ngModel]="selectedSize()?.id ?? ''"
-            (ngModelChange)="onSizeSelect($event)">
-            <option value="">Selecciona una talla</option>
-            @for (size of filteredSizeOptions(); track size.id) {
-              <option [value]="size.id">
-                {{ size.description }}
-                @if (size.stock != null) {
-                  · {{ size.stock }} uds
-                }
-              </option>
-            }
-          </select>
+          <app-select
+            label="Talla"
+            placeholder="Selecciona una talla"
+            [options]="sizeSelectOptions()"
+            [disabled]="loadingSizes()"
+            [ngModel]="selectedSize()?.id ?? null"
+            (ngModelChange)="onSizeSelect($event)"
+          />
         }
 
         @if (!loadingSizes() && !filteredSizeOptions().length) {

@@ -16,6 +16,7 @@ import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
 import {
   TableDataComponent,
   TableDataColumn,
@@ -61,6 +62,7 @@ function isWarehouseFilterState(value: unknown): value is WarehouseFilterState {
     ReactiveFormsModule,
     ButtonComponent,
     InputComponent,
+    SelectComponent,
     WarehouseFormComponent,
     ConfirmDialogComponent,
     TableDataComponent,
@@ -108,6 +110,10 @@ export class WarehousesListComponent implements OnInit {
     }
     return map;
   });
+
+  protected readonly tenantOptions = computed<SelectOption<number>[]>(() =>
+    this.tenants().map((tenant) => ({ label: tenant.name, value: tenant.id })),
+  );
 
   protected readonly deleteTargetLabel = computed(() => {
     const id = this.deleteConfirmId();

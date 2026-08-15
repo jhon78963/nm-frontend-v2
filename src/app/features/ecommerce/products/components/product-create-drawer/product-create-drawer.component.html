@@ -113,32 +113,22 @@
               <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
                 <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                   <div>
-                    <label class="mb-1 block text-xs font-medium text-gray-700" [for]="'size-' + i">Talla *</label>
-                    <select
-                      [id]="'size-' + i"
-                      class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-violet-500"
-                      [value]="variant.sizeId ?? ''"
-                      (change)="updateVariant(i, 'sizeId', parseOptionalNumber($any($event.target).value))"
-                    >
-                      <option value="">Seleccionar…</option>
-                      @for (opt of sizeOptions(); track opt.value) {
-                        <option [value]="opt.value" [selected]="variant.sizeId === opt.value">{{ opt.label }}</option>
-                      }
-                    </select>
+                    <app-select
+                      label="Talla *"
+                      placeholder="Seleccionar…"
+                      [options]="sizeOptions()"
+                      [ngModel]="variant.sizeId"
+                      (ngModelChange)="updateVariant(i, 'sizeId', $event)"
+                    />
                   </div>
                   <div>
-                    <label class="mb-1 block text-xs font-medium text-gray-700" [for]="'color-' + i">Color *</label>
-                    <select
-                      [id]="'color-' + i"
-                      class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-transparent focus:outline-none focus:ring-2 focus:ring-violet-500"
-                      [value]="variant.colorId ?? ''"
-                      (change)="updateVariant(i, 'colorId', parseOptionalNumber($any($event.target).value))"
-                    >
-                      <option value="">Seleccionar…</option>
-                      @for (opt of colorOptions(); track opt.value) {
-                        <option [value]="opt.value" [selected]="variant.colorId === opt.value">{{ opt.label }}</option>
-                      }
-                    </select>
+                    <app-select
+                      label="Color *"
+                      placeholder="Seleccionar…"
+                      [options]="colorOptions()"
+                      [ngModel]="variant.colorId"
+                      (ngModelChange)="updateVariant(i, 'colorId', $event)"
+                    />
                   </div>
                   <div>
                     <app-money-input

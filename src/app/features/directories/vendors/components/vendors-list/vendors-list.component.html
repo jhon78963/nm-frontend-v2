@@ -41,13 +41,19 @@
     </app-button>
   </div>
 
-  <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
-    <div class="max-w-sm flex-1" [formGroup]="filterForm">
-      <app-input formControlName="search" placeholder="Buscar por nombre, celular o galería…" />
-    </div>
+  <div
+    class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end [&_.input-field]:h-[2.625rem] [&_.input-field]:py-0"
+    [formGroup]="filterForm"
+  >
+    <app-input
+      class="block w-full max-w-sm"
+      label="Buscar"
+      formControlName="search"
+      placeholder="Buscar por nombre, celular o galería…"
+    />
 
     @if (!loading()) {
-      <div class="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm lg:ml-auto">
+      <div class="inline-flex items-center gap-1.5 self-end rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm lg:justify-self-end">
         <span class="font-semibold text-gray-900">{{ total() }}</span>
         <span class="text-gray-400">{{ total() === 1 ? 'proveedor' : 'proveedores' }}</span>
       </div>

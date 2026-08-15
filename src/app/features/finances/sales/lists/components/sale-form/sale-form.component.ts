@@ -21,6 +21,7 @@ import { ConfirmDialogComponent } from '../../../../../../shared/ui/confirm-dial
 import { DateInputComponent } from '../../../../../../shared/ui/date-input/date-input.component';
 import { InputComponent } from '../../../../../../shared/ui/input/input.component';
 import { MoneyInputComponent } from '../../../../../../shared/ui/money-input/money-input.component';
+import { SelectComponent } from '../../../../../../shared/ui/select/select.component';
 import { TableActionButtonComponent } from '../../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataColumn,
@@ -63,6 +64,7 @@ interface PaymentRow extends SalePayment {
     DateInputComponent,
     InputComponent,
     MoneyInputComponent,
+    SelectComponent,
     TableActionButtonComponent,
     TableDataComponent,
     SaleProductSelectorComponent,
