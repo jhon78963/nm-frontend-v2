@@ -39,8 +39,16 @@ export const QUICK_ACCESS_ITEMS: QuickAccessItem[] = [
     colorClass: 'orange',
   },
   {
-    label: 'Nueva venta',
-    description: 'Consultar y registrar ventas del día',
+    label: 'Caja',
+    description: 'Ingresos, egresos y saldo del día',
+    route: '/finances/cash-movements',
+    icon: 'cash',
+    permission: 'cashflow.getDaily',
+    colorClass: 'amber',
+  },
+  {
+    label: 'Ventas',
+    description: 'Consultar y gestionar ventas registradas',
     route: '/finances/sales',
     icon: 'sale',
     permission: 'sale.getAll',

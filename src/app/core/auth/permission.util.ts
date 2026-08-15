@@ -1,6 +1,7 @@
 import { AuthUser } from '../../features/auth/models/auth.model';
 
 export const SUPER_ADMIN_ROLE = 'Super Admin';
+export const ADMIN_ROLE = 'Admin';
 
 export function isAuthenticatedUser(user: AuthUser | null): user is AuthUser {
   return !!user?.username?.trim();
@@ -16,6 +17,22 @@ export function isSuperAdmin(user: AuthUser | null): boolean {
   }
 
   return (user.roles ?? []).includes(SUPER_ADMIN_ROLE);
+}
+
+export function isAdmin(user: AuthUser | null): boolean {
+  if (!user) {
+    return false;
+  }
+
+  if (user.role === ADMIN_ROLE) {
+    return true;
+  }
+
+  return (user.roles ?? []).includes(ADMIN_ROLE);
+}
+
+export function isAdminOrSuperAdmin(user: AuthUser | null): boolean {
+  return isSuperAdmin(user) || isAdmin(user);
 }
 
 function readUserPermissions(user: AuthUser | null): Set<string> {

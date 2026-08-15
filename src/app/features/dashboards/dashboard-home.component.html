@@ -20,21 +20,23 @@
     }
   </header>
 
-  <section aria-labelledby="metrics-title">
-    <h2 id="metrics-title" class="sr-only">Métricas del día</h2>
-    <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-      @for (card of metricCards(); track card.label) {
-        <app-metric-card
-          [label]="card.label"
-          [value]="card.value"
-          [icon]="card.icon"
-          [colorVariant]="card.colorVariant"
-          [format]="card.format"
-          [isLoading]="isLoading()"
-        />
-      }
-    </div>
-  </section>
+  @if (canViewMetrics()) {
+    <section aria-labelledby="metrics-title">
+      <h2 id="metrics-title" class="sr-only">Métricas del día</h2>
+      <div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+        @for (card of metricCards(); track card.label) {
+          <app-metric-card
+            [label]="card.label"
+            [value]="card.value"
+            [icon]="card.icon"
+            [colorVariant]="card.colorVariant"
+            [format]="card.format"
+            [isLoading]="isLoading()"
+          />
+        }
+      </div>
+    </section>
+  }
 
   <app-quick-access-grid />
 </div>

@@ -1,5 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { of, switchMap } from 'rxjs';
+import { isAdminOrSuperAdmin } from '../../core/auth/permission.util';
 import { AuthService } from '../auth/data-access/auth.service';
 import { MetricCardComponent } from './components/metric-card/metric-card.component';
 import { QuickAccessGridComponent } from './components/quick-access-grid/quick-access-grid.component';
@@ -28,8 +30,22 @@ export class DashboardHomeComponent {
   private readonly authService = inject(AuthService);
   private readonly now = new Date();
 
-  protected readonly metrics = toSignal(this.dashboardService.getMetrics());
-  protected readonly isLoading = computed(() => this.metrics() === undefined);
+  protected readonly canViewMetrics = computed(() =>
+    isAdminOrSuperAdmin(this.authService.currentUser()),
+  );
+
+  protected readonly metrics = toSignal(
+    toObservable(this.canViewMetrics).pipe(
+      switchMap((canView) =>
+        canView
+          ? this.dashboardService.getMetrics()
+          : of(EMPTY_DASHBOARD_METRICS),
+      ),
+    ),
+  );
+  protected readonly isLoading = computed(
+    () => this.canViewMetrics() && this.metrics() === undefined,
+  );
 
   protected readonly greeting = computed(() => {
     const hour = this.now.getHours();
