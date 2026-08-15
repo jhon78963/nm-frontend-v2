@@ -27,15 +27,16 @@
             SKU: {{ posService.modalState().product?.sku }}
           </p>
         </div>
-        <app-table-action-button
-          label="Cerrar"
-          tone="neutral"
-          (clicked)="posService.closeModal()"
+        <button
+          type="button"
+          class="mt-0.5 shrink-0 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
+          (click)="posService.closeModal()"
+          aria-label="Cerrar"
         >
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
           </svg>
-        </app-table-action-button>
+        </button>
       </div>
 
       <!-- Size tabs -->
@@ -45,20 +46,20 @@
         </p>
         <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hidden" role="tablist" aria-label="Tallas disponibles">
           @for (size of availableSizes(); track size) {
-            <app-button
+            <button
               type="button"
               class="size-tab"
               [class.size-tab--active]="activeSize() === size"
               [class.size-tab--has-items]="hasSizeSelections(size) && activeSize() !== size"
               role="tab"
               [attr.aria-selected]="activeSize() === size"
-              (clicked)="selectTabSize(size)"
+              (click)="selectTabSize(size)"
             >
               {{ size }}
               @if (hasSizeSelections(size)) {
                 <span class="size-tab-dot" aria-hidden="true"></span>
               }
-            </app-button>
+            </button>
           }
         </div>
       </div>
@@ -117,10 +118,15 @@
                   <div class="control-field">
                     <div class="relative w-[4.5rem]">
                       <span class="control-field__prefix">S/</span>
-                      <app-money-input
-                        class="price-input-field"
-                        [ngModel]="getSelectionPrice(v)"
-                        (ngModelChange)="updatePrice(v, $event)"
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="0.10"
+                        [value]="getSelectionPrice(v)"
+                        (input)="updatePrice(v, $event)"
+                        (focus)="$any($event.target).select()"
+                        class="price-input"
+                        [attr.aria-label]="'Precio para ' + v.colorName"
                       />
                     </div>
                   </div>
@@ -131,19 +137,19 @@
                       role="group"
                       [attr.aria-label]="'Cantidad de ' + v.colorName"
                     >
-                      <app-table-action-button
-                        label="Reducir cantidad"
-                        [ariaLabel]="'Reducir cantidad de ' + v.colorName"
-                        tone="neutral"
-                        (clicked)="updateQty(v, -1, $event)"
-                      >−</app-table-action-button>
+                      <button
+                        type="button"
+                        class="qty-btn qty-btn--minus"
+                        (click)="updateQty(v, -1, $event)"
+                        [attr.aria-label]="'Reducir cantidad de ' + v.colorName"
+                      >−</button>
                       <span class="qty-value" aria-live="polite">{{ getSelectionQty(v) }}</span>
-                      <app-table-action-button
-                        label="Aumentar cantidad"
-                        [ariaLabel]="'Aumentar cantidad de ' + v.colorName"
-                        tone="violet"
-                        (clicked)="updateQty(v, 1, $event)"
-                      >+</app-table-action-button>
+                      <button
+                        type="button"
+                        class="qty-btn qty-btn--plus"
+                        (click)="updateQty(v, 1, $event)"
+                        [attr.aria-label]="'Aumentar cantidad de ' + v.colorName"
+                      >+</button>
                     </div>
                   </div>
                 </div>
@@ -188,18 +194,18 @@
         </div>
       </div>
 
-      <app-button
+      <button
         type="button"
-        variant="primary"
-        class="confirm-btn w-full"
+        class="confirm-btn"
+        [class.confirm-btn--disabled]="totalModalItems() === 0"
         [disabled]="totalModalItems() === 0"
-        (clicked)="confirm()"
+        (click)="confirm()"
       >
         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
         </svg>
         {{ posService.modalState().isEditing ? 'GUARDAR CAMBIOS' : 'AGREGAR AL CARRITO' }}
-      </app-button>
+      </button>
     </div>
   </div>
 }
