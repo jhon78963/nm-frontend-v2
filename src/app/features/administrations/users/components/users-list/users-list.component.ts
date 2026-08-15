@@ -26,10 +26,19 @@ import { DtRowDirective } from '../../../../../shared/ui/data-table/dt-row.direc
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
+import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
+import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
+import {
+  buildSearchPageFilterState,
+  persistSearchPageFilters,
+  restoreSearchPageFilters,
+} from '../../../../../core/table-filters/table-filter-state.util';
 import { UserService } from '../../data-access/user.service';
 import { User } from '../../models/user.model';
 import { UserFormComponent } from '../user-form/user-form.component';
 import { UserPasswordResetComponent } from '../user-password-reset/user-password-reset.component';
+
+const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.users;
 
 @Component({
   selector: 'app-users-list',
@@ -49,6 +58,7 @@ import { UserPasswordResetComponent } from '../user-password-reset/user-password
 })
 export class UsersListComponent implements OnInit {
   private readonly userService = inject(UserService);
+  private readonly filterStorage = inject(TableFilterStorageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
 
@@ -128,6 +138,7 @@ export class UsersListComponent implements OnInit {
   ]);
 
   ngOnInit(): void {
+    this.restoreFilters();
     this.loadUsers();
 
     this.searchForm.controls.search.valueChanges
@@ -139,6 +150,7 @@ export class UsersListComponent implements OnInit {
       .subscribe((value) => {
         this.currentSearch.set(value);
         this.page.set(1);
+        this.persistFilters();
         this.loadUsers();
       });
   }
@@ -169,6 +181,7 @@ export class UsersListComponent implements OnInit {
   protected goToPage(p: number | '...'): void {
     if (p === '...' || p === this.page()) return;
     this.page.set(p);
+    this.persistFilters();
     this.loadUsers();
   }
 
@@ -245,5 +258,26 @@ export class UsersListComponent implements OnInit {
 
   protected fullName(user: User): string {
     return `${user.name} ${user.surname}`.trim();
+  }
+
+  private restoreFilters(): void {
+    restoreSearchPageFilters(this.filterStorage, FILTER_STORAGE_KEY, {
+      page: this.page,
+      limit: this.limit,
+      currentSearch: this.currentSearch,
+      searchControl: this.searchForm.controls.search,
+    });
+  }
+
+  private persistFilters(): void {
+    persistSearchPageFilters(
+      this.filterStorage,
+      FILTER_STORAGE_KEY,
+      buildSearchPageFilterState(
+        this.page(),
+        this.limit(),
+        this.currentSearch(),
+      ),
+    );
   }
 }

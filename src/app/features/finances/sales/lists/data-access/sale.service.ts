@@ -1,6 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
 import { catchError, firstValueFrom, map, Observable, switchMap, throwError } from 'rxjs';
+import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
+import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
+import { isSearchPageFilterState } from '../../../../../core/table-filters/table-filter-state.util';
 import { environment } from '../../../../../../environments/environment';
 import {
   SaleDetail,
@@ -11,7 +14,7 @@ import {
 import { adaptSaleDetail, adaptSaleList } from './sale.adapter';
 import { prepareReceiptHtmlForPrint } from '../../../pos/utils/receipt-print.util';
 
-const FILTER_STORAGE_KEY = 'sales_filter_state_v2';
+const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.sales;
 
 function extractErrorMessage(err: unknown): string {
   if (typeof err === 'string' && err.trim()) {
@@ -37,33 +40,20 @@ function extractErrorMessage(err: unknown): string {
 @Service()
 export class SaleService {
   private readonly http = inject(HttpClient);
+  private readonly filterStorage = inject(TableFilterStorageService);
   private readonly base = `${environment.apiUrl}/sales`;
   private readonly ticketBase = `${environment.apiUrl}/pos/sales`;
 
-  private filterState: SaleFilterState | null = null;
-
   getFilterState(): SaleFilterState | null {
-    if (!this.filterState) {
-      const saved = sessionStorage.getItem(FILTER_STORAGE_KEY);
-      if (!saved) return null;
-      try {
-        this.filterState = JSON.parse(saved) as SaleFilterState;
-      } catch {
-        sessionStorage.removeItem(FILTER_STORAGE_KEY);
-        return null;
-      }
-    }
-    return this.filterState;
+    return this.filterStorage.load(FILTER_STORAGE_KEY, isSearchPageFilterState);
   }
 
   saveFilterState(state: SaleFilterState): void {
-    this.filterState = state;
-    sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(state));
+    this.filterStorage.save(FILTER_STORAGE_KEY, state);
   }
 
   clearFilterState(): void {
-    this.filterState = null;
-    sessionStorage.removeItem(FILTER_STORAGE_KEY);
+    this.filterStorage.remove(FILTER_STORAGE_KEY);
   }
 
   getAll(params: {

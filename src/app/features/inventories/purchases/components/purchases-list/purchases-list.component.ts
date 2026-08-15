@@ -28,10 +28,35 @@ import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/s
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
+import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
+import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
+import {
+  isSearchPageFilterState,
+  SearchPageFilterState,
+} from '../../../../../core/table-filters/table-filter-state.util';
 import { ProductLookupService } from '../../../products/data-access/product-lookup.service';
 import { Warehouse } from '../../../products/models/product.model';
 import { PurchaseService } from '../../data-access/purchase.service';
 import { PurchaseRow } from '../../models/purchase.model';
+
+const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.purchases;
+
+interface PurchaseFilterState extends SearchPageFilterState {
+  warehouseId: number | null;
+  status: string | null;
+}
+
+function isPurchaseFilterState(value: unknown): value is PurchaseFilterState {
+  if (!isSearchPageFilterState(value)) {
+    return false;
+  }
+
+  const state = value as PurchaseFilterState;
+  const warehouseOk =
+    state.warehouseId === null || typeof state.warehouseId === 'number';
+  const statusOk = state.status === null || typeof state.status === 'string';
+  return warehouseOk && statusOk;
+}
 
 @Component({
   selector: 'app-purchases-list',
@@ -52,6 +77,7 @@ import { PurchaseRow } from '../../models/purchase.model';
 export class PurchasesListComponent implements OnInit {
   private readonly purchaseService = inject(PurchaseService);
   private readonly lookupService = inject(ProductLookupService);
+  private readonly filterStorage = inject(TableFilterStorageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
   protected readonly router = inject(Router);
@@ -142,6 +168,7 @@ export class PurchasesListComponent implements OnInit {
   ]);
 
   ngOnInit(): void {
+    this.restoreFilters();
     this.loadWarehouses();
     this.loadPurchases();
 
@@ -150,6 +177,7 @@ export class PurchasesListComponent implements OnInit {
       .subscribe((value) => {
         this.currentSearch.set(value);
         this.page.set(1);
+        this.persistFilters();
         this.loadPurchases();
       });
 
@@ -160,6 +188,7 @@ export class PurchasesListComponent implements OnInit {
           value === '' || value === null ? null : Number(value),
         );
         this.page.set(1);
+        this.persistFilters();
         this.loadPurchases();
       });
 
@@ -168,6 +197,7 @@ export class PurchasesListComponent implements OnInit {
       .subscribe((value) => {
         this.currentStatus.set(value === '' ? null : value);
         this.page.set(1);
+        this.persistFilters();
         this.loadPurchases();
       });
   }
@@ -210,11 +240,18 @@ export class PurchasesListComponent implements OnInit {
   protected goToPage(p: number | '...'): void {
     if (p === '...' || p === this.page()) return;
     this.page.set(p);
+    this.persistFilters();
     this.loadPurchases();
   }
 
   protected clearFilters(): void {
-    this.filterForm.reset({ search: '', warehouseId: '', status: '' });
+    this.filterForm.reset({ search: '', warehouseId: '', status: '' }, { emitEvent: false });
+    this.currentSearch.set('');
+    this.currentWarehouseId.set(null);
+    this.currentStatus.set(null);
+    this.page.set(1);
+    this.filterStorage.remove(FILTER_STORAGE_KEY);
+    this.loadPurchases();
   }
 
   protected clearSearch(): void {
@@ -287,5 +324,37 @@ export class PurchasesListComponent implements OnInit {
       return 'inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-700 ring-1 ring-inset ring-red-200';
     }
     return 'inline-flex items-center rounded-full bg-gray-50 px-2.5 py-0.5 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-200';
+  }
+
+  private restoreFilters(): void {
+    const saved = this.filterStorage.load(FILTER_STORAGE_KEY, isPurchaseFilterState);
+    if (!saved) {
+      return;
+    }
+
+    this.limit.set(saved.limit);
+    this.page.set(saved.page);
+    this.currentSearch.set(saved.search);
+    this.currentWarehouseId.set(saved.warehouseId);
+    this.currentStatus.set(saved.status);
+
+    this.filterForm.patchValue(
+      {
+        search: saved.search,
+        warehouseId: saved.warehouseId ?? '',
+        status: saved.status ?? '',
+      },
+      { emitEvent: false },
+    );
+  }
+
+  private persistFilters(): void {
+    this.filterStorage.save(FILTER_STORAGE_KEY, {
+      limit: this.limit(),
+      page: this.page(),
+      search: this.currentSearch(),
+      warehouseId: this.currentWarehouseId(),
+      status: this.currentStatus(),
+    });
   }
 }

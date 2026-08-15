@@ -14,6 +14,9 @@ import {
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, forkJoin } from 'rxjs';
 import { isSuperAdmin } from '../../../../../core/auth/permission.util';
+import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
+import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
+import { isSearchPageFilterState } from '../../../../../core/table-filters/table-filter-state.util';
 import {
   DataTableComponent,
   DataTableColumn,
@@ -43,6 +46,44 @@ import {
   getActionLogToneClass,
 } from '../../utils/action-log-labels.util';
 
+const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.actionLogs;
+
+const ACTION_LOG_DATE_PRESET_IDS = [
+  'today',
+  'last-7-days',
+  'current-month',
+  'previous-month',
+] as const;
+
+interface ActionLogFilterState {
+  search: string;
+  page: number;
+  limit: number;
+  actionFilter: string;
+  userId: string;
+  startDate: string;
+  endDate: string;
+  activeDatePreset: ActionLogDatePreset | null;
+}
+
+function isActionLogFilterState(value: unknown): value is ActionLogFilterState {
+  if (!isSearchPageFilterState(value)) {
+    return false;
+  }
+
+  const state = value as ActionLogFilterState;
+  return (
+    typeof state.actionFilter === 'string' &&
+    typeof state.userId === 'string' &&
+    typeof state.startDate === 'string' &&
+    typeof state.endDate === 'string' &&
+    (state.activeDatePreset === null ||
+      ACTION_LOG_DATE_PRESET_IDS.includes(
+        state.activeDatePreset as (typeof ACTION_LOG_DATE_PRESET_IDS)[number],
+      ))
+  );
+}
+
 @Component({
   selector: 'app-action-logs-list',
   imports: [ReactiveFormsModule, DataTableComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
@@ -54,6 +95,7 @@ export class ActionLogsListComponent implements OnInit {
   private readonly warehouseService = inject(WarehouseService);
   private readonly userService = inject(UserService);
   private readonly authService = inject(AuthService);
+  private readonly filterStorage = inject(TableFilterStorageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
 
@@ -154,6 +196,7 @@ export class ActionLogsListComponent implements OnInit {
   ]);
 
   ngOnInit(): void {
+    this.restoreFilters();
     this.loadContext();
 
     this.filtersForm.controls.search.valueChanges
@@ -254,6 +297,7 @@ export class ActionLogsListComponent implements OnInit {
     if (p === '...' || p === this.page()) return;
     this.page.set(p);
     this.expandedLogId.set(null);
+    this.persistFilters();
     this.loadLogs();
   }
 
@@ -264,13 +308,25 @@ export class ActionLogsListComponent implements OnInit {
   protected clearFilters(): void {
     this.activeDatePreset.set(null);
     this.dateRangeError.set(null);
-    this.filtersForm.setValue({
-      search: '',
-      actionFilter: '',
-      userId: '',
-      startDate: '',
-      endDate: '',
-    });
+    this.filtersForm.setValue(
+      {
+        search: '',
+        actionFilter: '',
+        userId: '',
+        startDate: '',
+        endDate: '',
+      },
+      { emitEvent: false },
+    );
+    this.currentSearch.set('');
+    this.currentActionFilter.set('');
+    this.currentUserId.set(null);
+    this.currentStartDate.set('');
+    this.currentEndDate.set('');
+    this.page.set(1);
+    this.expandedLogId.set(null);
+    this.filterStorage.remove(FILTER_STORAGE_KEY);
+    this.loadLogs();
   }
 
   protected applyDatePreset(preset: ActionLogDatePreset): void {
@@ -390,6 +446,7 @@ export class ActionLogsListComponent implements OnInit {
   private resetPageAndLoad(): void {
     this.page.set(1);
     this.expandedLogId.set(null);
+    this.persistFilters();
     this.loadLogs();
   }
 
@@ -427,5 +484,47 @@ export class ActionLogsListComponent implements OnInit {
       endDate: this.currentEndDate(),
       userId: this.canViewAllUsers() ? this.currentUserId() : null,
     };
+  }
+
+  private restoreFilters(): void {
+    const saved = this.filterStorage.load(FILTER_STORAGE_KEY, isActionLogFilterState);
+    if (!saved) {
+      return;
+    }
+
+    this.limit.set(saved.limit);
+    this.page.set(saved.page);
+    this.currentSearch.set(saved.search);
+    this.currentActionFilter.set(saved.actionFilter);
+    this.currentUserId.set(
+      saved.userId && Number(saved.userId) > 0 ? Number(saved.userId) : null,
+    );
+    this.currentStartDate.set(saved.startDate);
+    this.currentEndDate.set(saved.endDate);
+    this.activeDatePreset.set(saved.activeDatePreset);
+
+    this.filtersForm.patchValue(
+      {
+        search: saved.search,
+        actionFilter: saved.actionFilter,
+        userId: saved.userId,
+        startDate: saved.startDate,
+        endDate: saved.endDate,
+      },
+      { emitEvent: false },
+    );
+  }
+
+  private persistFilters(): void {
+    this.filterStorage.save(FILTER_STORAGE_KEY, {
+      limit: this.limit(),
+      page: this.page(),
+      search: this.currentSearch(),
+      actionFilter: this.currentActionFilter(),
+      userId: this.filtersForm.controls.userId.value,
+      startDate: this.currentStartDate(),
+      endDate: this.currentEndDate(),
+      activeDatePreset: this.activeDatePreset(),
+    });
   }
 }

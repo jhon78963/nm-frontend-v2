@@ -28,10 +28,17 @@ import { TableActionsComponent } from '../../../../../shared/ui/table-actions/ta
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { normalizeColorHash } from '../../data-access/color.adapter';
 import { ColorService } from '../../data-access/color.service';
-import { Color, ColorFilterState } from '../../models/color.model';
+import { Color } from '../../models/color.model';
 import { ColorFormComponent } from '../color-form/color-form.component';
+import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
+import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
+import {
+  buildSearchPageFilterState,
+  persistSearchPageFilters,
+  restoreSearchPageFilters,
+} from '../../../../../core/table-filters/table-filter-state.util';
 
-const FILTER_STORAGE_KEY = 'colors_filter_state_v2';
+const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.colors;
 
 @Component({
   selector: 'app-colors-list',
@@ -50,6 +57,7 @@ const FILTER_STORAGE_KEY = 'colors_filter_state_v2';
 })
 export class ColorsListComponent implements OnInit {
   private readonly colorService = inject(ColorService);
+  private readonly filterStorage = inject(TableFilterStorageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
 
@@ -239,7 +247,7 @@ export class ColorsListComponent implements OnInit {
   protected clearFilters(): void {
     this.filterForm.controls.search.setValue('');
     this.page.set(1);
-    this.persistFilters();
+    this.filterStorage.remove(FILTER_STORAGE_KEY);
     this.loadColors();
   }
 
@@ -252,49 +260,23 @@ export class ColorsListComponent implements OnInit {
   }
 
   private restoreFilters(): void {
-    const saved = this.readFilterState();
-    if (!saved) return;
-
-    this.limit.set(saved.limit);
-    this.page.set(saved.page);
-    this.currentSearch.set(saved.search);
-
-    if (saved.search) {
-      this.filterForm.controls.search.setValue(saved.search, {
-        emitEvent: false,
-      });
-    }
+    restoreSearchPageFilters(this.filterStorage, FILTER_STORAGE_KEY, {
+      page: this.page,
+      limit: this.limit,
+      currentSearch: this.currentSearch,
+      searchControl: this.filterForm.controls.search,
+    });
   }
 
   private persistFilters(): void {
-    const state: ColorFilterState = {
-      limit: this.limit(),
-      page: this.page(),
-      search: this.currentSearch(),
-    };
-
-    try {
-      sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      // sessionStorage may be unavailable in private mode
-    }
-  }
-
-  private readFilterState(): ColorFilterState | null {
-    try {
-      const raw = sessionStorage.getItem(FILTER_STORAGE_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw) as ColorFilterState;
-      if (
-        typeof parsed.limit !== 'number' ||
-        typeof parsed.page !== 'number' ||
-        typeof parsed.search !== 'string'
-      ) {
-        return null;
-      }
-      return parsed;
-    } catch {
-      return null;
-    }
+    persistSearchPageFilters(
+      this.filterStorage,
+      FILTER_STORAGE_KEY,
+      buildSearchPageFilterState(
+        this.page(),
+        this.limit(),
+        this.currentSearch(),
+      ),
+    );
   }
 }

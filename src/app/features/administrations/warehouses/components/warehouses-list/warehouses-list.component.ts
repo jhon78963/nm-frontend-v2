@@ -26,10 +26,32 @@ import {
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
+import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
+import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
+import {
+  isSearchPageFilterState,
+  patchFormControl,
+  SearchPageFilterState,
+} from '../../../../../core/table-filters/table-filter-state.util';
 import { WarehouseLookupService } from '../../data-access/warehouse-lookup.service';
 import { WarehouseService } from '../../data-access/warehouse.service';
 import { TenantLookupOption, Warehouse } from '../../models/warehouse.model';
 import { WarehouseFormComponent } from '../warehouse-form/warehouse-form.component';
+
+const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.warehouses;
+
+interface WarehouseFilterState extends SearchPageFilterState {
+  tenantId: number | null;
+}
+
+function isWarehouseFilterState(value: unknown): value is WarehouseFilterState {
+  if (!isSearchPageFilterState(value)) {
+    return false;
+  }
+
+  const tenantId = (value as WarehouseFilterState).tenantId;
+  return tenantId === null || typeof tenantId === 'number';
+}
 
 @Component({
   selector: 'app-warehouses-list',
@@ -49,6 +71,7 @@ import { WarehouseFormComponent } from '../warehouse-form/warehouse-form.compone
 export class WarehousesListComponent implements OnInit {
   private readonly warehouseService = inject(WarehouseService);
   private readonly lookupService = inject(WarehouseLookupService);
+  private readonly filterStorage = inject(TableFilterStorageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
 
@@ -145,6 +168,7 @@ export class WarehousesListComponent implements OnInit {
   ]);
 
   ngOnInit(): void {
+    this.restoreFilters();
     this.loadTenants();
     this.loadWarehouses();
 
@@ -157,6 +181,7 @@ export class WarehousesListComponent implements OnInit {
       .subscribe((value) => {
         this.currentSearch.set(value);
         this.page.set(1);
+        this.persistFilters();
         this.loadWarehouses();
       });
 
@@ -173,6 +198,7 @@ export class WarehousesListComponent implements OnInit {
           tenantId !== null && Number.isFinite(tenantId) ? tenantId : null,
         );
         this.page.set(1);
+        this.persistFilters();
         this.loadWarehouses();
       });
   }
@@ -216,6 +242,7 @@ export class WarehousesListComponent implements OnInit {
   protected goToPage(p: number | '...'): void {
     if (p === '...' || p === this.page()) return;
     this.page.set(p);
+    this.persistFilters();
     this.loadWarehouses();
   }
 
@@ -282,7 +309,12 @@ export class WarehousesListComponent implements OnInit {
   }
 
   protected clearFilters(): void {
-    this.filterForm.reset({ search: '', tenantId: '' });
+    this.filterForm.reset({ search: '', tenantId: '' }, { emitEvent: false });
+    this.currentSearch.set('');
+    this.currentTenantId.set(null);
+    this.page.set(1);
+    this.filterStorage.remove(FILTER_STORAGE_KEY);
+    this.loadWarehouses();
   }
 
   protected tenantLabel(warehouse: Warehouse): string {
@@ -300,5 +332,37 @@ export class WarehousesListComponent implements OnInit {
     } else {
       this.openCreate();
     }
+  }
+
+  private restoreFilters(): void {
+    const saved = this.filterStorage.load(FILTER_STORAGE_KEY, isWarehouseFilterState);
+    if (!saved) {
+      return;
+    }
+
+    this.limit.set(saved.limit);
+    this.page.set(saved.page);
+    this.currentSearch.set(saved.search);
+    this.currentTenantId.set(saved.tenantId);
+
+    if (saved.search) {
+      this.filterForm.controls.search.setValue(saved.search, {
+        emitEvent: false,
+      });
+    }
+
+    patchFormControl(
+      this.filterForm.controls.tenantId,
+      saved.tenantId ?? '',
+    );
+  }
+
+  private persistFilters(): void {
+    this.filterStorage.save(FILTER_STORAGE_KEY, {
+      limit: this.limit(),
+      page: this.page(),
+      search: this.currentSearch(),
+      tenantId: this.currentTenantId(),
+    });
   }
 }

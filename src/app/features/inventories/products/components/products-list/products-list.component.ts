@@ -32,9 +32,30 @@ import { DtRowDirective } from '../../../../../shared/ui/data-table/dt-row.direc
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
+import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
+import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
+import {
+  isNumberArray,
+  isSearchPageFilterState,
+  SearchPageFilterState,
+} from '../../../../../core/table-filters/table-filter-state.util';
 import { ProductService } from '../../data-access/product.service';
 import { ProductLookupService } from '../../data-access/product-lookup.service';
 import { Product, Gender } from '../../models/product.model';
+
+const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.products;
+
+interface ProductFilterState extends SearchPageFilterState {
+  genderIds: number[];
+}
+
+function isProductFilterState(value: unknown): value is ProductFilterState {
+  if (!isSearchPageFilterState(value)) {
+    return false;
+  }
+
+  return isNumberArray((value as ProductFilterState).genderIds);
+}
 
 @Component({
   selector: 'app-products-list',
@@ -55,6 +76,7 @@ import { Product, Gender } from '../../models/product.model';
 export class ProductsListComponent implements OnInit {
   private readonly productService = inject(ProductService);
   private readonly productLookupService = inject(ProductLookupService);
+  private readonly filterStorage = inject(TableFilterStorageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
@@ -148,6 +170,7 @@ export class ProductsListComponent implements OnInit {
   ]);
 
   ngOnInit(): void {
+    this.restoreFilters();
     this.loadProducts();
     this.loadGenders();
 
@@ -160,6 +183,7 @@ export class ProductsListComponent implements OnInit {
       .subscribe((value) => {
         this.currentSearch.set(value);
         this.page.set(1);
+        this.persistFilters();
         this.loadProducts();
       });
   }
@@ -202,6 +226,7 @@ export class ProductsListComponent implements OnInit {
   protected goToPage(p: number | '...'): void {
     if (p === '...' || p === this.page()) return;
     this.page.set(p);
+    this.persistFilters();
     this.loadProducts();
   }
 
@@ -281,15 +306,18 @@ export class ProductsListComponent implements OnInit {
   }
 
   protected clearFilters(): void {
-    this.filterForm.controls.search.setValue('');
+    this.filterForm.controls.search.setValue('', { emitEvent: false });
+    this.currentSearch.set('');
     this.selectedGenderIds.set([]);
     this.page.set(1);
+    this.filterStorage.remove(FILTER_STORAGE_KEY);
     this.loadProducts();
   }
 
   protected handleGenderSelection(ids: number[]): void {
     this.selectedGenderIds.set(ids);
     this.page.set(1);
+    this.persistFilters();
     this.loadProducts();
   }
 
@@ -387,5 +415,32 @@ export class ProductsListComponent implements OnInit {
 
   protected getProductStock(product: Product): number {
     return Math.max(0, Math.trunc(Number(product.stock) || 0));
+  }
+
+  private restoreFilters(): void {
+    const saved = this.filterStorage.load(FILTER_STORAGE_KEY, isProductFilterState);
+    if (!saved) {
+      return;
+    }
+
+    this.limit.set(saved.limit);
+    this.page.set(saved.page);
+    this.currentSearch.set(saved.search);
+    this.selectedGenderIds.set(saved.genderIds);
+
+    if (saved.search) {
+      this.filterForm.controls.search.setValue(saved.search, {
+        emitEvent: false,
+      });
+    }
+  }
+
+  private persistFilters(): void {
+    this.filterStorage.save(FILTER_STORAGE_KEY, {
+      limit: this.limit(),
+      page: this.page(),
+      search: this.currentSearch(),
+      genderIds: this.selectedGenderIds(),
+    });
   }
 }

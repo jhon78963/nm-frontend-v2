@@ -27,9 +27,18 @@ import { DtRowDirective } from '../../../../../shared/ui/data-table/dt-row.direc
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
+import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
+import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
+import {
+  buildSearchPageFilterState,
+  persistSearchPageFilters,
+  restoreSearchPageFilters,
+} from '../../../../../core/table-filters/table-filter-state.util';
 import { RoleService } from '../../data-access/role.service';
 import { Role } from '../../models/role.model';
 import { RoleFormComponent } from '../role-form/role-form.component';
+
+const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.roles;
 
 @Component({
   selector: 'app-roles-list',
@@ -48,6 +57,7 @@ import { RoleFormComponent } from '../role-form/role-form.component';
 })
 export class RolesListComponent implements OnInit {
   private readonly roleService = inject(RoleService);
+  private readonly filterStorage = inject(TableFilterStorageService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
@@ -122,6 +132,7 @@ export class RolesListComponent implements OnInit {
   ]);
 
   ngOnInit(): void {
+    this.restoreFilters();
     this.loadRoles();
 
     this.searchForm.controls.search.valueChanges
@@ -133,6 +144,7 @@ export class RolesListComponent implements OnInit {
       .subscribe((value) => {
         this.currentSearch.set(value);
         this.page.set(1);
+        this.persistFilters();
         this.loadRoles();
       });
   }
@@ -163,6 +175,7 @@ export class RolesListComponent implements OnInit {
   protected goToPage(p: number | '...'): void {
     if (p === '...' || p === this.page()) return;
     this.page.set(p);
+    this.persistFilters();
     this.loadRoles();
   }
 
@@ -228,5 +241,26 @@ export class RolesListComponent implements OnInit {
 
   protected clearSearch(): void {
     this.searchForm.controls.search.setValue('');
+  }
+
+  private restoreFilters(): void {
+    restoreSearchPageFilters(this.filterStorage, FILTER_STORAGE_KEY, {
+      page: this.page,
+      limit: this.limit,
+      currentSearch: this.currentSearch,
+      searchControl: this.searchForm.controls.search,
+    });
+  }
+
+  private persistFilters(): void {
+    persistSearchPageFilters(
+      this.filterStorage,
+      FILTER_STORAGE_KEY,
+      buildSearchPageFilterState(
+        this.page(),
+        this.limit(),
+        this.currentSearch(),
+      ),
+    );
   }
 }

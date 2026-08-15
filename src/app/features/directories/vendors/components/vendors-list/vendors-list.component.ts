@@ -26,9 +26,18 @@ import {
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
+import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
+import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
+import {
+  buildSearchPageFilterState,
+  persistSearchPageFilters,
+  restoreSearchPageFilters,
+} from '../../../../../core/table-filters/table-filter-state.util';
 import { VendorService } from '../../data-access/vendor.service';
 import { Vendor } from '../../models/vendor.model';
 import { VendorFormComponent } from '../vendor-form/vendor-form.component';
+
+const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.vendors;
 
 @Component({
   selector: 'app-vendors-list',
@@ -47,6 +56,7 @@ import { VendorFormComponent } from '../vendor-form/vendor-form.component';
 })
 export class VendorsListComponent implements OnInit {
   private readonly vendorService = inject(VendorService);
+  private readonly filterStorage = inject(TableFilterStorageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
 
@@ -123,6 +133,7 @@ export class VendorsListComponent implements OnInit {
   ]);
 
   ngOnInit(): void {
+    this.restoreFilters();
     this.loadVendors();
 
     this.filterForm.controls.search.valueChanges
@@ -134,6 +145,7 @@ export class VendorsListComponent implements OnInit {
       .subscribe((value) => {
         this.currentSearch.set(value);
         this.page.set(1);
+        this.persistFilters();
         this.loadVendors();
       });
   }
@@ -164,6 +176,7 @@ export class VendorsListComponent implements OnInit {
   protected goToPage(p: number | '...'): void {
     if (p === '...' || p === this.page()) return;
     this.page.set(p);
+    this.persistFilters();
     this.loadVendors();
   }
 
@@ -233,5 +246,26 @@ export class VendorsListComponent implements OnInit {
 
   protected vendorInitial(vendor: Vendor): string {
     return vendor.name.charAt(0).toUpperCase();
+  }
+
+  private restoreFilters(): void {
+    restoreSearchPageFilters(this.filterStorage, FILTER_STORAGE_KEY, {
+      page: this.page,
+      limit: this.limit,
+      currentSearch: this.currentSearch,
+      searchControl: this.filterForm.controls.search,
+    });
+  }
+
+  private persistFilters(): void {
+    persistSearchPageFilters(
+      this.filterStorage,
+      FILTER_STORAGE_KEY,
+      buildSearchPageFilterState(
+        this.page(),
+        this.limit(),
+        this.currentSearch(),
+      ),
+    );
   }
 }

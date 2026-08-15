@@ -26,9 +26,18 @@ import {
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
+import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
+import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
+import {
+  buildSearchPageFilterState,
+  persistSearchPageFilters,
+  restoreSearchPageFilters,
+} from '../../../../../core/table-filters/table-filter-state.util';
 import { CustomerService } from '../../data-access/customer.service';
 import { Customer } from '../../models/customer.model';
 import { CustomerFormComponent } from '../customer-form/customer-form.component';
+
+const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.customers;
 
 @Component({
   selector: 'app-customers-list',
@@ -47,6 +56,7 @@ import { CustomerFormComponent } from '../customer-form/customer-form.component'
 })
 export class CustomersListComponent implements OnInit {
   private readonly customerService = inject(CustomerService);
+  private readonly filterStorage = inject(TableFilterStorageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
 
@@ -121,6 +131,7 @@ export class CustomersListComponent implements OnInit {
   ]);
 
   ngOnInit(): void {
+    this.restoreFilters();
     this.loadCustomers();
 
     this.filterForm.controls.search.valueChanges
@@ -132,6 +143,7 @@ export class CustomersListComponent implements OnInit {
       .subscribe((value) => {
         this.currentSearch.set(value);
         this.page.set(1);
+        this.persistFilters();
         this.loadCustomers();
       });
   }
@@ -162,6 +174,7 @@ export class CustomersListComponent implements OnInit {
   protected goToPage(p: number | '...'): void {
     if (p === '...' || p === this.page()) return;
     this.page.set(p);
+    this.persistFilters();
     this.loadCustomers();
   }
 
@@ -229,5 +242,26 @@ export class CustomersListComponent implements OnInit {
     const n = customer.name.charAt(0).toUpperCase();
     const s = customer.surname.charAt(0).toUpperCase();
     return `${n}${s}`;
+  }
+
+  private restoreFilters(): void {
+    restoreSearchPageFilters(this.filterStorage, FILTER_STORAGE_KEY, {
+      page: this.page,
+      limit: this.limit,
+      currentSearch: this.currentSearch,
+      searchControl: this.filterForm.controls.search,
+    });
+  }
+
+  private persistFilters(): void {
+    persistSearchPageFilters(
+      this.filterStorage,
+      FILTER_STORAGE_KEY,
+      buildSearchPageFilterState(
+        this.page(),
+        this.limit(),
+        this.currentSearch(),
+      ),
+    );
   }
 }

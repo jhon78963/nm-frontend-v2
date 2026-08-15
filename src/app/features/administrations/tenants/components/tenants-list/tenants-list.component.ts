@@ -26,9 +26,18 @@ import {
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
+import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
+import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
+import {
+  buildSearchPageFilterState,
+  persistSearchPageFilters,
+  restoreSearchPageFilters,
+} from '../../../../../core/table-filters/table-filter-state.util';
 import { TenantService } from '../../data-access/tenant.service';
 import { Tenant } from '../../models/tenant.model';
 import { TenantFormComponent } from '../tenant-form/tenant-form.component';
+
+const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.tenants;
 
 @Component({
   selector: 'app-tenants-list',
@@ -47,6 +56,7 @@ import { TenantFormComponent } from '../tenant-form/tenant-form.component';
 })
 export class TenantsListComponent implements OnInit {
   private readonly tenantService = inject(TenantService);
+  private readonly filterStorage = inject(TableFilterStorageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
 
@@ -123,6 +133,7 @@ export class TenantsListComponent implements OnInit {
   ]);
 
   ngOnInit(): void {
+    this.restoreFilters();
     this.loadTenants();
 
     this.searchForm.controls.search.valueChanges
@@ -134,6 +145,7 @@ export class TenantsListComponent implements OnInit {
       .subscribe((value) => {
         this.currentSearch.set(value);
         this.page.set(1);
+        this.persistFilters();
         this.loadTenants();
       });
   }
@@ -164,6 +176,7 @@ export class TenantsListComponent implements OnInit {
   protected goToPage(p: number | '...'): void {
     if (p === '...' || p === this.page()) return;
     this.page.set(p);
+    this.persistFilters();
     this.loadTenants();
   }
 
@@ -246,5 +259,26 @@ export class TenantsListComponent implements OnInit {
     if (!setting) return '';
     const parts = [setting.district, setting.province].filter(Boolean);
     return parts.join(', ');
+  }
+
+  private restoreFilters(): void {
+    restoreSearchPageFilters(this.filterStorage, FILTER_STORAGE_KEY, {
+      page: this.page,
+      limit: this.limit,
+      currentSearch: this.currentSearch,
+      searchControl: this.searchForm.controls.search,
+    });
+  }
+
+  private persistFilters(): void {
+    persistSearchPageFilters(
+      this.filterStorage,
+      FILTER_STORAGE_KEY,
+      buildSearchPageFilterState(
+        this.page(),
+        this.limit(),
+        this.currentSearch(),
+      ),
+    );
   }
 }

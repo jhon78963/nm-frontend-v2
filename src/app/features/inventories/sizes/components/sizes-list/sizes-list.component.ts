@@ -30,8 +30,22 @@ import { SizeLookupService } from '../../data-access/size-lookup.service';
 import { SizeService } from '../../data-access/size.service';
 import { Size, SizeFilterState, SizeType } from '../../models/size.model';
 import { SizeFormComponent } from '../size-form/size-form.component';
+import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
+import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
+import {
+  isNumberArray,
+  isSearchPageFilterState,
+} from '../../../../../core/table-filters/table-filter-state.util';
 
-const FILTER_STORAGE_KEY = 'sizes_filter_state_v2';
+const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.sizes;
+
+function isSizeFilterState(value: unknown): value is SizeFilterState {
+  if (!isSearchPageFilterState(value)) {
+    return false;
+  }
+
+  return isNumberArray((value as SizeFilterState).sizeTypeIds);
+}
 
 const SIZE_TYPE_BADGE_CLASSES = [
   'bg-violet-50 text-violet-700 ring-violet-200',
@@ -60,6 +74,7 @@ const SIZE_TYPE_BADGE_CLASSES = [
 export class SizesListComponent implements OnInit {
   private readonly sizeService = inject(SizeService);
   private readonly lookupService = inject(SizeLookupService);
+  private readonly filterStorage = inject(TableFilterStorageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
 
@@ -291,7 +306,7 @@ export class SizesListComponent implements OnInit {
     this.filterForm.controls.search.setValue('');
     this.selectedSizeTypeIds.set([]);
     this.page.set(1);
-    this.persistFilters();
+    this.filterStorage.remove(FILTER_STORAGE_KEY);
     this.loadSizes();
   }
 
@@ -339,8 +354,10 @@ export class SizesListComponent implements OnInit {
   }
 
   private restoreFilters(): void {
-    const saved = this.readFilterState();
-    if (!saved) return;
+    const saved = this.filterStorage.load(FILTER_STORAGE_KEY, isSizeFilterState);
+    if (!saved) {
+      return;
+    }
 
     this.limit.set(saved.limit);
     this.page.set(saved.page);
@@ -355,36 +372,11 @@ export class SizesListComponent implements OnInit {
   }
 
   private persistFilters(): void {
-    const state: SizeFilterState = {
+    this.filterStorage.save(FILTER_STORAGE_KEY, {
       limit: this.limit(),
       page: this.page(),
       search: this.currentSearch(),
       sizeTypeIds: this.selectedSizeTypeIds(),
-    };
-
-    try {
-      sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      // sessionStorage may be unavailable in private mode
-    }
-  }
-
-  private readFilterState(): SizeFilterState | null {
-    try {
-      const raw = sessionStorage.getItem(FILTER_STORAGE_KEY);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw) as SizeFilterState;
-      if (
-        typeof parsed.limit !== 'number' ||
-        typeof parsed.page !== 'number' ||
-        typeof parsed.search !== 'string' ||
-        !Array.isArray(parsed.sizeTypeIds)
-      ) {
-        return null;
-      }
-      return parsed;
-    } catch {
-      return null;
-    }
+    });
   }
 }

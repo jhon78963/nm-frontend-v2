@@ -27,11 +27,20 @@ import {
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
+import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
+import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
+import {
+  buildSearchPageFilterState,
+  persistSearchPageFilters,
+  restoreSearchPageFilters,
+} from '../../../../../core/table-filters/table-filter-state.util';
 import { TeamService } from '../../data-access/team.service';
 import { Team } from '../../models/team.model';
 import { formatMoney } from '../../utils/team-format.util';
 import { TeamDailyAttendanceComponent } from '../team-daily-attendance/team-daily-attendance.component';
 import { TeamFormComponent } from '../team-form/team-form.component';
+
+const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.teams;
 
 @Component({
   selector: 'app-teams-list',
@@ -52,6 +61,7 @@ import { TeamFormComponent } from '../team-form/team-form.component';
 })
 export class TeamsListComponent implements OnInit {
   private readonly teamService = inject(TeamService);
+  private readonly filterStorage = inject(TableFilterStorageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
   private readonly router = inject(Router);
@@ -132,6 +142,7 @@ export class TeamsListComponent implements OnInit {
   ]);
 
   ngOnInit(): void {
+    this.restoreFilters();
     this.loadTeams();
 
     this.filterForm.controls.search.valueChanges
@@ -143,6 +154,7 @@ export class TeamsListComponent implements OnInit {
       .subscribe((value) => {
         this.currentSearch.set(value);
         this.page.set(1);
+        this.persistFilters();
         this.loadTeams();
       });
   }
@@ -173,6 +185,7 @@ export class TeamsListComponent implements OnInit {
   protected goToPage(p: number | '...'): void {
     if (p === '...' || p === this.page()) return;
     this.page.set(p);
+    this.persistFilters();
     this.loadTeams();
   }
 
@@ -261,5 +274,26 @@ export class TeamsListComponent implements OnInit {
     const n = team.name.charAt(0).toUpperCase();
     const s = team.surname.charAt(0).toUpperCase();
     return `${n}${s}`;
+  }
+
+  private restoreFilters(): void {
+    restoreSearchPageFilters(this.filterStorage, FILTER_STORAGE_KEY, {
+      page: this.page,
+      limit: this.limit,
+      currentSearch: this.currentSearch,
+      searchControl: this.filterForm.controls.search,
+    });
+  }
+
+  private persistFilters(): void {
+    persistSearchPageFilters(
+      this.filterStorage,
+      FILTER_STORAGE_KEY,
+      buildSearchPageFilterState(
+        this.page(),
+        this.limit(),
+        this.currentSearch(),
+      ),
+    );
   }
 }
