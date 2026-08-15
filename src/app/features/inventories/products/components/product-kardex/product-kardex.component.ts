@@ -20,6 +20,9 @@ import {
   DataTableComponent,
   DataTableColumn,
   DataTablePagination,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import { DateInputComponent } from '../../../../../shared/ui/date-input/date-input.component';
 import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
@@ -64,6 +67,9 @@ function toIsoDate(date: Date): string {
     FormField,
     ButtonComponent,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
     DateInputComponent,
     SelectComponent,
   ],
@@ -266,7 +272,7 @@ export class ProductKardexComponent implements OnInit {
   protected readonly tableColumns: DataTableColumn<KardexMovement>[] = [
     { key: 'occurredAt', label: 'Fecha' },
     { key: 'movementTypeLabel', label: 'Motivo' },
-    { key: 'document', label: 'Documento' },
+    { key: 'document', label: 'Documento', mobilePrimary: true },
     { key: 'quantity', label: 'Entrada / Salida', align: 'right' },
     { key: 'balance', label: 'Saldo', align: 'right' },
   ];

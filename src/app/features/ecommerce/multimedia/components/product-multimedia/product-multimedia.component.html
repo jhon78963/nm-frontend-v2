@@ -56,12 +56,15 @@
       >
         <ng-template #rowTemplate let-product let-index="index">
           <tr
+            appDtRow
+            [dtRowIndex]="+index"
             class="cursor-pointer transition-colors hover:bg-gray-50"
             [class.bg-indigo-50]="isSelected(product)"
             (click)="selectProduct(product)"
           >
-            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">{{ product.id }}</td>
-            <td class="px-4 py-3">
+            <td [appDtExpandCell]="+index" (click)="$event.stopPropagation()"></td>
+            <td dtCell="id" class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">{{ product.id }}</td>
+            <td dtCell="thumb" class="px-4 py-3">
               @if (listThumbUrl(product); as thumbUrl) {
                 <img
                   [src]="thumbUrl"
@@ -78,13 +81,13 @@
                 </span>
               }
             </td>
-            <td class="px-4 py-3">
+            <td dtCell="name" class="px-4 py-3">
               <span class="text-sm font-medium text-gray-900">{{ product.name }}</span>
             </td>
-            <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
+            <td dtCell="barcode" class="whitespace-nowrap px-4 py-3 text-sm text-gray-500">
               {{ product.barcode || '—' }}
             </td>
-            <td class="px-4 py-3 text-center">
+            <td dtCell="media" class="px-4 py-3 text-center">
               <span
                 class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium"
                 [class.bg-emerald-100]="mediaCount(product) > 0"
@@ -95,7 +98,7 @@
                 {{ mediaCount(product) }}
               </span>
             </td>
-            <td class="px-4 py-3 text-right">
+            <td dtCell="actions" class="px-4 py-3 text-right">
               <button
                 type="button"
                 class="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"

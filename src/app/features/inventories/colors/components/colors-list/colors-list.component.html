@@ -116,11 +116,12 @@
     </ng-template>
 
     <ng-template #rowTemplate let-color let-index="index">
-      <tr class="group transition-colors hover:bg-rose-50/30">
-        <td class="px-6 py-4 font-mono text-xs text-gray-400">
+      <tr appDtRow [dtRowIndex]="+index" class="group transition-colors hover:bg-rose-50/30">
+        <td [appDtExpandCell]="+index"></td>
+        <td dtCell="id" class="px-6 py-4 font-mono text-xs text-gray-400">
           {{ color.id }}
         </td>
-        <td class="px-6 py-4">
+        <td dtCell="color" class="px-6 py-4">
           <div class="flex items-center gap-3">
             <span
               class="h-10 w-10 shrink-0 rounded-full ring-2 ring-inset ring-gray-200"
@@ -130,7 +131,7 @@
             <p class="truncate font-semibold text-gray-900">{{ color.description }}</p>
           </div>
         </td>
-        <td class="px-6 py-4">
+        <td dtCell="sample" class="px-6 py-4">
           <div class="flex items-center gap-2">
             <span
               class="inline-block h-8 w-16 rounded-lg ring-1 ring-inset ring-gray-200"
@@ -139,12 +140,12 @@
             ></span>
           </div>
         </td>
-        <td class="px-6 py-4">
+        <td dtCell="hex" class="px-6 py-4">
           <code class="rounded-md bg-gray-100 px-2 py-1 font-mono text-xs text-gray-700">
             {{ displayHash(color.hash) }}
           </code>
         </td>
-        <td class="px-6 py-4">
+        <td dtCell="actions" class="px-6 py-4">
           <app-table-actions>
             <app-table-action-button
               label="Editar"

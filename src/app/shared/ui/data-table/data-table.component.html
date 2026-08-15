@@ -83,15 +83,30 @@
       }
     </div>
   } @else {
-    <div class="overflow-y-visible">
-      <table class="w-full text-sm" [style.min-width]="minWidth()" [attr.aria-label]="ariaLabel()">
+    <div class="overflow-x-auto max-md:overflow-x-hidden md:overflow-y-visible">
+      <table
+        class="dt-table w-full text-sm"
+        [class.dt-table--mobile]="mobileLayoutEnabled()"
+        [style.min-width]="mobileLayoutEnabled() ? null : minWidth()"
+        [attr.aria-label]="ariaLabel()"
+      >
         @if (columns().length > 0) {
           <thead>
             <tr class="border-b border-gray-200 bg-gray-50/70">
+              @if (mobileLayoutEnabled()) {
+                <th
+                  scope="col"
+                  class="dt-expand-header w-10 px-2 py-3.5 md:hidden"
+                  aria-label="Expandir fila"
+                ></th>
+              }
               @for (col of columns(); track col.key) {
                 <th
                   scope="col"
                   class="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-gray-500"
+                  [class.dt-primary-header]="isPrimaryColumn(col)"
+                  [class.hidden]="mobileLayoutEnabled() && !isColumnHeaderVisibleOnMobile(col)"
+                  [class.md:table-cell]="mobileLayoutEnabled() && !isColumnHeaderVisibleOnMobile(col)"
                   [class.text-left]="col.align === 'left' || !col.align"
                   [class.text-center]="col.align === 'center'"
                   [class.text-right]="col.align === 'right'"

@@ -20,6 +20,9 @@ import {
   DataTableColumn,
   DataTablePagination,
   DataTableEmptyState,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
@@ -39,6 +42,9 @@ import { TeamFormComponent } from '../team-form/team-form.component';
     TeamDailyAttendanceComponent,
     ConfirmDialogComponent,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -119,7 +125,7 @@ export class TeamsListComponent implements OnInit {
 
   protected readonly tableColumns = signal<DataTableColumn<Team>[]>([
     { key: 'id', label: '#', align: 'left', width: '16' },
-    { key: 'member', label: 'Colaborador', align: 'left' },
+    { key: 'member', label: 'Colaborador', align: 'left', mobilePrimary: true },
     { key: 'dni', label: 'DNI', align: 'left' },
     { key: 'salary', label: 'Salario', align: 'left' },
     { key: 'actions', label: 'Acciones', align: 'right', width: '140px' },

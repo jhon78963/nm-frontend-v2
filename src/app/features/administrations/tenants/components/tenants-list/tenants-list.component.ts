@@ -19,6 +19,9 @@ import {
   DataTableColumn,
   DataTableEmptyState,
   DataTablePagination,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
@@ -34,6 +37,9 @@ import { TenantFormComponent } from '../tenant-form/tenant-form.component';
     TenantFormComponent,
     ConfirmDialogComponent,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -109,7 +115,7 @@ export class TenantsListComponent implements OnInit {
   }));
 
   protected readonly tableColumns = signal<DataTableColumn<Tenant>[]>([
-    { key: 'tenant', label: 'Cliente', align: 'left' },
+    { key: 'tenant', label: 'Cliente', align: 'left', mobilePrimary: true },
     { key: 'ruc', label: 'RUC', align: 'left' },
     { key: 'contact', label: 'Contacto', align: 'left' },
     { key: 'status', label: 'Estado', align: 'left' },

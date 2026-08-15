@@ -121,10 +121,11 @@
     </ng-template>
 
     <ng-template #rowTemplate let-purchase let-index="index">
-      <tr class="group transition-colors hover:bg-emerald-50/40">
-        <td class="px-6 py-4 font-mono text-xs text-gray-400">{{ purchase.id }}</td>
-        <td class="px-6 py-4 text-sm text-gray-700">{{ formatDate(purchase.registeredAt) }}</td>
-        <td class="px-6 py-4">
+      <tr appDtRow [dtRowIndex]="+index" class="group transition-colors hover:bg-emerald-50/40">
+        <td [appDtExpandCell]="+index"></td>
+        <td dtCell="id" class="px-6 py-4 font-mono text-xs text-gray-400">{{ purchase.id }}</td>
+        <td dtCell="date" class="px-6 py-4 text-sm text-gray-700">{{ formatDate(purchase.registeredAt) }}</td>
+        <td dtCell="supplier" class="px-6 py-4">
           <div class="flex items-center gap-3">
             <span
               class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-xs font-bold text-emerald-700"
@@ -140,16 +141,16 @@
             </div>
           </div>
         </td>
-        <td class="px-6 py-4 text-sm text-gray-600">
+        <td dtCell="warehouse" class="px-6 py-4 text-sm text-gray-600">
           {{ purchase.warehouseName || ('Almacén #' + purchase.warehouseId) }}
         </td>
-        <td class="px-6 py-4 text-right font-semibold tabular-nums text-gray-900">
+        <td dtCell="total" class="px-6 py-4 text-right font-semibold tabular-nums text-gray-900">
           {{ formatMoney(purchase.totalSubtotal, purchase.currency) }}
         </td>
-        <td class="px-6 py-4 text-center">
+        <td dtCell="status" class="px-6 py-4 text-center">
           <span [class]="statusClass(purchase.status)">{{ statusLabel(purchase.status) }}</span>
         </td>
-        <td class="px-6 py-4">
+        <td dtCell="actions" class="px-6 py-4">
           <app-table-actions>
             <app-table-action-button
               label="Ver detalle"

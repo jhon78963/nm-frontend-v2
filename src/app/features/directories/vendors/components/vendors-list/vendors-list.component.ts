@@ -19,6 +19,9 @@ import {
   DataTableColumn,
   DataTablePagination,
   DataTableEmptyState,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
@@ -34,6 +37,9 @@ import { VendorFormComponent } from '../vendor-form/vendor-form.component';
     VendorFormComponent,
     ConfirmDialogComponent,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -109,7 +115,7 @@ export class VendorsListComponent implements OnInit {
 
   protected readonly tableColumns = signal<DataTableColumn<Vendor>[]>([
     { key: 'id', label: '#', align: 'left', width: '16' },
-    { key: 'vendor', label: 'Proveedor', align: 'left' },
+    { key: 'vendor', label: 'Proveedor', align: 'left', mobilePrimary: true },
     { key: 'phone', label: 'Celular', align: 'left' },
     { key: 'address', label: 'Dirección', align: 'left' },
     { key: 'local', label: 'Galería', align: 'left' },

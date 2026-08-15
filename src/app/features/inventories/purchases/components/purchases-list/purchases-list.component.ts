@@ -20,6 +20,9 @@ import {
   DataTableColumn,
   DataTableEmptyState,
   DataTablePagination,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
@@ -37,6 +40,9 @@ import { PurchaseRow } from '../../models/purchase.model';
     RouterLink,
     ConfirmDialogComponent,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
     SelectComponent,
     TableActionButtonComponent,
     TableActionsComponent,
@@ -128,7 +134,7 @@ export class PurchasesListComponent implements OnInit {
   protected readonly tableColumns = signal<DataTableColumn<PurchaseRow>[]>([
     { key: 'id', label: '#', align: 'left', width: '16' },
     { key: 'date', label: 'Fecha doc.', align: 'left' },
-    { key: 'supplier', label: 'Proveedor', align: 'left' },
+    { key: 'supplier', label: 'Proveedor', align: 'left', mobilePrimary: true },
     { key: 'warehouse', label: 'Almacén', align: 'left' },
     { key: 'total', label: 'Total', align: 'right' },
     { key: 'status', label: 'Estado', align: 'center' },

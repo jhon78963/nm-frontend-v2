@@ -22,6 +22,9 @@ import {
   DataTableEmptyState,
   DataTablePagination,
 } from '../../../../../../shared/ui/data-table/data-table.component';
+import { DtCellDirective } from '../../../../../../shared/ui/data-table/dt-cell.directive';
+import { DtExpandCellComponent } from '../../../../../../shared/ui/data-table/dt-expand-cell.component';
+import { DtRowDirective } from '../../../../../../shared/ui/data-table/dt-row.directive';
 import { TableActionButtonComponent } from '../../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../../shared/ui/toast/toast.service';
@@ -40,6 +43,9 @@ import { ExchangeResponse } from '../../models/sale.model';
     SaleExchangeComponent,
     ConfirmDialogComponent,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -138,7 +144,7 @@ export class SalesListComponent implements OnInit {
   }));
 
   protected readonly tableColumns = signal<DataTableColumn<Sale>[]>([
-    { key: 'code', label: 'Venta', align: 'left' },
+    { key: 'code', label: 'Venta', align: 'left', mobilePrimary: true },
     { key: 'customer', label: 'Cliente', align: 'left' },
     { key: 'total', label: 'Total', align: 'right' },
     { key: 'status', label: 'Estado', align: 'center' },

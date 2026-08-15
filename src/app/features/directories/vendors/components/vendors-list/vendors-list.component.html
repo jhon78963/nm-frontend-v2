@@ -102,9 +102,10 @@
     </ng-template>
 
     <ng-template #rowTemplate let-vendor let-index="index">
-      <tr class="group transition-colors hover:bg-amber-50/30">
-        <td class="px-6 py-4 font-mono text-xs text-gray-400">{{ vendor.id }}</td>
-        <td class="px-6 py-4">
+      <tr appDtRow [dtRowIndex]="+index" class="group transition-colors hover:bg-amber-50/30">
+        <td [appDtExpandCell]="+index"></td>
+        <td dtCell="id" class="px-6 py-4 font-mono text-xs text-gray-400">{{ vendor.id }}</td>
+        <td dtCell="vendor" class="px-6 py-4">
           <div class="flex items-center gap-3">
             <span
               class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-sm font-bold text-amber-700"
@@ -115,9 +116,9 @@
             <p class="font-semibold text-gray-900">{{ vendor.name }}</p>
           </div>
         </td>
-        <td class="px-6 py-4 text-gray-600">{{ displayValue(vendor.phone) }}</td>
-        <td class="px-6 py-4 text-gray-600">{{ displayValue(vendor.address) }}</td>
-        <td class="px-6 py-4">
+        <td dtCell="phone" class="px-6 py-4 text-gray-600">{{ displayValue(vendor.phone) }}</td>
+        <td dtCell="address" class="px-6 py-4 text-gray-600">{{ displayValue(vendor.address) }}</td>
+        <td dtCell="local" class="px-6 py-4">
           @if (vendor.local.trim()) {
             <span class="inline-flex items-center rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-200">
               {{ vendor.local }}
@@ -126,7 +127,7 @@
             <span class="text-gray-400">—</span>
           }
         </td>
-        <td class="px-6 py-4">
+        <td dtCell="actions" class="px-6 py-4">
           <app-table-actions>
             <app-table-action-button
               label="Editar"

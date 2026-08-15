@@ -133,9 +133,10 @@
     </ng-template>
 
     <ng-template #rowTemplate let-team let-index="index">
-      <tr class="group transition-colors hover:bg-violet-50/30">
-        <td class="px-6 py-4 font-mono text-xs text-gray-400">{{ team.id }}</td>
-        <td class="px-6 py-4">
+      <tr appDtRow [dtRowIndex]="+index" class="group transition-colors hover:bg-violet-50/30">
+        <td [appDtExpandCell]="+index"></td>
+        <td dtCell="id" class="px-6 py-4 font-mono text-xs text-gray-400">{{ team.id }}</td>
+        <td dtCell="member" class="px-6 py-4">
           <div class="flex items-center gap-3">
             <span
               class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-violet-100 text-sm font-bold text-violet-700"
@@ -151,9 +152,9 @@
             </div>
           </div>
         </td>
-        <td class="px-6 py-4 font-mono text-gray-600">{{ team.dni }}</td>
-        <td class="px-6 py-4 text-gray-700">{{ formatSalary(team.salary) }}</td>
-        <td class="px-6 py-4">
+        <td dtCell="dni" class="px-6 py-4 font-mono text-gray-600">{{ team.dni }}</td>
+        <td dtCell="salary" class="px-6 py-4 text-gray-700">{{ formatSalary(team.salary) }}</td>
+        <td dtCell="actions" class="px-6 py-4">
           <app-table-actions>
             <app-table-action-button
               label="Editar"

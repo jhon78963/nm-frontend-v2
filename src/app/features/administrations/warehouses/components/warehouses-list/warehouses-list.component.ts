@@ -19,6 +19,9 @@ import {
   DataTableColumn,
   DataTableEmptyState,
   DataTablePagination,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
@@ -35,6 +38,9 @@ import { WarehouseFormComponent } from '../warehouse-form/warehouse-form.compone
     WarehouseFormComponent,
     ConfirmDialogComponent,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -133,7 +139,7 @@ export class WarehousesListComponent implements OnInit {
 
   protected readonly tableColumns = signal<DataTableColumn<Warehouse>[]>([
     { key: 'id', label: '#', align: 'left', width: '64px', className: 'w-16' },
-    { key: 'warehouse', label: 'Tienda', align: 'left' },
+    { key: 'warehouse', label: 'Tienda', align: 'left', mobilePrimary: true },
     { key: 'tenant', label: 'Cliente', align: 'left' },
     { key: 'actions', label: 'Acciones', align: 'right', width: '100px' },
   ]);

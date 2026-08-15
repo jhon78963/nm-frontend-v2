@@ -19,6 +19,9 @@ import {
   DataTableColumn,
   DataTableComponent,
   DataTableEmptyState,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { PayrollService } from '../../data-access/payroll.service';
@@ -42,7 +45,7 @@ import {
 
 @Component({
   selector: 'app-team-payroll',
-  imports: [ReactiveFormsModule, RouterLink, ConfirmDialogComponent, DataTableComponent],
+  imports: [ReactiveFormsModule, RouterLink, ConfirmDialogComponent, DataTableComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
   templateUrl: './team-payroll.component.html',
 })
 export class TeamPayrollComponent implements OnInit {
@@ -123,7 +126,7 @@ export class TeamPayrollComponent implements OnInit {
 
   protected readonly tableColumns: DataTableColumn<PayrollPaymentItem>[] = [
     { key: 'date', label: 'Fecha' },
-    { key: 'type', label: 'Tipo' },
+    { key: 'type', label: 'Tipo', mobilePrimary: true },
     { key: 'period', label: 'Quincena' },
     { key: 'amount', label: 'Monto', align: 'right' },
     { key: 'actions', label: '', align: 'right', className: 'w-16' },

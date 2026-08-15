@@ -102,8 +102,9 @@
     </ng-template>
 
     <ng-template #rowTemplate let-customer let-index="index">
-      <tr class="group transition-colors hover:bg-sky-50/30">
-        <td class="px-6 py-4">
+      <tr appDtRow [dtRowIndex]="+index" class="group transition-colors hover:bg-sky-50/30">
+        <td [appDtExpandCell]="+index"></td>
+        <td dtCell="customer" class="px-6 py-4">
           <div class="flex items-center gap-3">
             <span
               class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sm font-bold text-sky-700"
@@ -117,8 +118,8 @@
             </div>
           </div>
         </td>
-        <td class="px-6 py-4 font-mono text-gray-600">{{ customer.dni }}</td>
-        <td class="px-6 py-4">
+        <td dtCell="dni" class="px-6 py-4 font-mono text-gray-600">{{ customer.dni }}</td>
+        <td dtCell="actions" class="px-6 py-4">
           <app-table-actions>
             <app-table-action-button
               label="Editar"

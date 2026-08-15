@@ -19,6 +19,9 @@ import {
   DataTableColumn,
   DataTablePagination,
   DataTableEmptyState,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
@@ -34,6 +37,9 @@ import { CustomerFormComponent } from '../customer-form/customer-form.component'
     CustomerFormComponent,
     ConfirmDialogComponent,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -109,7 +115,7 @@ export class CustomersListComponent implements OnInit {
   }));
 
   protected readonly tableColumns = signal<DataTableColumn<Customer>[]>([
-    { key: 'customer', label: 'Cliente', align: 'left' },
+    { key: 'customer', label: 'Cliente', align: 'left', mobilePrimary: true },
     { key: 'dni', label: 'DNI', align: 'left' },
     { key: 'actions', label: 'Acciones', align: 'right', width: '100px' },
   ]);

@@ -101,10 +101,11 @@
     </ng-template>
 
     <ng-template #rowTemplate let-role let-index="index">
-      <tr class="group transition-colors hover:bg-indigo-50/30">
-        <td class="px-6 py-4 font-mono text-xs text-gray-400">{{ role.id }}</td>
-        <td class="px-6 py-4 font-medium text-gray-900">{{ role.name }}</td>
-        <td class="px-6 py-4">
+      <tr appDtRow [dtRowIndex]="+index" class="group transition-colors hover:bg-indigo-50/30">
+        <td [appDtExpandCell]="+index"></td>
+        <td dtCell="id" class="px-6 py-4 font-mono text-xs text-gray-400">{{ role.id }}</td>
+        <td dtCell="name" class="px-6 py-4 font-medium text-gray-900">{{ role.name }}</td>
+        <td dtCell="actions" class="px-6 py-4">
           <app-table-actions>
             <app-table-action-button
               label="Editar"

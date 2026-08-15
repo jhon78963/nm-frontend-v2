@@ -243,28 +243,31 @@
       </svg>
     </ng-template>
 
-    <ng-template #rowTemplate let-log>
+    <ng-template #rowTemplate let-log let-index="index">
       <tr
+        appDtRow
+        [dtRowIndex]="+index"
         class="group transition-colors"
         [class.hover:bg-slate-50/80]="hasExtraDetails(log)"
         [class.cursor-pointer]="hasExtraDetails(log)"
         [attr.aria-expanded]="hasExtraDetails(log) ? isExpanded(log.id) : null"
         (click)="toggleDetails(log)"
       >
-        <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
+        <td [appDtExpandCell]="+index" (click)="$event.stopPropagation()"></td>
+        <td dtCell="creationTime" class="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
           <time [attr.datetime]="log.creationTime">
             {{ formatDateTime(log.creationTime) }}
           </time>
         </td>
 
-        <td class="px-6 py-4">
+        <td dtCell="action" class="px-6 py-4">
           @let actionInfo = getActionLogLabel(log.action);
           <span [class]="getActionLogToneClass(actionInfo.tone)">
             {{ actionInfo.label }}
           </span>
         </td>
 
-        <td class="max-w-md px-6 py-4 text-sm text-gray-700">
+        <td dtCell="description" class="max-w-md px-6 py-4 text-sm text-gray-700">
           <div class="flex items-start gap-2">
             <p class="min-w-0 flex-1 truncate" [title]="descriptionText(log)">
               {{ descriptionText(log) }}
@@ -272,7 +275,7 @@
             @if (hasExtraDetails(log)) {
               <button
                 type="button"
-                class="shrink-0 rounded p-0.5 text-gray-400 transition-transform hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                class="hidden shrink-0 rounded p-0.5 text-gray-400 transition-transform hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 md:inline-flex"
                 [class.rotate-180]="isExpanded(log.id)"
                 [attr.aria-label]="isExpanded(log.id) ? 'Ocultar detalle' : 'Ver detalle'"
                 (click)="$event.stopPropagation(); toggleDetails(log)"
@@ -292,7 +295,7 @@
           </div>
         </td>
 
-        <td class="px-6 py-4">
+        <td dtCell="user" class="px-6 py-4">
           <div class="flex items-center gap-2.5">
             <span
               class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[11px] font-bold text-slate-700"
@@ -311,14 +314,14 @@
           </div>
         </td>
 
-        <td class="whitespace-nowrap px-6 py-4 font-mono text-xs text-gray-500">
+        <td dtCell="ipAddress" class="whitespace-nowrap px-6 py-4 font-mono text-xs text-gray-500">
           {{ log.ipAddress || '—' }}
         </td>
       </tr>
 
       @if (isExpanded(log.id)) {
         <tr class="bg-slate-50/60">
-          <td colspan="5" class="px-6 py-4">
+          <td colspan="99" class="px-6 py-4">
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               @if (log.warehouseId != null) {
                 <div>

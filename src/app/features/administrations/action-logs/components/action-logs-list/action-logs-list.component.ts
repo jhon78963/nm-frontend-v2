@@ -19,6 +19,9 @@ import {
   DataTableColumn,
   DataTableEmptyState,
   DataTablePagination,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { AuthService } from '../../../../auth/data-access/auth.service';
@@ -42,7 +45,7 @@ import {
 
 @Component({
   selector: 'app-action-logs-list',
-  imports: [ReactiveFormsModule, DataTableComponent],
+  imports: [ReactiveFormsModule, DataTableComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
   providers: [ActionLogService, WarehouseService, UserService],
   templateUrl: './action-logs-list.component.html',
 })
@@ -145,7 +148,7 @@ export class ActionLogsListComponent implements OnInit {
   protected readonly tableColumns = signal<DataTableColumn<ActionLog>[]>([
     { key: 'creationTime', label: 'Fecha y hora', align: 'left', width: '168px' },
     { key: 'action', label: 'Acción', align: 'left', width: '180px' },
-    { key: 'description', label: 'Detalle', align: 'left' },
+    { key: 'description', label: 'Detalle', align: 'left', mobilePrimary: true },
     { key: 'user', label: 'Usuario', align: 'left', width: '200px' },
     { key: 'ipAddress', label: 'IP', align: 'left', width: '120px' },
   ]);

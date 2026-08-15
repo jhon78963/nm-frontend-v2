@@ -26,6 +26,9 @@ import {
   DataTableEmptyState,
   DataTablePagination,
 } from '../../../../../shared/ui/data-table/data-table.component';
+import { DtCellDirective } from '../../../../../shared/ui/data-table/dt-cell.directive';
+import { DtExpandCellComponent } from '../../../../../shared/ui/data-table/dt-expand-cell.component';
+import { DtRowDirective } from '../../../../../shared/ui/data-table/dt-row.directive';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -40,6 +43,9 @@ import { Product, Gender } from '../../models/product.model';
     ReactiveFormsModule,
     ConfirmDialogComponent,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
     ExportButtonComponent,
     TableActionButtonComponent,
     TableActionsComponent,
@@ -135,7 +141,7 @@ export class ProductsListComponent implements OnInit {
 
   protected readonly tableColumns = signal<DataTableColumn<Product>[]>([
     { key: 'id', label: '#', align: 'left', width: '80px', className: 'w-20' },
-    { key: 'name', label: 'Nombre', align: 'left' },
+    { key: 'name', label: 'Nombre', align: 'left', mobilePrimary: true },
     { key: 'gender', label: 'Género', align: 'left', width: '128px', className: 'w-32' },
     { key: 'stock', label: 'Stock', align: 'right', width: '112px', className: 'w-28' },
     { key: 'actions', label: 'Acciones', align: 'right', width: '320px', className: 'w-80' },

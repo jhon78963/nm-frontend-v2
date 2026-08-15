@@ -23,6 +23,9 @@ import {
   DataTableColumn,
   DataTableComponent,
   DataTableEmptyState,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import { AdminExpenseFormComponent } from '../admin-expense-form/admin-expense-form.component';
 import { VoucherPreviewDialogComponent } from '../voucher-preview-dialog/voucher-preview-dialog.component';
@@ -34,6 +37,9 @@ import { VoucherPreviewDialogComponent } from '../voucher-preview-dialog/voucher
     AdminExpenseFormComponent,
     VoucherPreviewDialogComponent,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
   ],
   templateUrl: './admin-expenses.component.html',
 })
@@ -94,7 +100,7 @@ export class AdminExpensesComponent implements OnInit {
       { key: 'date', label: 'Fecha pago' },
       { key: 'period', label: 'Período' },
       { key: 'category', label: 'Categoría' },
-      { key: 'description', label: 'Descripción' },
+      { key: 'description', label: 'Descripción', mobilePrimary: true },
       { key: 'method', label: 'Método', align: 'center' },
       { key: 'amount', label: 'Monto', align: 'right' },
       { key: 'voucher', label: 'Comprobante', align: 'center' },

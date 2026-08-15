@@ -21,6 +21,9 @@ import {
   DataTablePagination,
   DataTableEmptyState,
 } from '../../../../../shared/ui/data-table/data-table.component';
+import { DtCellDirective } from '../../../../../shared/ui/data-table/dt-cell.directive';
+import { DtExpandCellComponent } from '../../../../../shared/ui/data-table/dt-expand-cell.component';
+import { DtRowDirective } from '../../../../../shared/ui/data-table/dt-row.directive';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -35,6 +38,9 @@ import { RoleFormComponent } from '../role-form/role-form.component';
     RoleFormComponent,
     ConfirmDialogComponent,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -111,7 +117,7 @@ export class RolesListComponent implements OnInit {
 
   protected readonly tableColumns = signal<DataTableColumn<Role>[]>([
     { key: 'id', label: '#', align: 'left', width: '16' },
-    { key: 'name', label: 'Nombre del rol', align: 'left' },
+    { key: 'name', label: 'Nombre del rol', align: 'left', mobilePrimary: true },
     { key: 'actions', label: 'Acciones', align: 'right' },
   ]);
 

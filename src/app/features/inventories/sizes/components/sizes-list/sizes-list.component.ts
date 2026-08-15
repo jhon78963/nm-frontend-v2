@@ -19,6 +19,9 @@ import {
   DataTableColumn,
   DataTableEmptyState,
   DataTablePagination,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
@@ -46,6 +49,9 @@ const SIZE_TYPE_BADGE_CLASSES = [
     SizeFormComponent,
     ConfirmDialogComponent,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -151,7 +157,7 @@ export class SizesListComponent implements OnInit {
 
   protected readonly tableColumns = signal<DataTableColumn<Size>[]>([
     { key: 'id', label: '#', align: 'left', width: '64px', className: 'w-16' },
-    { key: 'size', label: 'Talla', align: 'left' },
+    { key: 'size', label: 'Talla', align: 'left', mobilePrimary: true },
     { key: 'type', label: 'Tipo', align: 'left' },
     { key: 'actions', label: 'Acciones', align: 'right', width: '100px' },
   ]);

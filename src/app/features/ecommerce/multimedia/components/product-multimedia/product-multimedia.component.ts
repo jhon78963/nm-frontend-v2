@@ -18,6 +18,9 @@ import {
   DataTableColumn,
   DataTableEmptyState,
   DataTablePagination,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { PublishProductService } from '../../../products/data-access/publish-product.service';
@@ -27,7 +30,7 @@ import { ProductGalleryComponent } from '../../../products/components/product-ga
 
 @Component({
   selector: 'app-product-multimedia',
-  imports: [ReactiveFormsModule, DataTableComponent, ProductGalleryComponent],
+  imports: [ReactiveFormsModule, DataTableComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective, ProductGalleryComponent],
   templateUrl: './product-multimedia.component.html',
 })
 export class ProductMultimediaComponent implements OnDestroy {
@@ -58,7 +61,7 @@ export class ProductMultimediaComponent implements OnDestroy {
   protected readonly tableColumns = signal<DataTableColumn<PublishProduct>[]>([
     { key: 'id', label: '#', width: '16' },
     { key: 'thumb', label: 'Foto', align: 'center', width: '56px' },
-    { key: 'name', label: 'Producto', align: 'left' },
+    { key: 'name', label: 'Producto', align: 'left', mobilePrimary: true },
     { key: 'barcode', label: 'Código', align: 'left' },
     { key: 'media', label: 'Imágenes', align: 'center', width: '80px' },
     { key: 'actions', label: '', align: 'right', width: '120px' },

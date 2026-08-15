@@ -15,6 +15,9 @@ import {
   DataTableColumn,
   DataTableComponent,
   DataTableEmptyState,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import {
   categoryBadgeClass,
@@ -28,7 +31,7 @@ import { QuickTransactionFormComponent } from '../quick-transaction-form/quick-t
 
 @Component({
   selector: 'app-financial-summary-dashboard',
-  imports: [DecimalPipe, RouterLink, QuickTransactionFormComponent, DataTableComponent],
+  imports: [DecimalPipe, RouterLink, QuickTransactionFormComponent, DataTableComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
   providers: [FinancialSummaryService],
   templateUrl: './financial-summary-dashboard.component.html',
 })
@@ -60,7 +63,7 @@ export class FinancialSummaryDashboardComponent implements OnInit {
   );
 
   protected readonly tableColumns: DataTableColumn<RecentTransaction>[] = [
-    { key: 'concept', label: 'Concepto' },
+    { key: 'concept', label: 'Concepto', mobilePrimary: true },
     { key: 'category', label: 'Categoría' },
     { key: 'date', label: 'Fecha', className: 'hidden sm:table-cell' },
     { key: 'method', label: 'Método', className: 'hidden md:table-cell' },

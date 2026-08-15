@@ -137,11 +137,12 @@
     </ng-template>
 
     <ng-template #rowTemplate let-warehouse let-index="index">
-      <tr class="group transition-colors hover:bg-indigo-50/30">
-        <td class="px-6 py-4 font-mono text-xs text-gray-400">
+      <tr appDtRow [dtRowIndex]="+index" class="group transition-colors hover:bg-indigo-50/30">
+        <td [appDtExpandCell]="+index"></td>
+        <td dtCell="id" class="px-6 py-4 font-mono text-xs text-gray-400">
           {{ warehouse.id }}
         </td>
-        <td class="px-6 py-4">
+        <td dtCell="warehouse" class="px-6 py-4">
           <div class="flex items-center gap-3">
             <span
               class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-sm font-bold text-emerald-700"
@@ -152,12 +153,12 @@
             <p class="truncate font-semibold text-gray-900">{{ warehouse.name }}</p>
           </div>
         </td>
-        <td class="px-6 py-4">
+        <td dtCell="tenant" class="px-6 py-4">
           <span class="inline-flex items-center rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-200">
             {{ tenantLabel(warehouse) }}
           </span>
         </td>
-        <td class="px-6 py-4">
+        <td dtCell="actions" class="px-6 py-4">
           <app-table-actions>
             <app-table-action-button
               label="Editar"

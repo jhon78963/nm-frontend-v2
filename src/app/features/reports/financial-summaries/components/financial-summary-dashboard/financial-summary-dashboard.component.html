@@ -240,12 +240,24 @@
             </ng-template>
 
             <ng-template #rowTemplate let-tx let-index="index">
-              <tr class="transition-colors hover:bg-gray-50/80">
-                <td class="px-6 py-4 font-medium text-gray-900">
-                  <span class="line-clamp-2">{{ tx.concept }}</span>
-                  <span class="mt-0.5 block text-xs text-gray-500 sm:hidden">{{ tx.date }}</span>
+              <tr appDtRow [dtRowIndex]="+index" class="transition-colors hover:bg-gray-50/80">
+                <td [appDtExpandCell]="+index"></td>
+                <td dtCell="concept" class="px-6 py-4 font-medium text-gray-900">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                      <span class="line-clamp-2">{{ tx.concept }}</span>
+                      <span class="mt-0.5 block text-xs text-gray-500 md:hidden">{{ tx.date }}</span>
+                    </div>
+                    <span
+                      class="shrink-0 font-mono text-sm font-bold tabular-nums md:hidden"
+                      [class.text-emerald-600]="tx.type === 'income'"
+                      [class.text-red-600]="tx.type === 'expense'"
+                    >
+                      {{ tx.type === 'income' ? '+' : '−' }} S/ {{ tx.amount | number: '1.2-2' }}
+                    </span>
+                  </div>
                 </td>
-                <td class="px-6 py-4">
+                <td dtCell="category" class="px-6 py-4">
                   <span
                     class="inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset"
                     [class]="categoryClass(tx.category)"
@@ -253,8 +265,8 @@
                     {{ tx.category }}
                   </span>
                 </td>
-                <td class="hidden px-6 py-4 text-gray-600 sm:table-cell">{{ tx.date }}</td>
-                <td class="hidden px-6 py-4 md:table-cell">
+                <td dtCell="date" class="hidden px-6 py-4 text-gray-600 sm:table-cell">{{ tx.date }}</td>
+                <td dtCell="method" class="hidden px-6 py-4 md:table-cell">
                   <span class="inline-flex items-center gap-1.5 text-gray-700">
                     @if (isCashMethod(tx.method)) {
                       <svg class="h-4 w-4 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -268,7 +280,7 @@
                     {{ paymentLabel(tx.method) }}
                   </span>
                 </td>
-                <td class="px-6 py-4 text-right">
+                <td dtCell="amount" class="px-6 py-4 text-right">
                   <span
                     class="font-mono text-base font-bold tabular-nums"
                     [class.text-emerald-600]="tx.type === 'income'"

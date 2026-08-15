@@ -20,6 +20,9 @@ import {
   DataTableEmptyState,
   DataTablePagination,
 } from '../../../../../shared/ui/data-table/data-table.component';
+import { DtCellDirective } from '../../../../../shared/ui/data-table/dt-cell.directive';
+import { DtExpandCellComponent } from '../../../../../shared/ui/data-table/dt-expand-cell.component';
+import { DtRowDirective } from '../../../../../shared/ui/data-table/dt-row.directive';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -36,6 +39,9 @@ import { UserPasswordResetComponent } from '../user-password-reset/user-password
     UserPasswordResetComponent,
     ConfirmDialogComponent,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -114,7 +120,7 @@ export class UsersListComponent implements OnInit {
   }));
 
   protected readonly tableColumns = signal<DataTableColumn<User>[]>([
-    { key: 'user', label: 'Usuario', align: 'left' },
+    { key: 'user', label: 'Usuario', align: 'left', mobilePrimary: true },
     { key: 'fullName', label: 'Nombre completo', align: 'left' },
     { key: 'role', label: 'Rol', align: 'left' },
     { key: 'status', label: 'Estado', align: 'left' },

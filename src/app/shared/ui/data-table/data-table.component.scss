@@ -1,3 +1,147 @@
-:host {
+app-data-table {
   display: block;
+}
+
+@media (max-width: 767px) {
+  app-data-table.dt-mobile-enabled {
+    .dt-table--mobile {
+      min-width: 0 !important;
+      width: 100%;
+      display: block;
+    }
+
+    .dt-table--mobile thead,
+    .dt-table--mobile tbody {
+      display: block;
+      width: 100%;
+    }
+
+    .dt-table--mobile thead tr {
+      display: grid;
+      grid-template-columns: 2.5rem minmax(0, 1fr);
+      width: 100%;
+    }
+
+    .dt-table--mobile thead th {
+      display: none;
+    }
+
+    .dt-table--mobile thead th.dt-expand-header,
+    .dt-table--mobile thead th.dt-primary-header {
+      display: block;
+    }
+
+    .dt-table--mobile thead th.dt-primary-header {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+
+    .dt-table--mobile tbody tr.dt-row {
+      display: grid;
+      width: 100%;
+      grid-template-columns: 2.5rem minmax(0, 1fr);
+      border-bottom: 1px solid rgb(243 244 246);
+    }
+
+    .dt-table--mobile tbody tr.dt-row:last-child {
+      border-bottom: 0;
+    }
+
+    .dt-table--mobile tbody td {
+      box-sizing: border-box;
+    }
+
+    .dt-table--mobile tbody td.dt-expand {
+      grid-column: 1;
+      grid-row: 1;
+      display: block;
+      align-self: start;
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+    }
+
+    .dt-table--mobile tbody td.dt-primary {
+      grid-column: 2;
+      grid-row: 1;
+      display: block;
+      min-width: 0;
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+      padding-top: 1rem;
+      padding-bottom: 1rem;
+    }
+
+    .dt-table--mobile tbody td.dt-detail,
+    .dt-table--mobile tbody td.dt-actions {
+      grid-column: 1 / -1;
+      display: none !important;
+      width: 100%;
+      padding: 0.625rem 1rem;
+      text-align: left !important;
+      background: rgb(249 250 251);
+      border-top: 1px solid rgb(243 244 246);
+    }
+
+    .dt-table--mobile tbody tr.dt-row.dt-expanded td.dt-detail,
+    .dt-table--mobile tbody tr.dt-row.dt-expanded td.dt-actions {
+      display: block !important;
+    }
+
+    .dt-table--mobile tbody tr.dt-row.dt-expanded td.dt-detail::before,
+    .dt-table--mobile tbody tr.dt-row.dt-expanded td.dt-actions::before {
+      content: attr(data-dt-label);
+      display: block;
+      margin-bottom: 0.25rem;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: rgb(75 85 99);
+    }
+
+    .dt-table--mobile tbody tr.dt-row.dt-expanded td.dt-actions {
+      padding-top: 0.75rem;
+      padding-bottom: 0.875rem;
+    }
+
+    .dt-table--mobile tbody tr.dt-row.dt-expanded td.dt-actions::before {
+      margin-bottom: 0.5rem;
+    }
+
+    .dt-table--mobile tbody tr.dt-row.dt-expanded td.dt-actions .table-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 0.375rem;
+    }
+
+    .dt-table--mobile tbody tr.dt-row.dt-expanded td.dt-actions .table-action-btn {
+      flex-shrink: 0;
+    }
+  }
+}
+
+@media (min-width: 768px) {
+  app-data-table.dt-mobile-enabled {
+    .dt-table--mobile tbody tr.dt-row {
+      display: table-row;
+    }
+
+    .dt-table--mobile tbody td.dt-cell {
+      display: table-cell;
+    }
+
+    .dt-table--mobile tbody td.dt-detail,
+    .dt-table--mobile tbody td.dt-actions {
+      background: transparent;
+      border-top: 0;
+      text-align: inherit;
+    }
+
+    .dt-table--mobile tbody td.dt-detail::before,
+    .dt-table--mobile tbody td.dt-actions::before {
+      content: none;
+    }
+  }
 }

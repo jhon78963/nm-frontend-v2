@@ -19,6 +19,9 @@ import {
   DataTableColumn,
   DataTableEmptyState,
   DataTablePagination,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
@@ -37,6 +40,9 @@ const FILTER_STORAGE_KEY = 'colors_filter_state_v2';
     ColorFormComponent,
     ConfirmDialogComponent,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
     TableActionButtonComponent,
     TableActionsComponent,
   ],
@@ -113,7 +119,7 @@ export class ColorsListComponent implements OnInit {
 
   protected readonly tableColumns = signal<DataTableColumn<Color>[]>([
     { key: 'id', label: '#', align: 'left', width: '64px', className: 'w-16' },
-    { key: 'color', label: 'Color', align: 'left' },
+    { key: 'color', label: 'Color', align: 'left', mobilePrimary: true },
     { key: 'sample', label: 'Muestra', align: 'left' },
     { key: 'hex', label: 'Hex', align: 'left' },
     { key: 'actions', label: 'Acciones', align: 'right', width: '100px' },

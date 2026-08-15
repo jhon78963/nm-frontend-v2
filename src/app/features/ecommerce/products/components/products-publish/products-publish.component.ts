@@ -18,6 +18,9 @@ import {
   DataTableColumn,
   DataTableEmptyState,
   DataTablePagination,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { PublishProductService } from '../../data-access/publish-product.service';
@@ -31,6 +34,9 @@ import { ProductPublishPanelComponent } from '../product-publish-panel/product-p
   imports: [
     ReactiveFormsModule,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
     ProductCreateDrawerComponent,
     ProductPublishPanelComponent,
   ],
@@ -64,7 +70,7 @@ export class ProductsPublishComponent implements OnInit {
 
   protected readonly tableColumns = signal<DataTableColumn<PublishProduct>[]>([
     { key: 'id', label: '#', width: '16' },
-    { key: 'name', label: 'Producto', align: 'left' },
+    { key: 'name', label: 'Producto', align: 'left', mobilePrimary: true },
     { key: 'barcode', label: 'Código', align: 'left' },
     { key: 'media', label: 'Imágenes', align: 'center', width: '80px' },
     { key: 'status', label: 'Estado', align: 'center', width: '100px' },

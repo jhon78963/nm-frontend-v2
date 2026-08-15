@@ -26,6 +26,9 @@ import {
   DataTableColumn,
   DataTableComponent,
   DataTableEmptyState,
+  DtCellDirective,
+  DtExpandCellComponent,
+  DtRowDirective,
 } from '../../../../../shared/ui/data-table/data-table.component';
 
 @Component({
@@ -37,6 +40,9 @@ import {
     AccumulatedExpenseFormComponent,
     VoucherPreviewDialogComponent,
     DataTableComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
   ],
   templateUrl: './accumulated-expenses.component.html',
 })
@@ -96,7 +102,7 @@ export class AccumulatedExpensesComponent implements OnInit {
   protected readonly tableColumns = computed<DataTableColumn<AccumulatedExpense>[]>(() => {
     const columns: DataTableColumn<AccumulatedExpense>[] = [
       { key: 'date', label: 'Fecha' },
-      { key: 'description', label: 'Descripción' },
+      { key: 'description', label: 'Descripción', mobilePrimary: true },
       { key: 'method', label: 'Método', align: 'center' },
       { key: 'amount', label: 'Monto', align: 'right' },
       { key: 'voucher', label: 'Comprobante', align: 'center' },

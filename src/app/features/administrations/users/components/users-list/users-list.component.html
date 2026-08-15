@@ -117,8 +117,9 @@
     </ng-template>
 
     <ng-template #rowTemplate let-user let-index="index">
-      <tr class="group transition-colors hover:bg-indigo-50/30" [class.opacity-60]="!user.isEnabled">
-        <td class="px-6 py-4">
+      <tr appDtRow [dtRowIndex]="+index" class="group transition-colors hover:bg-indigo-50/30" [class.opacity-60]="!user.isEnabled">
+        <td [appDtExpandCell]="+index"></td>
+        <td dtCell="user" class="px-6 py-4">
           <div class="flex items-center gap-3">
             <span
               class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700"
@@ -132,8 +133,8 @@
             </div>
           </div>
         </td>
-        <td class="px-6 py-4 text-gray-700">{{ fullName(user) }}</td>
-        <td class="px-6 py-4">
+        <td dtCell="fullName" class="px-6 py-4 text-gray-700">{{ fullName(user) }}</td>
+        <td dtCell="role" class="px-6 py-4">
           @if (user.role) {
             <span class="inline-flex items-center rounded-full bg-violet-50 px-2.5 py-0.5 text-xs font-medium text-violet-700 ring-1 ring-inset ring-violet-200">
               {{ user.role }}
@@ -142,7 +143,7 @@
             <span class="text-xs text-gray-400">Sin rol</span>
           }
         </td>
-        <td class="px-6 py-4">
+        <td dtCell="status" class="px-6 py-4">
           @if (user.isEnabled) {
             <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">
               Habilitado
@@ -153,7 +154,7 @@
             </span>
           }
         </td>
-        <td class="px-6 py-4">
+        <td dtCell="actions" class="px-6 py-4">
           <app-table-actions>
             @if (user.isEnabled) {
               <app-table-action-button

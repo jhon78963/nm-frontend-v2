@@ -127,36 +127,37 @@
     </ng-template>
 
     <ng-template #rowTemplate let-sale let-index="index">
-      <tr class="group transition-colors hover:bg-indigo-50/30">
-        <td class="px-6 py-4">
+      <tr appDtRow [dtRowIndex]="+index" class="group transition-colors hover:bg-indigo-50/30">
+        <td [appDtExpandCell]="+index"></td>
+        <td dtCell="code" class="px-6 py-4">
           <div>
             <p class="font-mono text-sm font-semibold text-gray-900">{{ sale.code }}</p>
             <p class="text-xs text-gray-400">{{ formatDate(sale.creationTime) }}</p>
           </div>
         </td>
-        <td class="px-6 py-4">
+        <td dtCell="customer" class="px-6 py-4">
           <p class="font-medium text-gray-900">{{ sale.customer || '—' }}</p>
           @if (sale.paymentMethod) {
             <p class="text-xs text-gray-400">{{ sale.paymentMethod }}</p>
           }
         </td>
-        <td class="px-6 py-4 text-right font-semibold tabular-nums text-gray-900">
+        <td dtCell="total" class="px-6 py-4 text-right font-semibold tabular-nums text-gray-900">
           {{ formatMoney(sale.total) }}
         </td>
-        <td class="px-6 py-4 text-center">
+        <td dtCell="status" class="px-6 py-4 text-center">
           <span [class]="statusClass(sale.status)">{{ statusLabel(sale.status) }}</span>
         </td>
-        <td class="px-6 py-4">
+        <td dtCell="invoice" class="px-6 py-4">
           @if (sale.fullInvoiceNumber) {
             <p class="font-mono text-sm text-gray-700">{{ sale.fullInvoiceNumber }}</p>
           } @else {
             <span class="text-sm text-gray-400">—</span>
           }
         </td>
-        <td class="px-6 py-4 text-center">
+        <td dtCell="sunat" class="px-6 py-4 text-center">
           <span [class]="sunatClass(sale.sunatStatus)">{{ sunatLabel(sale.sunatStatus) }}</span>
         </td>
-        <td class="px-6 py-4">
+        <td dtCell="actions" class="px-6 py-4">
           <app-table-actions>
             <app-table-action-button
               label="Ver ticket"

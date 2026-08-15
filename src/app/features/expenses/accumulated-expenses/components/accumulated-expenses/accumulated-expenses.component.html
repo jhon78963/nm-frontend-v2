@@ -143,10 +143,11 @@
       </ng-template>
 
       <ng-template #rowTemplate let-expense let-index="index">
-        <tr class="transition-colors hover:bg-gray-50/80">
-          <td class="px-6 py-4 font-mono text-xs text-gray-500">{{ formatDate(expense.date) }}</td>
-          <td class="px-6 py-4 font-medium text-gray-900">{{ expense.description }}</td>
-          <td class="px-6 py-4 text-center">
+        <tr appDtRow [dtRowIndex]="+index" class="transition-colors hover:bg-gray-50/80">
+          <td [appDtExpandCell]="+index"></td>
+          <td dtCell="date" class="px-6 py-4 font-mono text-xs text-gray-500">{{ formatDate(expense.date) }}</td>
+          <td dtCell="description" class="px-6 py-4 font-medium text-gray-900">{{ expense.description }}</td>
+          <td dtCell="method" class="px-6 py-4 text-center">
             <span
               class="inline-flex rounded-md px-2 py-0.5 text-[10px] font-bold uppercase ring-1 ring-inset"
               [class]="methodBadgeClass(expense.method)"
@@ -154,10 +155,10 @@
               {{ expense.method }}
             </span>
           </td>
-          <td class="px-6 py-4 text-right font-semibold tabular-nums text-orange-600">
+          <td dtCell="amount" class="px-6 py-4 text-right font-semibold tabular-nums text-orange-600">
             S/ {{ expense.amount | number: '1.2-2' }}
           </td>
-          <td class="px-6 py-4 text-center">
+          <td dtCell="voucher" class="px-6 py-4 text-center">
             @if (expense.voucherPaths.length > 0) {
               <button
                 type="button"
@@ -180,7 +181,7 @@
             }
           </td>
           @if (canUpdate()) {
-            <td class="px-6 py-4 text-center">
+            <td dtCell="actions" class="px-6 py-4 text-center">
               <button
                 type="button"
                 class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-indigo-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
