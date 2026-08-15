@@ -17,10 +17,10 @@
 }
 
 .btn-secondary {
-  @apply bg-secondary text-white hover:bg-secondary-dark focus-visible:ring-secondary;
+  @apply border border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-800 focus-visible:ring-gray-400;
 
   &:disabled {
-    @apply bg-secondary hover:bg-secondary;
+    @apply border-gray-200 bg-gray-100 text-gray-700 hover:bg-gray-100;
   }
 }
 

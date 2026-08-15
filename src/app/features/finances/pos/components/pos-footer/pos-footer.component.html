@@ -93,10 +93,14 @@
         <button
           type="button"
           class="flex-1 rounded-lg border py-1.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1"
-          [class.doc-type-active]="posService.documentType() === opt.value"
-          [class.doc-type-inactive]="posService.documentType() !== opt.value"
-          [attr.aria-pressed]="posService.documentType() === opt.value"
-          (click)="posService.documentType.set(opt.value)"
+          [class.doc-type-active]="!opt.disabled && posService.documentType() === opt.value"
+          [class.doc-type-inactive]="opt.disabled || posService.documentType() !== opt.value"
+          [class.opacity-50]="opt.disabled"
+          [class.cursor-not-allowed]="opt.disabled"
+          [attr.aria-pressed]="!opt.disabled && posService.documentType() === opt.value"
+          [attr.aria-disabled]="opt.disabled"
+          [disabled]="opt.disabled"
+          (click)="selectDocType(opt.value)"
         >
           {{ opt.label }}
         </button>

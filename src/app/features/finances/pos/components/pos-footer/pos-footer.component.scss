@@ -99,7 +99,7 @@
   background-color: #f9fafb;
   color: #6b7280;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: #f3f4f6;
     border-color: #d1d5db;
   }

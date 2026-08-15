@@ -21,10 +21,10 @@ export class PosFooterComponent {
 
   protected readonly posService = inject(PosService);
 
-  protected readonly docTypes: { label: string; value: DocumentType }[] = [
+  protected readonly docTypes: { label: string; value: DocumentType; disabled?: boolean }[] = [
     { label: 'Ticket', value: 'TICKET_INTERNO' },
-    { label: 'Boleta', value: 'BOLETA' },
-    { label: 'Factura', value: 'FACTURA' },
+    { label: 'Boleta', value: 'BOLETA', disabled: true },
+    { label: 'Factura', value: 'FACTURA', disabled: true },
   ];
 
   protected readonly methods = signal<PaymentMethodState[]>([
@@ -61,6 +61,12 @@ export class PosFooterComponent {
     },
     { allowSignalWrites: true },
   );
+
+  protected selectDocType(value: DocumentType): void {
+    const option = this.docTypes.find((o) => o.value === value);
+    if (option?.disabled) return;
+    this.posService.documentType.set(value);
+  }
 
   protected resetMethods(): void {
     this.methods.update((list) => list.map((m) => ({ ...m, active: m.id === 'CASH', amount: null })));
