@@ -440,7 +440,7 @@
 
 <!-- Search results modal -->
 @if (searchResultsVisible()) {
-  <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="search-results-title">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="search-results-title">
     <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
       <h2 id="search-results-title" class="text-base font-semibold text-gray-900">Resultados de búsqueda</h2>
       <ul class="mt-4 max-h-80 space-y-2 overflow-y-auto">
@@ -469,7 +469,7 @@
 
 <!-- Replace color modal -->
 @if (replaceDialogVisible()) {
-  <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="replace-color-title">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="replace-color-title">
     <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
       <h2 id="replace-color-title" class="text-base font-semibold text-gray-900">Cambiar color de la variante</h2>
       @if (replaceCtx(); as ctx) {
@@ -511,7 +511,7 @@
 
 <!-- Add size modal -->
 @if (addSizeDialogVisible()) {
-  <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="add-size-title">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="add-size-title">
     <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
       <h2 id="add-size-title" class="text-base font-semibold text-gray-900">Agregar talla al producto</h2>
       <p class="mt-2 text-sm text-gray-600">
@@ -563,7 +563,7 @@
 
 <!-- Add color modal -->
 @if (addColorDialogVisible()) {
-  <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="add-color-title">
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="add-color-title">
     <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
       <h2 id="add-color-title" class="text-base font-semibold text-gray-900">Agregar color a la talla</h2>
       @if (addColorCtx(); as ctx) {

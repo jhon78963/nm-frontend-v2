@@ -131,7 +131,7 @@
         <!-- Trigger -->
         <button
           type="button"
-          class="relative z-50 flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
+          class="relative flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
           [attr.aria-expanded]="isProfileMenuOpen()"
           aria-haspopup="menu"
           aria-label="Menú de perfil de usuario"
@@ -161,7 +161,7 @@
         <!-- Dropdown -->
         @if (isProfileMenuOpen()) {
           <div
-            class="absolute right-0 top-full z-50 mt-2 w-64 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl"
+            class="absolute right-0 top-full z-40 mt-2 w-64 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl"
             role="menu"
             aria-label="Opciones de perfil"
           >
