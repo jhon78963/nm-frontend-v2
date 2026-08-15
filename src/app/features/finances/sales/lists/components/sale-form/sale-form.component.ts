@@ -18,6 +18,10 @@ import {
 import { AlertComponent } from '../../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import {
+  DataTableColumn,
+  DataTableComponent,
+} from '../../../../../../shared/ui/data-table/data-table.component';
 import { SelectOption } from '../../../../../../shared/ui/select/select.component';
 import {
   formatDateTime,
@@ -52,6 +56,7 @@ interface PaymentRow extends SalePayment {
     AlertComponent,
     ButtonComponent,
     ConfirmDialogComponent,
+    DataTableComponent,
     SaleProductSelectorComponent,
   ],
   templateUrl: './sale-form.component.html',
@@ -128,6 +133,19 @@ export class SaleFormComponent implements OnInit {
   protected readonly panelTitle = computed(() => {
     if (this.readOnly() || this.isCanceled()) return 'Detalle de venta';
     return 'Editar venta';
+  });
+
+  protected readonly itemTableColumns = computed<DataTableColumn<ItemRow>[]>(() => {
+    const cols: DataTableColumn<ItemRow>[] = [
+      { key: 'quantity', label: 'Cant.' },
+      { key: 'description', label: 'Descripción' },
+      { key: 'unitPrice', label: 'Precio', align: 'right' },
+      { key: 'subtotal', label: 'Subtotal', align: 'right' },
+    ];
+    if (this.isEditable()) {
+      cols.push({ key: 'actions', label: '', align: 'center' });
+    }
+    return cols;
   });
 
   ngOnInit(): void {

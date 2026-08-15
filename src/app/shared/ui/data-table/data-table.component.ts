@@ -48,6 +48,8 @@ export type DataTableTheme =
   | 'emerald'
   | 'rose';
 
+export type DataTableVariant = 'card' | 'plain' | 'embedded';
+
 @Component({
   selector: 'app-data-table',
   imports: [CommonModule],
@@ -68,10 +70,15 @@ export class DataTableComponent<T> {
   emptySearch = input<string>('');
   pagination = input<DataTablePagination | null>(null);
   theme = input<DataTableTheme>('sky');
+  variant = input<DataTableVariant>('card');
   minWidth = input('640px');
   rowHoverEffect = input(true);
   showRowActions = input(true);
   ariaLabel = input('Tabla de datos');
+  /** Clases opcionales para la fila de encabezado (`thead tr`). */
+  headerRowClass = input('');
+  /** Encabezado fijo al hacer scroll en contenedores con overflow. */
+  stickyHeader = input(false);
   /** Activa filas compactas en mobile (expandir para ver detalle y acciones). */
   mobileCompact = input(true);
 
@@ -98,6 +105,8 @@ export class DataTableComponent<T> {
   actionsTemplate = contentChild<TemplateRef<{ $implicit: T; index: number }>>(
     'actionsTemplate',
   );
+  footerTemplate = contentChild<TemplateRef<void>>('footerTemplate');
+  headerTemplate = contentChild<TemplateRef<void>>('headerTemplate');
 
   emptyAction = output<void>();
   clearSearch = output<void>();

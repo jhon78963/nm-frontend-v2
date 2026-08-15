@@ -438,164 +438,165 @@
         } @else {
           <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
             <div class="overflow-x-auto">
-              <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                  <tr>
+              <app-data-table
+                [columns]="colorTableColumns"
+                [data]="filteredColors()"
+                [variant]="'embedded'"
+                [theme]="'sky'"
+                [minWidth]="'100%'"
+                [mobileCompact]="false"
+                [ariaLabel]="'Variantes de color por talla'"
+              >
+                <ng-template #headerTemplate>
+                  <tr class="dt-thead-row">
                     <th
                       scope="col"
-                      class="w-12 px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500"
+                      class="dt-th w-12 text-center"
                       title="Seleccionar para guardar o remover en lote">
                       Sel.
                     </th>
                     <th
                       scope="col"
-                      class="hidden w-16 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 md:table-cell">
+                      class="dt-th hidden w-16 md:table-cell">
                       #
                     </th>
-                    <th
-                      scope="col"
-                      class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    <th scope="col" class="dt-th">
                       Color
                     </th>
-                    <th
-                      scope="col"
-                      class="w-36 px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    <th scope="col" class="dt-th w-36">
                       Stock
                     </th>
-                    <th
-                      scope="col"
-                      class="w-24 px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                    <th scope="col" class="dt-th w-24 text-right">
                       Acciones
                     </th>
                   </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200 bg-white">
-                  @for (color of filteredColors(); track color.id) {
-                    <tr
-                      [id]="'color-row-' + color.id"
-                      class="transition-colors"
-                      [class.bg-sky-50/50]="isColorSelected(color)"
-                      [class.outline]="isRowHighlighted(color)"
-                      [class.outline-2]="isRowHighlighted(color)"
-                      [class.outline-sky-500]="isRowHighlighted(color)"
-                      [class.-outline-offset-2]="isRowHighlighted(color)">
-                      <td class="px-4 py-3 text-center align-middle">
-                        <input
-                          type="checkbox"
-                          class="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
-                          [attr.id]="'select-' + color.id"
-                          [attr.aria-label]="'Seleccionar ' + color.description"
-                          [checked]="isColorSelected(color)"
-                          (change)="toggleColorSelection(color, $any($event.target).checked)" />
-                      </td>
-                      <td class="hidden whitespace-nowrap px-4 py-3 text-xs text-gray-400 md:table-cell">
-                        {{ color.id }}
-                      </td>
-                      <td class="px-4 py-3 align-middle">
-                        <div class="flex items-center gap-3">
-                          <span
-                            class="h-9 w-9 shrink-0 rounded-lg ring-1 ring-inset ring-gray-200"
-                            [style.background-color]="colorSwatchStyle(color)"
-                            [attr.aria-label]="'Muestra de color ' + color.description"></span>
-                          <div class="min-w-0 flex-1">
-                            <div class="flex min-h-[1.5rem] flex-wrap items-center gap-2">
-                              <span class="truncate text-sm font-medium text-gray-900">
-                                {{ color.description }}
+                </ng-template>
+
+                <ng-template #rowTemplate let-color>
+                  <tr
+                    [id]="'color-row-' + color.id"
+                    class="transition-colors"
+                    [class.bg-sky-50/50]="isColorSelected(color)"
+                    [class.outline]="isRowHighlighted(color)"
+                    [class.outline-2]="isRowHighlighted(color)"
+                    [class.outline-sky-500]="isRowHighlighted(color)"
+                    [class.-outline-offset-2]="isRowHighlighted(color)">
+                    <td class="px-4 py-3 text-center align-middle">
+                      <input
+                        type="checkbox"
+                        class="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
+                        [attr.id]="'select-' + color.id"
+                        [attr.aria-label]="'Seleccionar ' + color.description"
+                        [checked]="isColorSelected(color)"
+                        (change)="toggleColorSelection(color, $any($event.target).checked)" />
+                    </td>
+                    <td class="hidden whitespace-nowrap px-4 py-3 text-xs text-gray-400 md:table-cell">
+                      {{ color.id }}
+                    </td>
+                    <td class="px-4 py-3 align-middle">
+                      <div class="flex items-center gap-3">
+                        <span
+                          class="h-9 w-9 shrink-0 rounded-lg ring-1 ring-inset ring-gray-200"
+                          [style.background-color]="colorSwatchStyle(color)"
+                          [attr.aria-label]="'Muestra de color ' + color.description"></span>
+                        <div class="min-w-0 flex-1">
+                          <div class="flex min-h-[1.5rem] flex-wrap items-center gap-2">
+                            <span class="truncate text-sm font-medium text-gray-900">
+                              {{ color.description }}
+                            </span>
+                            @if (color.isExists) {
+                              <span
+                                class="inline-flex shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset"
+                                [class.bg-emerald-50]="(color.stock ?? 0) > 0"
+                                [class.text-emerald-700]="(color.stock ?? 0) > 0"
+                                [class.ring-emerald-600/20]="(color.stock ?? 0) > 0"
+                                [class.bg-red-50]="(color.stock ?? 0) === 0"
+                                [class.text-red-700]="(color.stock ?? 0) === 0"
+                                [class.ring-red-600/20]="(color.stock ?? 0) === 0">
+                                @if ((color.stock ?? 0) > 0) {
+                                  Asignada
+                                } @else {
+                                  Agotado
+                                }
                               </span>
-                              @if (color.isExists) {
-                                <span
-                                  class="inline-flex shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset"
-                                  [class.bg-emerald-50]="(color.stock ?? 0) > 0"
-                                  [class.text-emerald-700]="(color.stock ?? 0) > 0"
-                                  [class.ring-emerald-600/20]="(color.stock ?? 0) > 0"
-                                  [class.bg-red-50]="(color.stock ?? 0) === 0"
-                                  [class.text-red-700]="(color.stock ?? 0) === 0"
-                                  [class.ring-red-600/20]="(color.stock ?? 0) === 0">
-                                  @if ((color.stock ?? 0) > 0) {
-                                    Asignada
-                                  } @else {
-                                    Agotado
-                                  }
-                                </span>
-                              } @else if (isColorDirty(color)) {
-                                <span
-                                  class="inline-flex shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
-                                  Pendiente
-                                </span>
-                              } @else {
-                                <span
-                                  class="inline-flex shrink-0 rounded-full px-2 py-0.5 text-xs font-medium opacity-0"
-                                  aria-hidden="true">
-                                  Reservado
-                                </span>
-                              }
-                            </div>
-                            @if (color.hash ?? color.value) {
-                              <p class="truncate text-xs text-gray-400">
-                                {{ color.hash ?? color.value }}
-                              </p>
+                            } @else if (isColorDirty(color)) {
+                              <span
+                                class="inline-flex shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
+                                Pendiente
+                              </span>
+                            } @else {
+                              <span
+                                class="inline-flex shrink-0 rounded-full px-2 py-0.5 text-xs font-medium opacity-0"
+                                aria-hidden="true">
+                                Reservado
+                              </span>
                             }
                           </div>
+                          @if (color.hash ?? color.value) {
+                            <p class="truncate text-xs text-gray-400">
+                              {{ color.hash ?? color.value }}
+                            </p>
+                          }
                         </div>
-                      </td>
-                      <td class="px-4 py-3 align-middle">
-                        <div class="flex items-center gap-1">
-                          <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            inputmode="numeric"
-                            placeholder="0"
-                            class="block w-full min-w-[4.5rem] rounded-lg border-0 py-2 px-3 text-center text-sm font-semibold tabular-nums text-gray-900 ring-1 ring-inset ring-gray-300 bg-white focus:ring-2 focus:ring-inset focus:ring-sky-600"
-                            [class.ring-amber-300]="color.isExists && (color.stock ?? 0) === 0"
-                            [attr.aria-label]="'Stock de ' + color.description"
-                            [(ngModel)]="color.stock"
-                            (ngModelChange)="onStockChange(color, $event)" />
-                          <span class="shrink-0 text-xs text-gray-400">uds</span>
-                        </div>
-                      </td>
-                      <td class="whitespace-nowrap px-4 py-3 text-right align-middle">
-                        <div class="flex items-center justify-end gap-1">
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 align-middle">
+                      <div class="flex items-center gap-1">
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          inputmode="numeric"
+                          placeholder="0"
+                          class="block w-full min-w-[4.5rem] rounded-lg border-0 py-2 px-3 text-center text-sm font-semibold tabular-nums text-gray-900 ring-1 ring-inset ring-gray-300 bg-white focus:ring-2 focus:ring-inset focus:ring-sky-600"
+                          [class.ring-amber-300]="color.isExists && (color.stock ?? 0) === 0"
+                          [attr.aria-label]="'Stock de ' + color.description"
+                          [(ngModel)]="color.stock"
+                          (ngModelChange)="onStockChange(color, $event)" />
+                        <span class="shrink-0 text-xs text-gray-400">uds</span>
+                      </div>
+                    </td>
+                    <td class="whitespace-nowrap px-4 py-3 text-right align-middle">
+                      <div class="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          class="rounded-lg p-2 transition-colors"
+                          [class.text-sky-500]="!color.isExists"
+                          [class.hover:bg-sky-50]="!color.isExists"
+                          [class.text-gray-400]="color.isExists"
+                          [class.hover:bg-gray-100]="color.isExists"
+                          [title]="color.isExists ? 'Actualizar stock' : 'Asignar stock'"
+                          [disabled]="saving()"
+                          (click)="saveColorVariant(color)">
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              stroke-width="2"
+                              d="M5 13l4 4L19 7" />
+                          </svg>
+                        </button>
+                        @if (color.isExists) {
                           <button
                             type="button"
-                            class="rounded-lg p-2 transition-colors"
-                            [class.text-sky-500]="!color.isExists"
-                            [class.hover:bg-sky-50]="!color.isExists"
-                            [class.text-gray-400]="color.isExists"
-                            [class.hover:bg-gray-100]="color.isExists"
-                            [title]="color.isExists ? 'Actualizar stock' : 'Asignar stock'"
+                            class="rounded-lg p-2 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                            title="Quitar variante"
                             [disabled]="saving()"
-                            (click)="saveColorVariant(color)">
+                            (click)="removeColorVariant(color)">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
                                 stroke-width="2"
-                                d="M5 13l4 4L19 7" />
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                           </button>
-                          @if (color.isExists) {
-                            <button
-                              type="button"
-                              class="rounded-lg p-2 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                              title="Quitar variante"
-                              [disabled]="saving()"
-                              (click)="removeColorVariant(color)">
-                              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                  stroke-linecap="round"
-                                  stroke-linejoin="round"
-                                  stroke-width="2"
-                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                            </button>
-                          }
-                        </div>
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
+                        }
+                      </div>
+                    </td>
+                  </tr>
+                </ng-template>
+              </app-data-table>
             </div>
           </div>
         }

@@ -405,56 +405,49 @@
           </p>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead>
-              <tr class="border-b border-gray-100 bg-blue-50/80 text-left text-xs font-semibold uppercase tracking-wider text-blue-800">
-                <th scope="col" class="px-4 py-3">Fecha</th>
-                <th scope="col" class="px-4 py-3 text-right">Efectivo</th>
-                <th scope="col" class="px-4 py-3 text-right">Bancos / Digital</th>
-                <th scope="col" class="px-4 py-3 text-right">Total mensual</th>
+        <app-data-table
+          [columns]="salesHistoryColumns"
+          [data]="allTimeMonthlyReport()"
+          [variant]="'embedded'"
+          [theme]="'indigo'"
+          [minWidth]="'100%'"
+          [mobileCompact]="false"
+          [headerRowClass]="'border-b border-gray-100 bg-blue-50/80 text-blue-800'"
+          [emptyState]="salesHistoryEmptyState"
+          [ariaLabel]="'Ventas mensuales por método de pago'"
+        >
+          <ng-template #rowTemplate let-row>
+            <tr class="hover:bg-gray-50/80">
+              <td class="px-4 py-2.5 font-semibold text-gray-800">{{ row.dateLabel }}</td>
+              <td class="px-4 py-2.5 text-right font-mono tabular-nums text-gray-700">
+                S/ {{ row.cash | number: '1.2-2' }}
+              </td>
+              <td class="px-4 py-2.5 text-right font-mono tabular-nums text-gray-700">
+                S/ {{ row.digital | number: '1.2-2' }}
+              </td>
+              <td class="bg-indigo-50/50 px-4 py-2.5 text-right font-mono font-bold tabular-nums text-indigo-700">
+                S/ {{ row.monthlyTotal | number: '1.2-2' }}
+              </td>
+            </tr>
+          </ng-template>
+
+          @if (allTimeMonthlyReport().length > 0) {
+            <ng-template #footerTemplate>
+              <tr class="border-t border-gray-200 bg-gray-100 font-bold">
+                <td class="px-4 py-3">Totales</td>
+                <td class="px-4 py-3 text-right font-mono tabular-nums">
+                  S/ {{ totalHistoricalCash() | number: '1.2-2' }}
+                </td>
+                <td class="px-4 py-3 text-right font-mono tabular-nums">
+                  S/ {{ totalHistoricalDigital() | number: '1.2-2' }}
+                </td>
+                <td class="px-4 py-3 text-right font-mono tabular-nums text-indigo-800">
+                  S/ {{ totalHistoricalMonthly() | number: '1.2-2' }}
+                </td>
               </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              @for (row of allTimeMonthlyReport(); track row.sortMonth) {
-                <tr class="hover:bg-gray-50/80">
-                  <td class="px-4 py-2.5 font-semibold text-gray-800">{{ row.dateLabel }}</td>
-                  <td class="px-4 py-2.5 text-right font-mono tabular-nums text-gray-700">
-                    S/ {{ row.cash | number: '1.2-2' }}
-                  </td>
-                  <td class="px-4 py-2.5 text-right font-mono tabular-nums text-gray-700">
-                    S/ {{ row.digital | number: '1.2-2' }}
-                  </td>
-                  <td class="bg-indigo-50/50 px-4 py-2.5 text-right font-mono font-bold tabular-nums text-indigo-700">
-                    S/ {{ row.monthlyTotal | number: '1.2-2' }}
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="4" class="px-4 py-10 text-center text-gray-500">
-                    No hay registros históricos disponibles.
-                  </td>
-                </tr>
-              }
-            </tbody>
-            @if (allTimeMonthlyReport().length > 0) {
-              <tfoot>
-                <tr class="border-t border-gray-200 bg-gray-100 font-bold">
-                  <td class="px-4 py-3">Totales</td>
-                  <td class="px-4 py-3 text-right font-mono tabular-nums">
-                    S/ {{ totalHistoricalCash() | number: '1.2-2' }}
-                  </td>
-                  <td class="px-4 py-3 text-right font-mono tabular-nums">
-                    S/ {{ totalHistoricalDigital() | number: '1.2-2' }}
-                  </td>
-                  <td class="px-4 py-3 text-right font-mono tabular-nums text-indigo-800">
-                    S/ {{ totalHistoricalMonthly() | number: '1.2-2' }}
-                  </td>
-                </tr>
-              </tfoot>
-            }
-          </table>
-        </div>
+            </ng-template>
+          }
+        </app-data-table>
       </section>
     } @else {
       <section class="rounded-xl border border-gray-200 bg-white shadow-sm">
@@ -470,63 +463,53 @@
           </p>
         </div>
 
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead>
-              <tr class="border-b border-gray-100 bg-orange-50/80 text-left text-xs font-semibold uppercase tracking-wider text-orange-800">
-                <th scope="col" class="px-4 py-3">Fecha</th>
-                <th scope="col" class="px-4 py-3 text-right">Efectivo</th>
-                <th scope="col" class="px-4 py-3 text-right">Bancos / Digital</th>
-                <th scope="col" class="px-4 py-3 text-right">Total mensual</th>
-                <th scope="col" class="px-4 py-3 text-right">Saldo efectivo</th>
-                <th scope="col" class="px-4 py-3 text-right">Saldo digital</th>
-                <th scope="col" class="px-4 py-3 text-right">Saldo total</th>
+        <app-data-table
+          [columns]="accumulatedColumns"
+          [data]="accumulatedRows()"
+          [variant]="'embedded'"
+          [theme]="'amber'"
+          [minWidth]="'900px'"
+          [mobileCompact]="false"
+          [headerRowClass]="'border-b border-gray-100 bg-orange-50/80 text-orange-800'"
+          [emptyState]="accumulatedEmptyState"
+          [ariaLabel]="'Cuenta acumulada — crecimiento mensual'"
+        >
+          <ng-template #rowTemplate let-row>
+            <tr class="hover:bg-gray-50/80">
+              <td class="px-4 py-2.5 font-semibold text-gray-800">{{ row.dateLabel }}</td>
+              <td class="px-4 py-2.5 text-right font-mono tabular-nums">S/ {{ row.cash | number: '1.2-2' }}</td>
+              <td class="px-4 py-2.5 text-right font-mono tabular-nums">S/ {{ row.digital | number: '1.2-2' }}</td>
+              <td class="bg-orange-50/50 px-4 py-2.5 text-right font-mono font-bold tabular-nums text-orange-700">
+                S/ {{ row.monthlyTotal | number: '1.2-2' }}
+              </td>
+              <td class="px-4 py-2.5 text-right font-mono tabular-nums">S/ {{ row.cashBalance | number: '1.2-2' }}</td>
+              <td class="px-4 py-2.5 text-right font-mono tabular-nums">S/ {{ row.digitalBalance | number: '1.2-2' }}</td>
+              <td class="bg-orange-100/60 px-4 py-2.5 text-right font-mono font-bold tabular-nums text-orange-900">
+                S/ {{ row.totalBalance | number: '1.2-2' }}
+              </td>
+            </tr>
+          </ng-template>
+
+          @if (accumulatedRows().length > 0) {
+            <ng-template #footerTemplate>
+              <tr class="border-t border-gray-200 bg-gray-100 font-bold">
+                <td class="px-4 py-3">Totales netos</td>
+                <td class="px-4 py-3 text-right font-mono tabular-nums">
+                  S/ {{ accumulatedTotalCash() | number: '1.2-2' }}
+                </td>
+                <td class="px-4 py-3 text-right font-mono tabular-nums">
+                  S/ {{ accumulatedTotalDigital() | number: '1.2-2' }}
+                </td>
+                <td class="px-4 py-3 text-right font-mono tabular-nums text-orange-800">
+                  S/ {{ accumulatedTotalMonthly() | number: '1.2-2' }}
+                </td>
+                <td class="px-4 py-3 text-right font-mono tabular-nums" colspan="3">
+                  Saldo actual: S/ {{ accumulatedSummary().current.total | number: '1.2-2' }}
+                </td>
               </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              @for (row of accumulatedRows(); track row.sortMonth) {
-                <tr class="hover:bg-gray-50/80">
-                  <td class="px-4 py-2.5 font-semibold text-gray-800">{{ row.dateLabel }}</td>
-                  <td class="px-4 py-2.5 text-right font-mono tabular-nums">S/ {{ row.cash | number: '1.2-2' }}</td>
-                  <td class="px-4 py-2.5 text-right font-mono tabular-nums">S/ {{ row.digital | number: '1.2-2' }}</td>
-                  <td class="bg-orange-50/50 px-4 py-2.5 text-right font-mono font-bold tabular-nums text-orange-700">
-                    S/ {{ row.monthlyTotal | number: '1.2-2' }}
-                  </td>
-                  <td class="px-4 py-2.5 text-right font-mono tabular-nums">S/ {{ row.cashBalance | number: '1.2-2' }}</td>
-                  <td class="px-4 py-2.5 text-right font-mono tabular-nums">S/ {{ row.digitalBalance | number: '1.2-2' }}</td>
-                  <td class="bg-orange-100/60 px-4 py-2.5 text-right font-mono font-bold tabular-nums text-orange-900">
-                    S/ {{ row.totalBalance | number: '1.2-2' }}
-                  </td>
-                </tr>
-              } @empty {
-                <tr>
-                  <td colspan="7" class="px-4 py-10 text-center text-gray-500">
-                    Configura los saldos iniciales en Gastos → Egresos Cuenta Acumulada para ver el histórico.
-                  </td>
-                </tr>
-              }
-            </tbody>
-            @if (accumulatedRows().length > 0) {
-              <tfoot>
-                <tr class="border-t border-gray-200 bg-gray-100 font-bold">
-                  <td class="px-4 py-3">Totales netos</td>
-                  <td class="px-4 py-3 text-right font-mono tabular-nums">
-                    S/ {{ accumulatedTotalCash() | number: '1.2-2' }}
-                  </td>
-                  <td class="px-4 py-3 text-right font-mono tabular-nums">
-                    S/ {{ accumulatedTotalDigital() | number: '1.2-2' }}
-                  </td>
-                  <td class="px-4 py-3 text-right font-mono tabular-nums text-orange-800">
-                    S/ {{ accumulatedTotalMonthly() | number: '1.2-2' }}
-                  </td>
-                  <td class="px-4 py-3 text-right font-mono tabular-nums" colspan="3">
-                    Saldo actual: S/ {{ accumulatedSummary().current.total | number: '1.2-2' }}
-                  </td>
-                </tr>
-              </tfoot>
-            }
-          </table>
-        </div>
+            </ng-template>
+          }
+        </app-data-table>
       </section>
     }
   </main>

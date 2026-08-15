@@ -38,6 +38,10 @@ import {
   SelectComponent,
   SelectOption,
 } from '../../../../../shared/ui/select/select.component';
+import {
+  DataTableColumn,
+  DataTableComponent,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { Vendor } from '../../../../directories/vendors/models/vendor.model';
 import { ProductLookupService } from '../../../products/data-access/product-lookup.service';
@@ -78,6 +82,7 @@ const LEGACY_DRAFT_STORAGE_KEYS = [
     InputComponent,
     MoneyInputComponent,
     SelectComponent,
+    DataTableComponent,
   ],
   templateUrl: './purchase-register.component.html',
   host: {
@@ -186,6 +191,28 @@ export class PurchaseRegisterComponent implements OnInit {
   protected readonly warehouseOptions = signal<SelectOption<number>[]>([]);
   protected readonly sizeTypeOptions = signal<SelectOption<number>[]>([]);
   protected readonly catalogSizeOptions = signal<SelectOption<number>[]>([]);
+
+  protected readonly draftColorTableColumns: DataTableColumn<FormGroup>[] = [
+    { key: 'color', label: 'Color' },
+    { key: 'quantity', label: 'Cantidad', align: 'right' },
+    { key: 'actions', label: '', width: '2.5rem' },
+  ];
+
+  protected readonly purchaseLinesTableColumns: DataTableColumn<FormGroup>[] = [
+    { key: 'product', label: 'Producto' },
+    { key: 'size', label: 'Talla' },
+    { key: 'barcode', label: 'Barcode' },
+    { key: 'prices', label: 'Precios' },
+    { key: 'colors', label: 'Colores y cantidades' },
+    { key: 'subtotal', label: 'Subtotal', align: 'right' },
+    { key: 'actions', label: '', width: '6rem' },
+  ];
+
+  protected readonly linesEmptyState = {
+    title: 'Sin líneas en el detalle',
+    description:
+      'Aún no hay filas. Arma talla + variantes y pulsa «Agregar a la tabla».',
+  };
 
   ngOnInit(): void {
     const purchaseId = Number(this.route.snapshot.paramMap.get('id'));

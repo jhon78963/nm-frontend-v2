@@ -12,6 +12,10 @@ import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { downloadFile } from '../../../../../core/utils/file-download.util';
 import { ExportButtonComponent } from '../../../../../shared/ui/export-button/export-button.component';
+import {
+  DataTableColumn,
+  DataTableComponent,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import {
   buildProductsInventoryTableRows,
@@ -28,7 +32,7 @@ const DEFAULT_HORIZON_DAYS = 30;
 
 @Component({
   selector: 'app-products-inventory-report',
-  imports: [DecimalPipe, RouterLink, ExportButtonComponent],
+  imports: [DecimalPipe, RouterLink, ExportButtonComponent, DataTableComponent],
   providers: [ProductsInventoryService],
   templateUrl: './products-inventory-report.component.html',
 })
@@ -66,6 +70,27 @@ export class ProductsInventoryReportComponent implements OnInit {
   protected readonly tableRows = computed(() =>
     buildProductsInventoryTableRows(this.filteredProducts()),
   );
+
+  protected readonly inventoryTableColumns = computed<DataTableColumn<unknown>[]>(() => {
+    const cols: DataTableColumn<unknown>[] = [
+      { key: 'size', label: 'Talla' },
+      { key: 'barcode', label: 'Cód. barras' },
+      { key: 'purchasePrice', label: 'Compra', align: 'center' },
+      { key: 'salePrice', label: 'Venta', align: 'center' },
+      { key: 'minSalePrice', label: 'Venta mín.', align: 'center' },
+      { key: 'sizeStock', label: 'Stock talla', align: 'center' },
+      { key: 'colorsSummary', label: 'Colores' },
+      { key: 'colorsStockSum', label: 'Stock colores', align: 'center' },
+    ];
+    if (this.includeAi()) {
+      cols.push(
+        { key: 'aiSuggestedPrice', label: 'Precio IA', align: 'center' },
+        { key: 'aiSuggestedMinPrice', label: 'Precio mín. IA', align: 'center' },
+        { key: 'aiSuggestedPurchase', label: `Compra IA (${this.horizonDays()}d)`, align: 'center' },
+      );
+    }
+    return cols;
+  });
 
   protected readonly productCount = computed(() => this.products().length);
   protected readonly filteredCount = computed(() => this.filteredProducts().length);

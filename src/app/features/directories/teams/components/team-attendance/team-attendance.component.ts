@@ -9,6 +9,10 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
+import {
+  DataTableColumn,
+  DataTableComponent,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { AttendanceService } from '../../data-access/attendance.service';
 import { TeamService } from '../../data-access/team.service';
 import {
@@ -40,7 +44,7 @@ import {
 
 @Component({
   selector: 'app-team-attendance',
-  imports: [RouterLink],
+  imports: [RouterLink, DataTableComponent],
   templateUrl: './team-attendance.component.html',
 })
 export class TeamAttendanceComponent implements OnInit {
@@ -64,6 +68,18 @@ export class TeamAttendanceComponent implements OnInit {
   protected readonly statusOptions = ATTENDANCE_STATUS_OPTIONS;
   protected readonly quincenaOptions = QUINCENA_OPTIONS;
   protected readonly valdeoNthOptions = VALDEO_NTH_OPTIONS;
+
+  protected readonly attendanceTableColumns: DataTableColumn<AttendanceDayRow>[] = [
+    { key: 'day', label: 'Día' },
+    { key: 'weekday', label: 'Sem.' },
+    { key: 'status', label: 'Estado' },
+    { key: 'checkIn', label: 'Entrada' },
+    { key: 'checkOut', label: 'Salida' },
+    { key: 'delay', label: 'Tarde (min)' },
+    { key: 'note', label: 'Observación' },
+    { key: 'hasRecord', label: 'Servidor', align: 'center' },
+    { key: 'actions', label: '', align: 'right' },
+  ];
 
   private attendanceCache: Record<string, AttendanceRecord> = {};
   private domingoRecuperaMap: Record<string, boolean> = {};

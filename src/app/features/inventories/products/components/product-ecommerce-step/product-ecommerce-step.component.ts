@@ -13,6 +13,10 @@ import { forkJoin } from 'rxjs';
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
+import {
+  DataTableColumn,
+  DataTableComponent,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
 import { TextareaComponent } from '../../../../../shared/ui/textarea/textarea.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -42,6 +46,7 @@ const EMPTY_FORM: EcommercePublishFormModel = {
     AlertComponent,
     ButtonComponent,
     CheckboxComponent,
+    DataTableComponent,
     MoneyInputComponent,
     TextareaComponent,
     ProductGalleryComponent,
@@ -75,6 +80,14 @@ export class ProductEcommerceStepComponent implements OnInit {
 
   protected readonly formModel = signal<EcommercePublishFormModel>({ ...EMPTY_FORM });
   protected readonly publishForm = form(this.formModel);
+
+  protected readonly variantColumns: DataTableColumn<EcommerceVariantRow>[] = [
+    { key: 'sizeLabel', label: 'Talla' },
+    { key: 'colorLabel', label: 'Color' },
+    { key: 'price', label: 'Precio' },
+    { key: 'stock', label: 'Stock' },
+    { key: 'syncStatus', label: 'Sincronización' },
+  ];
 
   protected readonly lastSyncedLabel = computed(() => {
     const raw = this.ecommerceState()?.lastSyncedAt;

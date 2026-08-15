@@ -22,6 +22,10 @@ import { ButtonComponent } from '../../../../../shared/ui/button/button.componen
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
+import {
+  DataTableColumn,
+  DataTableComponent,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
 import { ProductService } from '../../../products/data-access/product.service';
@@ -62,6 +66,10 @@ type ConfirmAction =
   | { type: 'remove-color'; size: ReconciliationSizeDraft; color: ReconciliationColorDraft }
   | { type: 'remove-size'; size: ReconciliationSizeDraft };
 
+type ReconciliationTableRow =
+  | { kind: 'size'; size: ReconciliationSizeDraft }
+  | { kind: 'color'; size: ReconciliationSizeDraft; color: ReconciliationColorDraft };
+
 @Component({
   selector: 'app-inventory-reconciliation',
   imports: [
@@ -72,6 +80,7 @@ type ConfirmAction =
     ConfirmDialogComponent,
     InputComponent,
     SelectComponent,
+    DataTableComponent,
   ],
   templateUrl: './inventory-reconciliation.component.html',
 })
@@ -174,6 +183,24 @@ export class InventoryReconciliationComponent implements OnInit {
   );
 
   protected readonly sortedSizes = computed(() => sortedSizes(this.draft()));
+  protected readonly inventoryTableRows = computed((): ReconciliationTableRow[] => {
+    const rows: ReconciliationTableRow[] = [];
+    for (const size of this.sortedSizes()) {
+      rows.push({ kind: 'size', size });
+      for (const color of sortedColors(size)) {
+        rows.push({ kind: 'color', size, color });
+      }
+    }
+    return rows;
+  });
+  protected readonly reconciliationTableColumns: DataTableColumn<ReconciliationTableRow>[] = [
+    { key: 'label', label: 'Talla / color' },
+    { key: 'purchasePrice', label: 'P. compra', align: 'right' },
+    { key: 'salePrice', label: 'P. venta', align: 'right' },
+    { key: 'minSalePrice', label: 'P. mín.', align: 'right' },
+    { key: 'barcode', label: 'Cód. talla' },
+    { key: 'stock', label: 'Stock', align: 'right' },
+  ];
   protected readonly hasAnyShelfWarning = computed(() =>
     (this.draft()?.sizes ?? []).some((size) => size.shelfInconsistentOnLoad),
   );

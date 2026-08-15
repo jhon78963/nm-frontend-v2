@@ -10,6 +10,10 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../../../auth/data-access/auth.service';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import {
+  DataTableColumn,
+  DataTableComponent,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import {
   formatViewDate,
@@ -26,9 +30,18 @@ import {
 
 type ListSection = 'sales' | 'incomes' | 'expenses';
 
+type CashRegisterDisplayRow =
+  | { kind: 'section'; label: string; rowClass: string; labelClass: string }
+  | {
+      kind: 'movement';
+      item: CashMovementItem;
+      movementKind: ListSection;
+    }
+  | { kind: 'empty'; message: string };
+
 @Component({
   selector: 'app-cash-register',
-  imports: [DecimalPipe, ConfirmDialogComponent, MovementFormComponent],
+  imports: [DecimalPipe, ConfirmDialogComponent, MovementFormComponent, DataTableComponent],
   templateUrl: './cash-register.component.html',
 })
 export class CashRegisterComponent implements OnInit {
@@ -108,6 +121,69 @@ export class CashRegisterComponent implements OnInit {
     if (!item) return '';
     const kind = this.deleteType() === 'INCOME' ? 'ingreso' : 'gasto';
     return `¿Eliminar este ${kind} (S/ ${item.amount.toFixed(2)})? Esta acción no se puede deshacer.`;
+  });
+
+  protected readonly movementTableColumns = computed<DataTableColumn<CashRegisterDisplayRow>[]>(() => {
+    const cols: DataTableColumn<CashRegisterDisplayRow>[] = [
+      { key: 'time', label: 'Hora', width: '5rem' },
+      { key: 'type', label: '', width: '2.5rem', align: 'center' },
+      { key: 'description', label: 'Descripción' },
+      { key: 'method', label: 'Método', align: 'center', width: '7rem' },
+      { key: 'amount', label: 'Monto', align: 'right', width: '7rem' },
+    ];
+    if (this.isAdmin()) {
+      cols.push({ key: 'actions', label: 'Acciones', align: 'center', width: '6rem' });
+    }
+    return cols;
+  });
+
+  protected readonly displayRows = computed((): CashRegisterDisplayRow[] => {
+    const rows: CashRegisterDisplayRow[] = [];
+
+    const appendSection = (
+      label: string,
+      rowClass: string,
+      labelClass: string,
+      items: CashMovementItem[],
+      movementKind: ListSection,
+      emptyMessage: string,
+    ): void => {
+      rows.push({ kind: 'section', label, rowClass, labelClass });
+      if (items.length === 0) {
+        rows.push({ kind: 'empty', message: emptyMessage });
+        return;
+      }
+      for (const item of items) {
+        rows.push({ kind: 'movement', item, movementKind });
+      }
+    };
+
+    appendSection(
+      'Ventas del día',
+      'bg-indigo-50/50',
+      'text-indigo-700',
+      this.filteredSales(),
+      'sales',
+      'Sin ventas registradas',
+    );
+    appendSection(
+      'Otros ingresos',
+      'bg-emerald-50/50',
+      'text-emerald-700',
+      this.filteredIncomes(),
+      'incomes',
+      'Sin ingresos extra',
+    );
+    appendSection(
+      'Gastos',
+      'bg-red-50/50',
+      'text-red-700',
+      this.filteredExpenses(),
+      'expenses',
+      'Sin gastos registrados',
+    );
+
+    return rows;
   });
 
   ngOnInit(): void {

@@ -188,52 +188,46 @@
             Este producto no tiene variantes talla × color. Agrégalas en los pasos anteriores para publicarlas.
           </p>
         } @else {
-          <div class="overflow-x-auto rounded-xl border border-gray-200">
-            <table class="min-w-full divide-y divide-gray-200 text-left text-sm">
-              <caption class="sr-only">Variantes talla y color para WooCommerce</caption>
-              <thead class="bg-gray-50">
-                <tr>
-                  <th scope="col" class="whitespace-nowrap px-4 py-3 font-semibold text-gray-600">Talla</th>
-                  <th scope="col" class="whitespace-nowrap px-4 py-3 font-semibold text-gray-600">Color</th>
-                  <th scope="col" class="whitespace-nowrap px-4 py-3 font-semibold text-gray-600">Precio</th>
-                  <th scope="col" class="whitespace-nowrap px-4 py-3 font-semibold text-gray-600">Stock</th>
-                  <th scope="col" class="whitespace-nowrap px-4 py-3 font-semibold text-gray-600">Sincronización</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-100 bg-white">
-                @for (variant of variants(); track variant.sizeId + '-' + variant.colorId) {
-                  <tr>
-                    <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-900">{{ variant.sizeLabel }}</td>
-                    <td class="whitespace-nowrap px-4 py-3 text-gray-700">
-                      <span class="inline-flex items-center gap-2">
-                        @if (variant.colorHash) {
-                          <span
-                            class="h-3.5 w-3.5 rounded-full border border-gray-200"
-                            [style.background-color]="variant.colorHash"
-                            aria-hidden="true"
-                          ></span>
-                        }
-                        {{ variant.colorLabel }}
-                      </span>
-                    </td>
-                    <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ formatMoney(variant.price) }}</td>
-                    <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ variant.stock }}</td>
-                    <td class="whitespace-nowrap px-4 py-3">
-                      @if (variant.syncStatus === 'synced') {
-                        <span class="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-                          Sincronizado
-                        </span>
-                      } @else {
-                        <span class="inline-flex rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
-                          Pendiente
-                        </span>
-                      }
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
+          <app-data-table
+            [columns]="variantColumns"
+            [data]="variants()"
+            [variant]="'plain'"
+            [theme]="'emerald'"
+            [minWidth]="'100%'"
+            [mobileCompact]="false"
+            [ariaLabel]="'Variantes talla y color para WooCommerce'"
+          >
+            <ng-template #rowTemplate let-variant>
+              <tr>
+                <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-900">{{ variant.sizeLabel }}</td>
+                <td class="whitespace-nowrap px-4 py-3 text-gray-700">
+                  <span class="inline-flex items-center gap-2">
+                    @if (variant.colorHash) {
+                      <span
+                        class="h-3.5 w-3.5 rounded-full border border-gray-200"
+                        [style.background-color]="variant.colorHash"
+                        aria-hidden="true"
+                      ></span>
+                    }
+                    {{ variant.colorLabel }}
+                  </span>
+                </td>
+                <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ formatMoney(variant.price) }}</td>
+                <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ variant.stock }}</td>
+                <td class="whitespace-nowrap px-4 py-3">
+                  @if (variant.syncStatus === 'synced') {
+                    <span class="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                      Sincronizado
+                    </span>
+                  } @else {
+                    <span class="inline-flex rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
+                      Pendiente
+                    </span>
+                  }
+                </td>
+              </tr>
+            </ng-template>
+          </app-data-table>
         }
       </section>
     }

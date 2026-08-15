@@ -9,6 +9,10 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import {
+  DataTableColumn,
+  DataTableComponent,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import {
   buildLineChartGeometry,
@@ -19,9 +23,23 @@ import {
 import { ReportDashboardService } from '../../data-access/report-dashboard.service';
 import { DashboardTab } from '../../models/report-dashboard.model';
 
+interface MonthlyHistoryRow {
+  sortMonth: string;
+  dateLabel: string;
+  cash: number;
+  digital: number;
+  monthlyTotal: number;
+}
+
+interface AccumulatedHistoryRow extends MonthlyHistoryRow {
+  cashBalance: number;
+  digitalBalance: number;
+  totalBalance: number;
+}
+
 @Component({
   selector: 'app-management-dashboard',
-  imports: [DecimalPipe, RouterLink],
+  imports: [DecimalPipe, RouterLink, DataTableComponent],
   providers: [ReportDashboardService],
   templateUrl: './management-dashboard.component.html',
 })
@@ -33,6 +51,33 @@ export class ManagementDashboardComponent implements OnInit {
   protected readonly loading = signal(false);
   protected readonly selectedMonth = signal(new Date());
   protected readonly activeTab = signal<DashboardTab>('summary');
+
+  protected readonly salesHistoryColumns: DataTableColumn<MonthlyHistoryRow>[] = [
+    { key: 'dateLabel', label: 'Fecha' },
+    { key: 'cash', label: 'Efectivo', align: 'right' },
+    { key: 'digital', label: 'Bancos / Digital', align: 'right' },
+    { key: 'monthlyTotal', label: 'Total mensual', align: 'right', className: 'bg-indigo-50/50 font-bold' },
+  ];
+
+  protected readonly accumulatedColumns: DataTableColumn<AccumulatedHistoryRow>[] = [
+    { key: 'dateLabel', label: 'Fecha' },
+    { key: 'cash', label: 'Efectivo', align: 'right' },
+    { key: 'digital', label: 'Bancos / Digital', align: 'right' },
+    { key: 'monthlyTotal', label: 'Total mensual', align: 'right', className: 'bg-orange-50/50 font-bold' },
+    { key: 'cashBalance', label: 'Saldo efectivo', align: 'right' },
+    { key: 'digitalBalance', label: 'Saldo digital', align: 'right' },
+    { key: 'totalBalance', label: 'Saldo total', align: 'right', className: 'bg-orange-100/60 font-bold' },
+  ];
+
+  protected readonly salesHistoryEmptyState = {
+    title: 'Sin registros históricos',
+    description: 'No hay registros históricos disponibles.',
+  };
+
+  protected readonly accumulatedEmptyState = {
+    title: 'Sin histórico acumulado',
+    description: 'Configura los saldos iniciales en Gastos → Egresos Cuenta Acumulada para ver el histórico.',
+  };
 
   protected readonly dashboard = this.reportDashboardService.dashboard;
 

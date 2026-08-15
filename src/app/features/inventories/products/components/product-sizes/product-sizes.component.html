@@ -78,10 +78,18 @@
   } @else {
     <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-gray-50">
-            <tr>
-              <th scope="col" class="w-12 px-4 py-3">
+        <app-data-table
+          [columns]="sizeTableColumns"
+          [data]="sizes()"
+          [variant]="'embedded'"
+          [theme]="'sky'"
+          [minWidth]="'100%'"
+          [mobileCompact]="false"
+          [ariaLabel]="'Tallas del producto'"
+        >
+          <ng-template #headerTemplate>
+            <tr class="dt-thead-row">
+              <th scope="col" class="dt-th w-12 text-center">
                 <input
                   type="checkbox"
                   class="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
@@ -89,118 +97,117 @@
                   [indeterminate]="someSelected()"
                   (change)="toggleSelectAll($any($event.target).checked)" />
               </th>
-              <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">#</th>
-              <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Talla</th>
-              <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Código de barras</th>
-              <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Stock</th>
-              <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Precio compra</th>
-              <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Precio venta</th>
-              <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">Precio mínimo</th>
-              <th scope="col" class="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">Acciones</th>
+              <th scope="col" class="dt-th">#</th>
+              <th scope="col" class="dt-th">Talla</th>
+              <th scope="col" class="dt-th">Código de barras</th>
+              <th scope="col" class="dt-th">Stock</th>
+              <th scope="col" class="dt-th">Precio compra</th>
+              <th scope="col" class="dt-th">Precio venta</th>
+              <th scope="col" class="dt-th">Precio mínimo</th>
+              <th scope="col" class="dt-th text-right">Acciones</th>
             </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200 bg-white">
-            @for (size of sizes(); track size.id) {
-              <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3">
-                  <input
-                    type="checkbox"
-                    class="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
-                    [checked]="isSizeSelected(size)"
-                    (change)="toggleSizeSelection(size, $any($event.target).checked)" />
-                </td>
-                <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{{ size.id }}</td>
-                <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
-                  {{ size.description }}
+          </ng-template>
+
+          <ng-template #rowTemplate let-size>
+            <tr class="hover:bg-gray-50">
+              <td class="px-4 py-3">
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 rounded border-gray-300 text-sky-600 focus:ring-sky-500"
+                  [checked]="isSizeSelected(size)"
+                  (change)="toggleSizeSelection(size, $any($event.target).checked)" />
+              </td>
+              <td class="whitespace-nowrap px-4 py-3 text-sm text-gray-900">{{ size.id }}</td>
+              <td class="whitespace-nowrap px-4 py-3 text-sm font-medium text-gray-900">
+                {{ size.description }}
+                @if (size.isExists) {
+                  <span class="ml-2 inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                    Asignada
+                  </span>
+                }
+              </td>
+              <td class="px-4 py-3">
+                <input
+                  type="text"
+                  class="block w-full min-w-[8rem] rounded-lg border-0 py-2 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
+                  [(ngModel)]="size.barcode"
+                  (ngModelChange)="onSizeFieldChange(size)" />
+              </td>
+              <td class="px-4 py-3">
+                <input
+                  type="number"
+                  min="0"
+                  class="block w-full min-w-[5rem] rounded-lg border-0 py-2 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
+                  [(ngModel)]="size.stock"
+                  (ngModelChange)="onSizeFieldChange(size)" />
+              </td>
+              <td class="px-4 py-3">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="block w-full min-w-[5rem] rounded-lg border-0 py-2 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
+                  [(ngModel)]="size.purchasePrice"
+                  (ngModelChange)="onSizeFieldChange(size)" />
+              </td>
+              <td class="px-4 py-3">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="block w-full min-w-[5rem] rounded-lg border-0 py-2 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
+                  [(ngModel)]="size.salePrice"
+                  (ngModelChange)="onSizeFieldChange(size)" />
+              </td>
+              <td class="px-4 py-3">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  class="block w-full min-w-[5rem] rounded-lg border-0 py-2 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
+                  [(ngModel)]="size.minSalePrice"
+                  (ngModelChange)="onSizeFieldChange(size)" />
+              </td>
+              <td class="whitespace-nowrap px-4 py-3 text-right">
+                <div class="flex items-center justify-end gap-1">
                   @if (size.isExists) {
-                    <span class="ml-2 inline-flex rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
-                      Asignada
-                    </span>
+                    <button
+                      type="button"
+                      class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                      title="Actualizar"
+                      [disabled]="saving()"
+                      (click)="updateSize(size)">
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="rounded-lg p-2 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
+                      title="Eliminar"
+                      [disabled]="saving()"
+                      (click)="removeSize(size)">
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  } @else {
+                    <button
+                      type="button"
+                      class="rounded-lg p-2 text-sky-500 transition-colors hover:bg-sky-50 hover:text-sky-700"
+                      title="Guardar"
+                      [disabled]="saving()"
+                      (click)="saveSize(size)">
+                      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    </button>
                   }
-                </td>
-                <td class="px-4 py-3">
-                  <input
-                    type="text"
-                    class="block w-full min-w-[8rem] rounded-lg border-0 py-2 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
-                    [(ngModel)]="size.barcode"
-                    (ngModelChange)="onSizeFieldChange(size)" />
-                </td>
-                <td class="px-4 py-3">
-                  <input
-                    type="number"
-                    min="0"
-                    class="block w-full min-w-[5rem] rounded-lg border-0 py-2 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
-                    [(ngModel)]="size.stock"
-                    (ngModelChange)="onSizeFieldChange(size)" />
-                </td>
-                <td class="px-4 py-3">
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    class="block w-full min-w-[5rem] rounded-lg border-0 py-2 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
-                    [(ngModel)]="size.purchasePrice"
-                    (ngModelChange)="onSizeFieldChange(size)" />
-                </td>
-                <td class="px-4 py-3">
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    class="block w-full min-w-[5rem] rounded-lg border-0 py-2 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
-                    [(ngModel)]="size.salePrice"
-                    (ngModelChange)="onSizeFieldChange(size)" />
-                </td>
-                <td class="px-4 py-3">
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    class="block w-full min-w-[5rem] rounded-lg border-0 py-2 px-3 text-sm text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-sky-600"
-                    [(ngModel)]="size.minSalePrice"
-                    (ngModelChange)="onSizeFieldChange(size)" />
-                </td>
-                <td class="whitespace-nowrap px-4 py-3 text-right">
-                  <div class="flex items-center justify-end gap-1">
-                    @if (size.isExists) {
-                      <button
-                        type="button"
-                        class="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
-                        title="Actualizar"
-                        [disabled]="saving()"
-                        (click)="updateSize(size)">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      <button
-                        type="button"
-                        class="rounded-lg p-2 text-red-400 transition-colors hover:bg-red-50 hover:text-red-600"
-                        title="Eliminar"
-                        [disabled]="saving()"
-                        (click)="removeSize(size)">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
-                    } @else {
-                      <button
-                        type="button"
-                        class="rounded-lg p-2 text-sky-500 transition-colors hover:bg-sky-50 hover:text-sky-700"
-                        title="Guardar"
-                        [disabled]="saving()"
-                        (click)="saveSize(size)">
-                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                        </svg>
-                      </button>
-                    }
-                  </div>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+                </div>
+              </td>
+            </tr>
+          </ng-template>
+        </app-data-table>
       </div>
     </div>
   }

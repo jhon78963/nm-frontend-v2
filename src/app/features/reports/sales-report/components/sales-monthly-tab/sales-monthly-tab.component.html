@@ -72,48 +72,41 @@
         </div>
       </section>
 
-      <div class="overflow-x-auto rounded-xl border border-gray-200">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-          <caption class="sr-only">Ventas diarias del mes {{ data.monthLabel }}</caption>
-          <thead class="bg-gray-50">
-            <tr>
-              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Día</th>
-              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Fecha</th>
-              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Cantidad</th>
-              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Total</th>
-              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Efectivo</th>
-              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Yape</th>
-              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Tarjeta</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100 bg-white">
-            @for (row of data.rows; track row.date) {
-              <tr class="even:bg-gray-50" [class.text-gray-400]="row.quantity === 0">
-                <td class="whitespace-nowrap px-4 py-3 font-medium">{{ row.day }}</td>
-                <td class="whitespace-nowrap px-4 py-3">
-                  <span class="font-medium text-gray-900">{{ row.date }}</span>
-                  <span class="ml-2 text-xs text-gray-500">{{ row.dayOfWeek }}</span>
-                </td>
-                <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ row.quantity }}</td>
-                <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums font-semibold text-gray-900">{{ formatMoney(row.total) }}</td>
-                <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ formatMoney(row.cash) }}</td>
-                <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ formatMoney(row.yape) }}</td>
-                <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ formatMoney(row.card) }}</td>
-              </tr>
-            }
-          </tbody>
-          <tfoot class="bg-gray-100 font-semibold">
-            <tr>
-              <td colspan="2" class="px-4 py-3 text-gray-900">Totales del mes</td>
-              <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ data.totals.quantity }}</td>
-              <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.total) }}</td>
-              <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.cash) }}</td>
-              <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.yape) }}</td>
-              <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.card) }}</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+      <app-data-table
+        [columns]="tableColumns"
+        [data]="data.rows"
+        [variant]="'plain'"
+        [theme]="'indigo'"
+        [minWidth]="'100%'"
+        [mobileCompact]="false"
+        [ariaLabel]="'Ventas diarias del mes ' + data.monthLabel"
+      >
+        <ng-template #rowTemplate let-row let-index="index">
+          <tr class="even:bg-gray-50" [class.text-gray-400]="row.quantity === 0">
+            <td class="whitespace-nowrap px-4 py-3 font-medium">{{ row.day }}</td>
+            <td class="whitespace-nowrap px-4 py-3">
+              <span class="font-medium text-gray-900">{{ row.date }}</span>
+              <span class="ml-2 text-xs text-gray-500">{{ row.dayOfWeek }}</span>
+            </td>
+            <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ row.quantity }}</td>
+            <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums font-semibold text-gray-900">{{ formatMoney(row.total) }}</td>
+            <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ formatMoney(row.cash) }}</td>
+            <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ formatMoney(row.yape) }}</td>
+            <td class="whitespace-nowrap px-4 py-3 text-right tabular-nums">{{ formatMoney(row.card) }}</td>
+          </tr>
+        </ng-template>
+
+        <ng-template #footerTemplate>
+          <tr class="bg-gray-100 font-semibold">
+            <td colspan="2" class="px-4 py-3 text-gray-900">Totales del mes</td>
+            <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ data.totals.quantity }}</td>
+            <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.total) }}</td>
+            <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.cash) }}</td>
+            <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.yape) }}</td>
+            <td class="px-4 py-3 text-right tabular-nums text-gray-900">{{ formatMoney(data.totals.card) }}</td>
+          </tr>
+        </ng-template>
+      </app-data-table>
     }
   }
 </div>

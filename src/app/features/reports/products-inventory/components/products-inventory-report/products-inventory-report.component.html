@@ -206,138 +206,145 @@
     } @else {
       <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         <div class="overflow-x-auto">
-          <table class="min-w-[60rem] w-full text-sm">
-            <thead>
-              <tr class="border-b border-gray-100 bg-gray-50 text-left text-xs font-semibold uppercase tracking-wider text-gray-600">
-                <th scope="col" class="px-4 py-3">Talla</th>
-                <th scope="col" class="px-4 py-3">Cód. barras</th>
-                <th scope="col" class="px-4 py-3 text-center">Compra</th>
-                <th scope="col" class="px-4 py-3 text-center">Venta</th>
-                <th scope="col" class="px-4 py-3 text-center">Venta mín.</th>
-                <th scope="col" class="px-4 py-3 text-center">Stock talla</th>
-                <th scope="col" class="px-4 py-3">Colores</th>
-                <th scope="col" class="px-4 py-3 text-center">Stock colores</th>
+          <app-data-table
+            [columns]="inventoryTableColumns()"
+            [data]="tableRows()"
+            [variant]="'embedded'"
+            [theme]="'indigo'"
+            [minWidth]="'60rem'"
+            [mobileCompact]="false"
+            [ariaLabel]="'Reporte de inventario de productos'"
+          >
+            <ng-template #headerTemplate>
+              <tr class="dt-thead-row">
+                <th scope="col" class="dt-th">Talla</th>
+                <th scope="col" class="dt-th">Cód. barras</th>
+                <th scope="col" class="dt-th text-center">Compra</th>
+                <th scope="col" class="dt-th text-center">Venta</th>
+                <th scope="col" class="dt-th text-center">Venta mín.</th>
+                <th scope="col" class="dt-th text-center">Stock talla</th>
+                <th scope="col" class="dt-th">Colores</th>
+                <th scope="col" class="dt-th text-center">Stock colores</th>
                 @if (includeAi()) {
-                  <th scope="col" class="bg-violet-50 px-4 py-3 text-center text-violet-700">Precio IA</th>
-                  <th scope="col" class="bg-violet-50 px-4 py-3 text-center text-violet-700">Precio mín. IA</th>
-                  <th scope="col" class="bg-violet-50 px-4 py-3 text-center text-violet-700">
+                  <th scope="col" class="dt-th bg-violet-50 text-center text-violet-700">Precio IA</th>
+                  <th scope="col" class="dt-th bg-violet-50 text-center text-violet-700">Precio mín. IA</th>
+                  <th scope="col" class="dt-th bg-violet-50 text-center text-violet-700">
                     Compra IA ({{ horizonDays() }}d)
                   </th>
                 }
               </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              @for (row of tableRows(); track $index) {
-                @if (row.kind === 'product') {
-                  <tr>
-                    <td
-                      [attr.colspan]="includeAi() ? 11 : 8"
-                      class="px-4 py-2.5 text-sm font-bold"
-                      [class.bg-indigo-50]="!row.isDeadStock"
-                      [class.bg-amber-50]="row.isDeadStock"
-                      [class.text-gray-900]="!row.isDeadStock"
-                      [class.text-amber-900]="row.isDeadStock"
-                    >
-                      {{ row.name }}
-                      @if (row.isDeadStock) {
-                        <span class="ml-2 rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
-                          Sin vender
-                        </span>
-                      }
-                    </td>
-                  </tr>
-                } @else {
-                  <tr
-                    [class.bg-orange-50]="row.stockMismatch"
-                    [class.hover:bg-orange-100/60]="row.stockMismatch"
-                    [class.hover:bg-gray-50]="!row.stockMismatch"
+            </ng-template>
+
+            <ng-template #rowTemplate let-row>
+              @if (row.kind === 'product') {
+                <tr>
+                  <td
+                    [attr.colspan]="includeAi() ? 11 : 8"
+                    class="px-4 py-2.5 text-sm font-bold"
+                    [class.bg-indigo-50]="!row.isDeadStock"
+                    [class.bg-amber-50]="row.isDeadStock"
+                    [class.text-gray-900]="!row.isDeadStock"
+                    [class.text-amber-900]="row.isDeadStock"
                   >
-                    <td class="px-4 py-2 font-medium text-gray-900">{{ row.size }}</td>
-                    <td class="whitespace-nowrap px-4 py-2 font-mono text-xs text-gray-600">
-                      {{ row.barcode ?? '—' }}
-                    </td>
-                    <td class="px-4 py-2 text-center font-mono tabular-nums">
-                      @if (row.purchasePrice !== null) {
-                        S/ {{ row.purchasePrice | number: '1.2-2' }}
-                      } @else {
-                        —
-                      }
-                    </td>
-                    <td class="px-4 py-2 text-center font-mono tabular-nums">
-                      @if (row.salePrice !== null) {
-                        S/ {{ row.salePrice | number: '1.2-2' }}
-                      } @else {
-                        —
-                      }
-                    </td>
-                    <td class="px-4 py-2 text-center font-mono tabular-nums">
-                      @if (row.minSalePrice !== null) {
-                        S/ {{ row.minSalePrice | number: '1.2-2' }}
-                      } @else {
-                        —
-                      }
-                    </td>
-                    <td
-                      class="px-4 py-2 text-center font-mono font-semibold tabular-nums"
-                      [class.text-orange-600]="row.stockMismatch"
-                    >
-                      {{ row.sizeStock }}
-                    </td>
-                    <td class="max-w-xs px-4 py-2 leading-relaxed text-gray-700">
-                      {{ row.colorsSummary }}
-                    </td>
-                    <td
-                      class="px-4 py-2 text-center font-mono font-semibold tabular-nums"
-                      [class.text-orange-600]="row.stockMismatch"
-                    >
-                      @if (row.colorsStockSum !== null) {
-                        {{ row.colorsStockSum }}
-                      } @else {
-                        —
-                      }
-                    </td>
-                    @if (includeAi()) {
-                      <td class="bg-violet-50/40 px-4 py-2 text-center font-mono tabular-nums text-violet-900">
-                        @if (row.aiSuggestedPrice !== null) {
-                          S/ {{ row.aiSuggestedPrice | number: '1.2-2' }}
-                        } @else if (row.aiPriceError) {
-                          <span class="text-xs text-gray-400" [title]="row.aiPriceError">N/A</span>
-                        } @else {
-                          —
-                        }
-                      </td>
-                      <td class="bg-violet-50/40 px-4 py-2 text-center font-mono tabular-nums text-violet-700">
-                        @if (row.aiSuggestedMinPrice !== null) {
-                          S/ {{ row.aiSuggestedMinPrice | number: '1.2-2' }}
-                        } @else if (row.aiPriceError) {
-                          <span class="text-xs text-gray-400">N/A</span>
-                        } @else {
-                          —
-                        }
-                      </td>
-                      <td
-                        class="bg-violet-50/40 px-4 py-2 text-center font-mono font-semibold tabular-nums"
-                        [class.text-violet-900]="!row.isDeadStock"
-                        [class.text-amber-700]="row.isDeadStock"
-                      >
-                        @if (row.colorPurchases !== null && row.colorPurchases.length > 0) {
-                          <span class="flex flex-col items-center gap-0.5 text-xs font-normal">
-                            @for (cp of row.colorPurchases; track cp.color) {
-                              <span>{{ cp.color }}: <strong>{{ cp.quantity }} u.</strong></span>
-                            }
-                          </span>
-                        } @else if (row.aiSuggestedPurchase !== null) {
-                          {{ row.aiSuggestedPurchase }} u.
-                        } @else {
-                          —
-                        }
-                      </td>
+                    {{ row.name }}
+                    @if (row.isDeadStock) {
+                      <span class="ml-2 rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-900">
+                        Sin vender
+                      </span>
                     }
-                  </tr>
-                }
+                  </td>
+                </tr>
+              } @else {
+                <tr
+                  [class.bg-orange-50]="row.stockMismatch"
+                  [class.hover:bg-orange-100/60]="row.stockMismatch"
+                  [class.hover:bg-gray-50]="!row.stockMismatch"
+                >
+                  <td class="px-4 py-2 font-medium text-gray-900">{{ row.size }}</td>
+                  <td class="whitespace-nowrap px-4 py-2 font-mono text-xs text-gray-600">
+                    {{ row.barcode ?? '—' }}
+                  </td>
+                  <td class="px-4 py-2 text-center font-mono tabular-nums">
+                    @if (row.purchasePrice !== null) {
+                      S/ {{ row.purchasePrice | number: '1.2-2' }}
+                    } @else {
+                      —
+                    }
+                  </td>
+                  <td class="px-4 py-2 text-center font-mono tabular-nums">
+                    @if (row.salePrice !== null) {
+                      S/ {{ row.salePrice | number: '1.2-2' }}
+                    } @else {
+                      —
+                    }
+                  </td>
+                  <td class="px-4 py-2 text-center font-mono tabular-nums">
+                    @if (row.minSalePrice !== null) {
+                      S/ {{ row.minSalePrice | number: '1.2-2' }}
+                    } @else {
+                      —
+                    }
+                  </td>
+                  <td
+                    class="px-4 py-2 text-center font-mono font-semibold tabular-nums"
+                    [class.text-orange-600]="row.stockMismatch"
+                  >
+                    {{ row.sizeStock }}
+                  </td>
+                  <td class="max-w-xs px-4 py-2 leading-relaxed text-gray-700">
+                    {{ row.colorsSummary }}
+                  </td>
+                  <td
+                    class="px-4 py-2 text-center font-mono font-semibold tabular-nums"
+                    [class.text-orange-600]="row.stockMismatch"
+                  >
+                    @if (row.colorsStockSum !== null) {
+                      {{ row.colorsStockSum }}
+                    } @else {
+                      —
+                    }
+                  </td>
+                  @if (includeAi()) {
+                    <td class="bg-violet-50/40 px-4 py-2 text-center font-mono tabular-nums text-violet-900">
+                      @if (row.aiSuggestedPrice !== null) {
+                        S/ {{ row.aiSuggestedPrice | number: '1.2-2' }}
+                      } @else if (row.aiPriceError) {
+                        <span class="text-xs text-gray-400" [title]="row.aiPriceError">N/A</span>
+                      } @else {
+                        —
+                      }
+                    </td>
+                    <td class="bg-violet-50/40 px-4 py-2 text-center font-mono tabular-nums text-violet-700">
+                      @if (row.aiSuggestedMinPrice !== null) {
+                        S/ {{ row.aiSuggestedMinPrice | number: '1.2-2' }}
+                      } @else if (row.aiPriceError) {
+                        <span class="text-xs text-gray-400">N/A</span>
+                      } @else {
+                        —
+                      }
+                    </td>
+                    <td
+                      class="bg-violet-50/40 px-4 py-2 text-center font-mono font-semibold tabular-nums"
+                      [class.text-violet-900]="!row.isDeadStock"
+                      [class.text-amber-700]="row.isDeadStock"
+                    >
+                      @if (row.colorPurchases !== null && row.colorPurchases.length > 0) {
+                        <span class="flex flex-col items-center gap-0.5 text-xs font-normal">
+                          @for (cp of row.colorPurchases; track cp.color) {
+                            <span>{{ cp.color }}: <strong>{{ cp.quantity }} u.</strong></span>
+                          }
+                        </span>
+                      } @else if (row.aiSuggestedPurchase !== null) {
+                        {{ row.aiSuggestedPurchase }} u.
+                      } @else {
+                        —
+                      }
+                    </td>
+                  }
+                </tr>
               }
-            </tbody>
-          </table>
+            </ng-template>
+          </app-data-table>
         </div>
       </div>
     }

@@ -10,6 +10,10 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import {
+  DataTableColumn,
+  DataTableComponent,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { ProductService } from '../../data-access/product.service';
 import { ProductSizesService } from '../../data-access/product-sizes.service';
@@ -30,7 +34,7 @@ interface SizeFieldSnapshot {
 
 @Component({
   selector: 'app-product-sizes',
-  imports: [FormsModule, RouterLink, ButtonComponent],
+  imports: [FormsModule, RouterLink, ButtonComponent, DataTableComponent],
   templateUrl: './product-sizes.component.html',
 })
 export class ProductSizesComponent implements OnInit {
@@ -48,6 +52,18 @@ export class ProductSizesComponent implements OnInit {
   protected readonly sizeTypes = signal<SizeType[]>([]);
   protected readonly selectedSizeTypeIds = signal<number[]>([1]);
   protected readonly selectedSizes = signal<ProductSize[]>([]);
+
+  protected readonly sizeTableColumns: DataTableColumn<ProductSize>[] = [
+    { key: 'select', label: '', width: '3rem' },
+    { key: 'id', label: '#' },
+    { key: 'description', label: 'Talla' },
+    { key: 'barcode', label: 'Código de barras' },
+    { key: 'stock', label: 'Stock' },
+    { key: 'purchasePrice', label: 'Precio compra' },
+    { key: 'salePrice', label: 'Precio venta' },
+    { key: 'minSalePrice', label: 'Precio mínimo' },
+    { key: 'actions', label: 'Acciones', align: 'right' },
+  ];
 
   private readonly initialSizeSnapshots = new Map<number, SizeFieldSnapshot>();
 

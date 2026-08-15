@@ -122,121 +122,130 @@
       <div class="p-8 text-center text-sm text-gray-500" aria-busy="true">Cargando asistencia…</div>
     } @else {
       <div class="max-h-[min(70vh,720px)] overflow-auto">
-        <table class="w-full min-w-[960px] text-sm">
-          <thead class="sticky top-0 z-10 bg-gray-50/95 backdrop-blur">
-            <tr class="border-b border-gray-200">
-              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Día</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Sem.</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Estado</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Entrada</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Salida</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Tarde (min)</th>
-              <th class="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Observación</th>
-              <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-gray-500">Servidor</th>
-              <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500"></th>
+        <app-data-table
+          [columns]="attendanceTableColumns"
+          [data]="visibleMonthRows()"
+          [variant]="'embedded'"
+          [theme]="'violet'"
+          [minWidth]="'960px'"
+          [mobileCompact]="false"
+          [stickyHeader]="true"
+          [headerRowClass]="'border-b border-gray-200 bg-gray-50/95 backdrop-blur'"
+          [ariaLabel]="'Asistencia mensual'"
+        >
+          <ng-template #headerTemplate>
+            <tr class="dt-thead-row">
+              <th class="dt-th" scope="col">Día</th>
+              <th class="dt-th" scope="col">Sem.</th>
+              <th class="dt-th" scope="col">Estado</th>
+              <th class="dt-th" scope="col">Entrada</th>
+              <th class="dt-th" scope="col">Salida</th>
+              <th class="dt-th" scope="col">Tarde (min)</th>
+              <th class="dt-th" scope="col">Observación</th>
+              <th class="dt-th text-center" scope="col">Servidor</th>
+              <th class="dt-th text-right" scope="col"></th>
             </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100">
-            @for (row of visibleMonthRows(); track row.dateStr) {
-              <tr
-                class="transition-colors"
-                [class.bg-amber-50/60]="row.isValdeo"
-                [class.bg-purple-50/40]="row.isSunday"
-              >
-                <td class="px-4 py-3 align-top">
-                  <span class="text-lg font-bold text-gray-900">{{ row.day }}</span>
-                  @if (row.isValdeo) {
-                    <span class="mt-1 block w-fit rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
-                      {{ valdeoWednesdayNth() === 2 ? 'Valdeo 2.º mié.' : 'Valdeo 1.er mié.' }}
-                    </span>
-                  }
-                  @if (row.isSunday) {
-                    <label class="mt-2 flex items-center gap-2 rounded-lg bg-white/80 p-2 text-xs text-gray-600 ring-1 ring-gray-200">
-                      <input
-                        type="checkbox"
-                        [checked]="row.domingoTrabajoRecuperacion"
-                        (change)="row.domingoTrabajoRecuperacion = ($any($event.target)).checked; onDomingoRecuperaChange(row)"
-                      />
-                      Domingo trabajado (recup.)
-                    </label>
-                  }
-                </td>
-                <td class="px-4 py-3 text-gray-500">{{ row.weekdayLabel }}</td>
-                <td class="px-4 py-3">
-                  <select
-                    class="w-full min-w-[11rem] rounded-lg border border-gray-300 bg-white px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    [value]="row.status"
-                    (change)="onStatusSelect(row, $event)"
-                  >
-                    @for (opt of statusOptions; track opt.value) {
-                      <option [value]="opt.value">{{ opt.label }}</option>
-                    }
-                  </select>
-                </td>
-                <td class="px-4 py-3">
-                  @if (showTimesFor(row)) {
+          </ng-template>
+
+          <ng-template #rowTemplate let-row>
+            <tr
+              class="transition-colors"
+              [class.bg-amber-50/60]="row.isValdeo"
+              [class.bg-purple-50/40]="row.isSunday"
+            >
+              <td class="px-4 py-3 align-top">
+                <span class="text-lg font-bold text-gray-900">{{ row.day }}</span>
+                @if (row.isValdeo) {
+                  <span class="mt-1 block w-fit rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
+                    {{ valdeoWednesdayNth() === 2 ? 'Valdeo 2.º mié.' : 'Valdeo 1.er mié.' }}
+                  </span>
+                }
+                @if (row.isSunday) {
+                  <label class="mt-2 flex items-center gap-2 rounded-lg bg-white/80 p-2 text-xs text-gray-600 ring-1 ring-gray-200">
                     <input
-                      type="time"
-                      class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                      [value]="row.checkInTime"
-                      (change)="row.checkInTime = ($any($event.target)).value; onTimeChange(row)"
+                      type="checkbox"
+                      [checked]="row.domingoTrabajoRecuperacion"
+                      (change)="row.domingoTrabajoRecuperacion = ($any($event.target)).checked; onDomingoRecuperaChange(row)"
                     />
-                  } @else {
-                    <span class="text-gray-400">—</span>
+                    Domingo trabajado (recup.)
+                  </label>
+                }
+              </td>
+              <td class="px-4 py-3 text-gray-500">{{ row.weekdayLabel }}</td>
+              <td class="px-4 py-3">
+                <select
+                  class="w-full min-w-[11rem] rounded-lg border border-gray-300 bg-white px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  [value]="row.status"
+                  (change)="onStatusSelect(row, $event)"
+                >
+                  @for (opt of statusOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
                   }
-                </td>
-                <td class="px-4 py-3">
-                  @if (showTimesFor(row)) {
-                    <input
-                      type="time"
-                      class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                      [value]="row.checkOutTime"
-                      (change)="row.checkOutTime = ($any($event.target)).value; onTimeChange(row)"
-                    />
-                    @if (row.targetExitTimeStr) {
-                      <p class="mt-1 text-xs text-gray-500">Ideal salida: {{ row.targetExitTimeStr }}</p>
-                    }
-                  } @else {
-                    <span class="text-gray-400">—</span>
+                </select>
+              </td>
+              <td class="px-4 py-3">
+                @if (showTimesFor(row)) {
+                  <input
+                    type="time"
+                    class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    [value]="row.checkInTime"
+                    (change)="row.checkInTime = ($any($event.target)).value; onTimeChange(row)"
+                  />
+                } @else {
+                  <span class="text-gray-400">—</span>
+                }
+              </td>
+              <td class="px-4 py-3">
+                @if (showTimesFor(row)) {
+                  <input
+                    type="time"
+                    class="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    [value]="row.checkOutTime"
+                    (change)="row.checkOutTime = ($any($event.target)).value; onTimeChange(row)"
+                  />
+                  @if (row.targetExitTimeStr) {
+                    <p class="mt-1 text-xs text-gray-500">Ideal salida: {{ row.targetExitTimeStr }}</p>
                   }
-                </td>
-                <td class="px-4 py-3">
-                  @if (row.delayMinutes > 0) {
-                    <span class="font-bold text-amber-600">{{ row.delayMinutes }}</span>
-                  } @else {
-                    <span class="text-gray-400">0</span>
-                  }
-                </td>
-                <td class="px-4 py-3">
-                  <textarea
-                    rows="2"
-                    class="w-full min-w-[12rem] rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
-                    [value]="row.note"
-                    (input)="row.note = ($any($event.target)).value"
-                    placeholder="Observación…"
-                  ></textarea>
-                </td>
-                <td class="px-4 py-3 text-center">
-                  @if (row.hasRecord) {
-                    <span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">Sí</span>
-                  } @else {
-                    <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">No</span>
-                  }
-                </td>
-                <td class="px-4 py-3 text-right">
-                  <button
-                    type="button"
-                    class="rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
-                    [disabled]="row.saving"
-                    (click)="saveRow(row)"
-                  >
-                    {{ row.saving ? 'Guardando…' : 'Guardar' }}
-                  </button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+                } @else {
+                  <span class="text-gray-400">—</span>
+                }
+              </td>
+              <td class="px-4 py-3">
+                @if (row.delayMinutes > 0) {
+                  <span class="font-bold text-amber-600">{{ row.delayMinutes }}</span>
+                } @else {
+                  <span class="text-gray-400">0</span>
+                }
+              </td>
+              <td class="px-4 py-3">
+                <textarea
+                  rows="2"
+                  class="w-full min-w-[12rem] rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  [value]="row.note"
+                  (input)="row.note = ($any($event.target)).value"
+                  placeholder="Observación…"
+                ></textarea>
+              </td>
+              <td class="px-4 py-3 text-center">
+                @if (row.hasRecord) {
+                  <span class="inline-flex rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">Sí</span>
+                } @else {
+                  <span class="inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">No</span>
+                }
+              </td>
+              <td class="px-4 py-3 text-right">
+                <button
+                  type="button"
+                  class="rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400"
+                  [disabled]="row.saving"
+                  (click)="saveRow(row)"
+                >
+                  {{ row.saving ? 'Guardando…' : 'Guardar' }}
+                </button>
+              </td>
+            </tr>
+          </ng-template>
+        </app-data-table>
       </div>
     }
   </div>

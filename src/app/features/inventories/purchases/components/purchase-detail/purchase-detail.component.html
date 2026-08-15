@@ -352,22 +352,32 @@
       </div>
 
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 text-sm">
-          <thead class="bg-gray-50">
-            <tr>
-              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Producto</th>
-              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Talla</th>
-              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Δ stock</th>
-              <th scope="col" class="px-4 py-3 text-left font-semibold text-gray-600">Colores / cantidades</th>
-              <th scope="col" class="px-4 py-3 text-right font-semibold text-gray-600">Subtotal</th>
-              @if (isActive()) {
-                <th scope="col" class="px-4 py-3 text-center font-semibold text-gray-600">Acciones</th>
-              }
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-100 bg-white">
-            @for (line of p.lines; track line.id; let rowIndex = $index) {
-              <tr class="align-top hover:bg-emerald-50/30" [formGroup]="lineEditAt(rowIndex)">
+        @if (purchase(); as p) {
+          <app-data-table
+            [columns]="lineTableColumns()"
+            [data]="p.lines"
+            [variant]="'embedded'"
+            [theme]="'emerald'"
+            [minWidth]="'100%'"
+            [mobileCompact]="false"
+            [headerRowClass]="'bg-gray-50'"
+            [ariaLabel]="'Detalle de líneas de compra'"
+          >
+            <ng-template #headerTemplate>
+              <tr class="dt-thead-row">
+                <th scope="col" class="dt-th">Producto</th>
+                <th scope="col" class="dt-th">Talla</th>
+                <th scope="col" class="dt-th">Δ stock</th>
+                <th scope="col" class="dt-th">Colores / cantidades</th>
+                <th scope="col" class="dt-th text-right">Subtotal</th>
+                @if (isActive()) {
+                  <th scope="col" class="dt-th text-center">Acciones</th>
+                }
+              </tr>
+            </ng-template>
+
+            <ng-template #rowTemplate let-line let-index="index">
+              <tr class="align-top hover:bg-emerald-50/30" [formGroup]="lineEditAt(index)">
                 <td class="px-4 py-4 font-medium text-gray-900">
                   {{ line.productName ?? line.productId }}
                 </td>
@@ -375,10 +385,10 @@
                   {{ line.sizeDescription ?? line.sizeId }}
                 </td>
                 <td class="px-4 py-4 tabular-nums text-gray-700">{{ line.sizeStockDelta }}</td>
-                <td class="px-4 py-4 min-w-[14rem]">
-                  @if (line.hasColorBreakdown && colorDeltaControls(rowIndex).length) {
+                <td class="min-w-[14rem] px-4 py-4">
+                  @if (line.hasColorBreakdown && colorDeltaControls(index).length) {
                     <ul class="space-y-2">
-                      @for (cg of colorDeltaControls(rowIndex); track $index; let ci = $index) {
+                      @for (cg of colorDeltaControls(index); track $index; let ci = $index) {
                         <li
                           [formGroup]="cg"
                           class="flex flex-wrap items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2"
@@ -430,14 +440,14 @@
                       <app-button
                         variant="primary"
                         [loading]="isLineBusy(line.id)"
-                        (clicked)="saveLine(rowIndex)"
+                        (clicked)="saveLine(index)"
                       >
                         Guardar línea
                       </app-button>
                       <app-button
                         variant="danger"
                         [loading]="isLineBusy(line.id)"
-                        (clicked)="openDeleteLineConfirm(rowIndex)"
+                        (clicked)="openDeleteLineConfirm(index)"
                       >
                         Eliminar
                       </app-button>
@@ -445,9 +455,9 @@
                   </td>
                 }
               </tr>
-            }
-          </tbody>
-        </table>
+            </ng-template>
+          </app-data-table>
+        }
       </div>
     </section>
   </div>

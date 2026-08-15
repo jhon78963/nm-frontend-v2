@@ -12,6 +12,10 @@ import { finalize } from 'rxjs';
 import { downloadFile } from '../../../core/utils/file-download.util';
 import { ExportButtonComponent } from '../../../shared/ui/export-button/export-button.component';
 import { ButtonComponent } from '../../../shared/ui/button/button.component';
+import {
+  DataTableColumn,
+  DataTableComponent,
+} from '../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../shared/ui/toast/toast.service';
 import {
   firstDayOfMonthIsoDate,
@@ -21,9 +25,30 @@ import {
 import { SalesReportService } from '../data-access/sales-report.service';
 import { PeriodSalesReport } from '../models/sales-report.model';
 
+interface PeriodSalesRow {
+  dateIso: string;
+  date: string;
+  dayOfWeek: string;
+  quantity: number;
+  total: number;
+  cash: number;
+  yape: number;
+  card: number;
+  products: PeriodSalesReport['rows'][number]['products'];
+}
+
+interface PeriodProductRow {
+  name: string;
+  size: string;
+  color: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
+}
+
 @Component({
   selector: 'app-sales-period-report',
-  imports: [RouterLink, ButtonComponent, ExportButtonComponent],
+  imports: [RouterLink, ButtonComponent, ExportButtonComponent, DataTableComponent],
   providers: [SalesReportService],
   templateUrl: './sales-period-report.component.html',
 })
@@ -42,6 +67,25 @@ export class SalesPeriodReportComponent implements OnInit {
   protected readonly loadingRows = signal<Set<string>>(new Set());
   protected readonly isLoading = signal(false);
   protected readonly isExporting = signal(false);
+
+  protected readonly periodColumns: DataTableColumn<PeriodSalesRow>[] = [
+    { key: 'expand', label: '', width: '3rem' },
+    { key: 'date', label: 'Fecha' },
+    { key: 'quantity', label: 'Cantidad', align: 'right' },
+    { key: 'total', label: 'Total', align: 'right' },
+    { key: 'cash', label: 'Efectivo', align: 'right' },
+    { key: 'yape', label: 'Yape', align: 'right' },
+    { key: 'card', label: 'Tarjeta', align: 'right' },
+  ];
+
+  protected readonly productDetailColumns: DataTableColumn<PeriodProductRow>[] = [
+    { key: 'name', label: 'Producto' },
+    { key: 'size', label: 'Talla' },
+    { key: 'color', label: 'Color' },
+    { key: 'quantity', label: 'Cantidad', align: 'right' },
+    { key: 'unitPrice', label: 'P. Unitario', align: 'right' },
+    { key: 'subtotal', label: 'Subtotal', align: 'right' },
+  ];
 
   protected readonly summaryCards = computed(() => {
     const data = this.report();

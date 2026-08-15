@@ -1,5 +1,26 @@
+@reference '../../../../tailwind.css';
+
 app-data-table {
   display: block;
+}
+
+.dt-table {
+  thead {
+    tr.dt-thead-row {
+      @apply border-b border-gray-200 bg-gray-50/70 text-gray-500;
+    }
+
+    th.dt-th {
+      @apply px-6 py-3.5 text-left text-xs font-semibold uppercase tracking-wider align-middle whitespace-nowrap;
+      min-height: 2.75rem;
+      box-sizing: border-box;
+      color: inherit;
+    }
+
+    th.dt-th.dt-expand-header {
+      @apply w-10 px-2 md:hidden;
+    }
+  }
 }
 
 @media (max-width: 767px) {

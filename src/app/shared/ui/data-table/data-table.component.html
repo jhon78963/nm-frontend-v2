@@ -1,4 +1,12 @@
-<div class="rounded-2xl border border-gray-200 bg-white shadow-sm">
+<div
+  [class.rounded-2xl]="variant() === 'card'"
+  [class.border]="variant() !== 'embedded'"
+  [class.border-gray-200]="variant() !== 'embedded'"
+  [class.bg-white]="variant() !== 'embedded'"
+  [class.shadow-sm]="variant() === 'card'"
+  [class.rounded-xl]="variant() === 'plain'"
+  [class.overflow-x-auto]="variant() === 'plain'"
+>
   @if (loading()) {
     <div aria-label="Cargando datos…" aria-busy="true">
       @for (i of [1,2,3,4,5]; track i) {
@@ -90,20 +98,29 @@
         [style.min-width]="mobileLayoutEnabled() ? null : minWidth()"
         [attr.aria-label]="ariaLabel()"
       >
-        @if (columns().length > 0) {
-          <thead>
-            <tr class="border-b border-gray-200 bg-gray-50/70">
+        @if (columns().length > 0 || headerTemplate()) {
+          <thead
+            [class.sticky]="stickyHeader()"
+            [class.top-0]="stickyHeader()"
+            [class.z-10]="stickyHeader()"
+            [class.bg-gray-50/95]="stickyHeader()"
+            [class.backdrop-blur]="stickyHeader()"
+          >
+            @if (headerTemplate()) {
+              <ng-container *ngTemplateOutlet="headerTemplate()!" />
+            } @else {
+              <tr class="dt-thead-row" [class]="headerRowClass()">
               @if (mobileLayoutEnabled()) {
                 <th
                   scope="col"
-                  class="dt-expand-header w-10 px-2 py-3.5 md:hidden"
+                  class="dt-th dt-expand-header"
                   aria-label="Expandir fila"
                 ></th>
               }
               @for (col of columns(); track col.key) {
                 <th
                   scope="col"
-                  class="px-6 py-3.5 text-xs font-semibold uppercase tracking-wider text-gray-500"
+                  [class]="'dt-th' + (col.className ? ' ' + col.className : '')"
                   [class.dt-primary-header]="isPrimaryColumn(col)"
                   [class.hidden]="mobileLayoutEnabled() && !isColumnHeaderVisibleOnMobile(col)"
                   [class.md:table-cell]="mobileLayoutEnabled() && !isColumnHeaderVisibleOnMobile(col)"
@@ -111,15 +128,18 @@
                   [class.text-center]="col.align === 'center'"
                   [class.text-right]="col.align === 'right'"
                   [style.width]="col.width"
-                  [class]="col.className"
                 >
                   {{ col.label }}
                 </th>
               }
             </tr>
+            }
           </thead>
         }
-        <tbody class="divide-y divide-gray-100">
+        <tbody
+          class="divide-y divide-gray-100"
+          [class.bg-white]="variant() === 'plain'"
+        >
           @if (rowTemplate()) {
             @for (item of data(); track $index) {
               <ng-container *ngTemplateOutlet="rowTemplate()!; context: { $implicit: item, index: $index }" />
@@ -128,7 +148,13 @@
             @for (item of data(); track $index) {
               <tr class="group transition-colors">
                 @for (col of columns(); track col.key) {
-                  <td class="px-6 py-4" [class]="col.className">
+                  <td
+                    [class.px-6]="variant() === 'card'"
+                    [class.py-4]="variant() === 'card'"
+                    [class.px-4]="variant() === 'plain'"
+                    [class.py-3]="variant() === 'plain'"
+                    [class]="col.className"
+                  >
                     @if (col.template) {
                       <ng-container *ngTemplateOutlet="col.template; context: { $implicit: item, index: $index }" />
                     }
@@ -138,6 +164,11 @@
             }
           }
         </tbody>
+        @if (footerTemplate()) {
+          <tfoot>
+            <ng-container *ngTemplateOutlet="footerTemplate()!" />
+          </tfoot>
+        }
       </table>
     </div>
 

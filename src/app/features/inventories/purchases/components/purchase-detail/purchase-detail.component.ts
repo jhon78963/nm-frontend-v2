@@ -22,6 +22,10 @@ import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/
 import { DateInputComponent } from '../../../../../shared/ui/date-input/date-input.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
+import {
+  DataTableColumn,
+  DataTableComponent,
+} from '../../../../../shared/ui/data-table/data-table.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { PurchaseCatalogService } from '../../data-access/purchase-catalog.service';
 import { PurchaseService } from '../../data-access/purchase.service';
@@ -48,6 +52,7 @@ interface VendorSuggestion {
     DateInputComponent,
     InputComponent,
     MoneyInputComponent,
+    DataTableComponent,
   ],
   templateUrl: './purchase-detail.component.html',
 })
@@ -118,6 +123,20 @@ export class PurchaseDetailComponent implements OnInit {
   protected readonly canAddVouchers = computed(
     () => this.isActive() && this.remainingVoucherSlots() > 0,
   );
+
+  protected readonly lineTableColumns = computed<DataTableColumn<PurchaseLineRow>[]>(() => {
+    const cols: DataTableColumn<PurchaseLineRow>[] = [
+      { key: 'product', label: 'Producto' },
+      { key: 'size', label: 'Talla' },
+      { key: 'stockDelta', label: 'Δ stock' },
+      { key: 'colors', label: 'Colores / cantidades' },
+      { key: 'subtotal', label: 'Subtotal', align: 'right' },
+    ];
+    if (this.isActive()) {
+      cols.push({ key: 'actions', label: 'Acciones', align: 'center' });
+    }
+    return cols;
+  });
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
