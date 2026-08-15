@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common';
 import {
   Component,
   computed,
@@ -17,6 +18,15 @@ import { isSuperAdmin } from '../../../../../core/auth/permission.util';
 import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
 import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
 import { isSearchPageFilterState } from '../../../../../core/table-filters/table-filter-state.util';
+import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { DateInputComponent } from '../../../../../shared/ui/date-input/date-input.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import {
+  SelectComponent,
+  SelectOption,
+} from '../../../../../shared/ui/select/select.component';
+import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataComponent,
   TableDataColumn,
@@ -86,7 +96,20 @@ function isActionLogFilterState(value: unknown): value is ActionLogFilterState {
 
 @Component({
   selector: 'app-action-logs-list',
-  imports: [ReactiveFormsModule, TableDataComponent, DtCellDirective, DtExpandCellComponent, DtRowDirective],
+  imports: [
+    NgClass,
+    ReactiveFormsModule,
+    AlertComponent,
+    ButtonComponent,
+    DateInputComponent,
+    InputComponent,
+    SelectComponent,
+    TableActionButtonComponent,
+    TableDataComponent,
+    DtCellDirective,
+    DtExpandCellComponent,
+    DtRowDirective,
+  ],
   providers: [ActionLogService, WarehouseService, UserService],
   templateUrl: './action-logs-list.component.html',
 })
@@ -129,10 +152,40 @@ export class ActionLogsListComponent implements OnInit {
   protected readonly currentStartDate = signal('');
   protected readonly currentEndDate = signal('');
 
-  protected readonly actionFilterGroups = ACTION_LOG_FILTER_GROUPS;
   protected readonly datePresets = ACTION_LOG_DATE_PRESETS;
   protected readonly getActionLogLabel = getActionLogLabel;
   protected readonly getActionLogToneClass = getActionLogToneClass;
+
+  protected readonly searchPlaceholder = computed(() =>
+    this.canViewAllUsers()
+      ? 'Buscar por acción, detalle o usuario…'
+      : 'Buscar por acción o descripción…',
+  );
+
+  protected readonly infoMessage = computed(() =>
+    this.canViewAllUsers()
+      ? 'Como Super Admin ves login, logout y toda la actividad API de los usuarios del tenant.'
+      : 'Vista de solo lectura. Se muestran las acciones de todos los usuarios de tu tienda.',
+  );
+
+  protected readonly actionFilterSelectOptions: SelectOption<string>[] =
+    ACTION_LOG_FILTER_GROUPS.flatMap((group) => [
+      {
+        label: `Todas en ${group.label}`,
+        value: `group:${group.id}`,
+      },
+      ...group.actions.map((action) => ({
+        label: getActionLogLabel(action).label,
+        value: `action:${action}`,
+      })),
+    ]);
+
+  protected readonly userFilterOptions = computed<SelectOption<string>[]>(() =>
+    this.userOptions().map((user) => ({
+      label: this.userOptionLabel(user),
+      value: String(user.id),
+    })),
+  );
 
   protected readonly paginationPages = computed(() => {
     const total = this.totalPages();
