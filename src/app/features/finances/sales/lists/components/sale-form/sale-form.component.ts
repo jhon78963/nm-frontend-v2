@@ -18,8 +18,12 @@ import {
 import { AlertComponent } from '../../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
-import { DateInputComponent } from '../../../../../../shared/ui/date-input/date-input.component';
 import { SelectOption } from '../../../../../../shared/ui/select/select.component';
+import {
+  formatDateTime,
+  parseDatetimeLocalValue,
+  toDatetimeLocalValue,
+} from '../../../../cash-movements/data-access/cash-movement.adapter';
 import { SaleService } from '../../data-access/sale.service';
 import { normalizePaymentMethod } from '../../data-access/sale.adapter';
 import {
@@ -48,7 +52,6 @@ interface PaymentRow extends SalePayment {
     AlertComponent,
     ButtonComponent,
     ConfirmDialogComponent,
-    DateInputComponent,
     SaleProductSelectorComponent,
   ],
   templateUrl: './sale-form.component.html',
@@ -81,7 +84,7 @@ export class SaleFormComponent implements OnInit {
   protected readonly removeItemIndex = signal<number | null>(null);
 
   protected readonly dateForm = new FormGroup({
-    creationDate: new FormControl('', { nonNullable: true }),
+    creationDateTime: new FormControl('', { nonNullable: true }),
   });
 
   protected readonly paymentMethodOptions: SelectOption<PaymentMethod>[] = [
@@ -318,7 +321,9 @@ export class SaleFormComponent implements OnInit {
       code: meta.code,
       total: this.calculatedTotal(),
       status: meta.status,
-      creationTime: this.toApiDateTime(this.dateForm.controls.creationDate.value),
+      creationTime: this.toApiDateTime(
+        this.dateForm.controls.creationDateTime.value,
+      ),
       items: this.items().map((item) => {
         const mapped: SaleUpdatePayload['items'][number] = {
           quantity: item.quantity,
@@ -385,8 +390,9 @@ export class SaleFormComponent implements OnInit {
       customer: detail.customer,
     });
 
-    const dateSource = detail.datetimeIso ?? detail.creationTime;
-    this.dateForm.controls.creationDate.setValue(dateSource.slice(0, 10));
+    this.dateForm.controls.creationDateTime.setValue(
+      toDatetimeLocalValue(this.parseSaleDateTime(detail)),
+    );
 
     this.items.set(
       detail.items.map((item) => ({
@@ -431,8 +437,42 @@ export class SaleFormComponent implements OnInit {
     this.items.update((rows) => rows.filter((_, i) => i !== index));
   }
 
+  private parseSaleDateTime(detail: SaleDetail): Date {
+    if (detail.datetimeIso) {
+      const parsed = new Date(detail.datetimeIso);
+      if (!Number.isNaN(parsed.getTime())) {
+        return parsed;
+      }
+    }
+
+    const raw = detail.creationTime?.trim();
+    if (raw) {
+      const isoLike = raw.includes('T') ? raw : raw.replace(' ', 'T');
+      const fromIso = new Date(isoLike);
+      if (!Number.isNaN(fromIso.getTime())) {
+        return fromIso;
+      }
+
+      const match = raw.match(
+        /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?$/,
+      );
+      if (match) {
+        const [, day, month, year, hours = '12', minutes = '00'] = match;
+        return new Date(
+          Number(year),
+          Number(month) - 1,
+          Number(day),
+          Number(hours),
+          Number(minutes),
+        );
+      }
+    }
+
+    return new Date();
+  }
+
   private toApiDateTime(dateValue: string): string {
     if (!dateValue) return '';
-    return `${dateValue} 12:00:00`;
+    return formatDateTime(parseDatetimeLocalValue(dateValue));
   }
 }

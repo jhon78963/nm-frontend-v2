@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Service, signal } from '@angular/core';
 import {
   catchError,
@@ -86,7 +86,9 @@ export class AuthService {
 
   getMe(): Observable<AuthUser> {
     return this.http
-      .get<AuthUser | { data: AuthUser }>(`${environment.apiUrl}/auth/me`)
+      .get<AuthUser | { data: AuthUser }>(`${environment.apiUrl}/auth/me`, {
+        withCredentials: true,
+      })
       .pipe(map((response) => adaptAuthUser(response)));
   }
 
@@ -125,19 +127,7 @@ export class AuthService {
     }
 
     if (!this.sessionLoadRequest$) {
-      this.sessionLoadRequest$ = this.getMe().pipe(
-        map((user) => {
-          this.setUserData(user);
-          return user as AuthUser | null;
-        }),
-        catchError(() => {
-          this.currentUser.set(null);
-          this.csrfTokenService.clear();
-          localStorage.removeItem(AuthService.SESSION_FLAG_KEY);
-          // Permitir reintentar en la siguiente navegación (evita null cacheado para siempre).
-          this.sessionLoadRequest$ = undefined;
-          return of(null);
-        }),
+      this.sessionLoadRequest$ = this.restoreSession().pipe(
         shareReplay({ bufferSize: 1, refCount: false }),
       );
     }
@@ -163,8 +153,41 @@ export class AuthService {
 
   refreshSession(): Observable<void> {
     return this.http
-      .post<{ message: string }>(`${environment.apiUrl}/auth/refresh`, {})
+      .post<{ message: string }>(`${environment.apiUrl}/auth/refresh`, {}, {
+        withCredentials: true,
+      })
       .pipe(map(() => undefined));
+  }
+
+  private restoreSession(): Observable<AuthUser | null> {
+    return this.getMe().pipe(
+      map((user) => {
+        this.setUserData(user);
+        return user;
+      }),
+      catchError((error: unknown) => {
+        if (error instanceof HttpErrorResponse && error.status === 401) {
+          return this.refreshSession().pipe(
+            switchMap(() => this.getMe()),
+            map((user) => {
+              this.setUserData(user);
+              return user;
+            }),
+            catchError(() => this.handleSessionRestoreFailure()),
+          );
+        }
+
+        return this.handleSessionRestoreFailure();
+      }),
+    );
+  }
+
+  private handleSessionRestoreFailure(): Observable<null> {
+    this.currentUser.set(null);
+    this.csrfTokenService.clear();
+    localStorage.removeItem(AuthService.SESSION_FLAG_KEY);
+    this.sessionLoadRequest$ = undefined;
+    return of(null);
   }
 
   signOut(): Observable<void> {
