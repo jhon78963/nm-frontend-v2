@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
+import { roleGuard } from './core/auth/role.guard';
 
 export const routes: Routes = [
   {
@@ -32,7 +33,8 @@ export const routes: Routes = [
       {
         path: 'administrations',
         title: 'Administración',
-        data: { breadcrumb: 'Administración' },
+        canActivate: [roleGuard],
+        data: { breadcrumb: 'Administración', roles: ['Admin', 'Super Admin'] },
         loadChildren: () => import('./features/administrations/administrations.routes'),
       },
       {
