@@ -880,7 +880,7 @@ export class InventoryReconciliationComponent implements OnInit {
 
     forkJoin({
       meta: this.productService.getOne(id),
-      shelf: this.inventoryService.search(String(id)),
+      shelf: this.inventoryService.getProduct(id),
       posSales: this.inventoryService.getPosSalesSince(id),
     })
       .pipe(
@@ -892,9 +892,7 @@ export class InventoryReconciliationComponent implements OnInit {
       )
       .subscribe({
         next: ({ meta, shelf, posSales }) => {
-          const list = shelf.products ?? [];
-          const inventoryProduct = list.find((item) => item.id === id) ?? list[0];
-          if (!inventoryProduct) {
+          if (!shelf?.id) {
             this.toastService.show(
               'error',
               'No hay datos de inventario para este producto. Verifique el ID.',
@@ -913,7 +911,7 @@ export class InventoryReconciliationComponent implements OnInit {
             });
           }
 
-          this.applyProduct(inventoryProduct, preserveEditsFrom);
+          this.applyProduct(shelf, preserveEditsFrom);
           this.searchQuery.set(
             meta.name?.trim() ||
               (meta.barcode ? String(meta.barcode) : '') ||

@@ -4,6 +4,7 @@ import { catchError, forkJoin, map, Observable, of, switchMap, throwError } from
 import { environment } from '../../../../../environments/environment';
 import type {
   ReconciliationPosSalesSummary,
+  ReconciliationProduct,
   ReconciliationSearchResponse,
   ReconciliationUpdatePayload,
   ReconciliationUpdateResponse,
@@ -15,6 +16,7 @@ import {
   adaptAutocompleteOption,
   adaptCatalogColor,
   adaptPosSalesSummary,
+  adaptReconciliationProduct,
   adaptReconciliationSearchResponse,
   adaptReconciliationUpdateResponse,
 } from './inventory-reconciliation.adapter';
@@ -48,6 +50,18 @@ export class InventoryReconciliationService {
       .get<unknown>(`${this.base}/search?q=${q}`)
       .pipe(
         map(adaptReconciliationSearchResponse),
+        catchError((err) => throwError(() => extractErrorMessage(err))),
+      );
+  }
+
+  getProduct(productId: number): Observable<ReconciliationProduct> {
+    return this.http
+      .get<unknown>(`${this.base}/${productId}`)
+      .pipe(
+        map((raw) => {
+          const record = raw as { product?: unknown };
+          return adaptReconciliationProduct(record.product);
+        }),
         catchError((err) => throwError(() => extractErrorMessage(err))),
       );
   }
