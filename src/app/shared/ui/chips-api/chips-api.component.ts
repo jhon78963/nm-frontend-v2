@@ -3,7 +3,6 @@ import { Component, computed, ElementRef, inject, input, output, signal } from '
 @Component({
   selector: 'app-chips-api',
   templateUrl: './chips-api.component.html',
-  styleUrl: './chips-api.component.scss',
   host: {
     '(document:click)': 'onDocumentClick($event)',
   },

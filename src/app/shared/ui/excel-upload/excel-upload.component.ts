@@ -3,7 +3,6 @@ import { Component, computed, ElementRef, input, output, signal, viewChild } fro
 @Component({
   selector: 'app-excel-upload',
   templateUrl: './excel-upload.component.html',
-  styleUrl: './excel-upload.component.scss',
 })
 export class ExcelUploadComponent {
   readonly label = input('Subir archivo Excel');

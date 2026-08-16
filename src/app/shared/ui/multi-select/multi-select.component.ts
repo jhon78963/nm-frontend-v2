@@ -8,7 +8,6 @@ export interface MultiSelectOption {
 @Component({
   selector: 'app-multi-select',
   templateUrl: './multi-select.component.html',
-  styleUrl: './multi-select.component.scss',
   host: {
     '(document:click)': 'onDocumentClick($event)',
   },

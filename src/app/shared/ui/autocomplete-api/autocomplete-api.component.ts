@@ -3,7 +3,6 @@ import { Component, computed, ElementRef, inject, input, output, signal } from '
 @Component({
   selector: 'app-autocomplete-api',
   templateUrl: './autocomplete-api.component.html',
-  styleUrl: './autocomplete-api.component.scss',
   host: {
     '(document:click)': 'onDocumentClick($event)',
   },
