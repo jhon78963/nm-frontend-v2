@@ -242,6 +242,7 @@
           <app-table-data
             [columns]="reconciliationTableColumns"
             [data]="inventoryTableRows()"
+            [rowTrack]="trackReconciliationRow"
             [variant]="'embedded'"
             [theme]="'sky'"
             [mobileCompact]="false"
@@ -343,7 +344,7 @@
                       <div class="flex flex-col items-end gap-1">
                         <app-input
                           type="number"
-                          class="w-20 text-right"
+                          class="reconciliation-stock-input text-right"
                           [ngClass]="sizePosSoldQty(row.size) > 0 ? '[&_.input-field]:ring-2 [&_.input-field]:ring-amber-300' : ''"
                           [ngModel]="row.size.masterStock"
                           (ngModelChange)="updateSizeField(row.size.id, 'masterStock', +$event)" />
@@ -404,15 +405,16 @@
                   <td colspan="4" class="px-4 py-2.5 text-center text-gray-400">—</td>
                   <td class="px-4 py-2.5 text-right">
                     <div class="flex flex-col items-end gap-1">
-                      <div class="flex items-center justify-end gap-2">
+                      <div class="stock-review-cell flex min-w-[9rem] items-center justify-end gap-2">
                         <app-checkbox
+                          class="shrink-0"
                           [value]="row.color.stockReviewed"
                           [disabled]="saving() || replacingVariantColor() || bulkDeleting()"
                           [attr.aria-label]="'Marcar stock revisado — ' + row.color.description"
                           (valueChange)="updateColorReviewed(row.size.id, row.color.colorId, $event)" />
                         <app-input
                           type="number"
-                          class="w-20 text-right"
+                          class="reconciliation-stock-input text-right"
                           [ngClass]="colorPosSoldQty(row.color) > 0 ? '[&_.input-field]:ring-2 [&_.input-field]:ring-amber-300' : ''"
                           [ngModel]="row.color.stock"
                           (ngModelChange)="updateColorStock(row.size.id, row.color.colorId, +$event)" />

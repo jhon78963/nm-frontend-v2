@@ -4,6 +4,11 @@
 }
 
 .reconciliation-table {
+  ::ng-deep app-checkbox {
+    display: inline-flex;
+    vertical-align: middle;
+  }
+
   ::ng-deep .dt-table {
     width: 100%;
     min-width: 0;
@@ -63,4 +68,30 @@
 
 .bulk-select-checkbox {
   accent-color: #dc2626;
+}
+
+.stock-review-cell {
+  min-width: 9rem;
+}
+
+.reconciliation-stock-input {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 5.5rem;
+  width: 6.5rem;
+
+  ::ng-deep .input-wrapper {
+    width: 100%;
+  }
+
+  ::ng-deep input[type='number'] {
+    text-align: right;
+    -moz-appearance: textfield;
+
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+  }
 }

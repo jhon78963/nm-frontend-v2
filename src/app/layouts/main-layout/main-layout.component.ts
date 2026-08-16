@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
@@ -39,6 +39,7 @@ export class MainLayoutComponent implements OnInit {
 
   protected readonly isMobileMenuOpen = signal(false);
   protected readonly isProfileMenuOpen = signal(false);
+  protected readonly hasActiveModal = signal(false);
   protected readonly isSidebarCollapsed = signal(this.readSidebarCollapsed());
   protected readonly breadcrumbPaths = signal<BreadcrumbPath[]>([]);
   protected readonly sessionReady = signal(false);
@@ -172,7 +173,14 @@ export class MainLayoutComponent implements OnInit {
     this.headerShortcuts.filter((item) => this.canSeeShortcut(item)),
   );
 
+  private readonly closeProfileMenuOnModal = effect(() => {
+    if (this.hasActiveModal()) {
+      this.isProfileMenuOpen.set(false);
+    }
+  });
+
   ngOnInit(): void {
+    this.observeActiveModals();
     this.authService
       .ensureSessionLoaded()
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -308,5 +316,26 @@ export class MainLayoutComponent implements OnInit {
     }
 
     localStorage.setItem('nm-sidebar-collapsed', String(collapsed));
+  }
+
+  private observeActiveModals(): void {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    const update = (): void => {
+      this.hasActiveModal.set(document.querySelector('[aria-modal="true"]') !== null);
+    };
+
+    const observer = new MutationObserver(update);
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['aria-modal'],
+    });
+
+    update();
+    this.destroyRef.onDestroy(() => observer.disconnect());
   }
 }

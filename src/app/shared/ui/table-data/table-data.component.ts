@@ -94,10 +94,17 @@ export class TableDataComponent<T> {
     return cols.find((col) => col.mobilePrimary) ?? cols[0] ?? null;
   });
 
+  protected readonly resolveRowTrack = computed(
+    () => this.rowTrack() ?? ((_item: T, index: number) => index),
+  );
+
   protected readonly mobileColspan = computed(() => {
     const expandCol = this.mobileLayoutEnabled() ? 1 : 0;
     return this.columns().length + expandCol;
   });
+
+  /** Identidad estable por fila; evita recrear filas y glitches de layout en tablas. */
+  rowTrack = input<((item: T, index: number) => unknown) | null>(null);
 
   rowTemplate = contentChild<TemplateRef<{ $implicit: T; index: number }>>(
     'rowTemplate',

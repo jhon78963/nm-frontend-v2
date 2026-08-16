@@ -74,8 +74,8 @@ type ConfirmAction =
   | { type: 'bulk-delete' };
 
 type ReconciliationTableRow =
-  | { kind: 'size'; size: ReconciliationSizeDraft }
-  | { kind: 'color'; size: ReconciliationSizeDraft; color: ReconciliationColorDraft };
+  | { kind: 'size'; trackKey: string; size: ReconciliationSizeDraft }
+  | { kind: 'color'; trackKey: string; size: ReconciliationSizeDraft; color: ReconciliationColorDraft };
 
 @Component({
   selector: 'app-inventory-reconciliation',
@@ -201,13 +201,20 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
   protected readonly inventoryTableRows = computed((): ReconciliationTableRow[] => {
     const rows: ReconciliationTableRow[] = [];
     for (const size of this.sortedSizes()) {
-      rows.push({ kind: 'size', size });
+      rows.push({ kind: 'size', trackKey: `s-${size.id}`, size });
       for (const color of sortedColors(size)) {
-        rows.push({ kind: 'color', size, color });
+        rows.push({
+          kind: 'color',
+          trackKey: `c-${size.id}-${color.colorId}`,
+          size,
+          color,
+        });
       }
     }
     return rows;
   });
+  protected readonly trackReconciliationRow = (row: ReconciliationTableRow): string =>
+    row.trackKey;
   protected readonly reconciliationTableColumns: TableDataColumn<ReconciliationTableRow>[] = [
     { key: 'label', label: 'Talla / color' },
     { key: 'purchasePrice', label: 'P. compra', align: 'right' },

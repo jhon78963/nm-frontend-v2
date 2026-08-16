@@ -141,11 +141,11 @@
           [class.bg-white]="variant() === 'plain'"
         >
           @if (rowTemplate()) {
-            @for (item of data(); track $index) {
+            @for (item of data(); track resolveRowTrack()(item, $index)) {
               <ng-container *ngTemplateOutlet="rowTemplate()!; context: { $implicit: item, index: $index }" />
             }
           } @else {
-            @for (item of data(); track $index) {
+            @for (item of data(); track resolveRowTrack()(item, $index)) {
               <tr class="group transition-colors">
                 @for (col of columns(); track col.key) {
                   <td
