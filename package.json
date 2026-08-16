@@ -5,7 +5,9 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "build:production": "./deploy/build-production.sh",
     "deploy": "ng build --configuration production",
+    "smoke:routes": "./deploy/smoke-routes.sh",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

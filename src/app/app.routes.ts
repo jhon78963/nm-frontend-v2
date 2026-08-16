@@ -158,6 +158,11 @@ export const routes: Routes = [
         pathMatch: 'full',
       },
       {
+        path: 'home',
+        redirectTo: 'dashboard',
+        pathMatch: 'full',
+      },
+      {
         path: 'dashboard',
         title: 'Inicio',
         data: { breadcrumb: 'Inicio' },

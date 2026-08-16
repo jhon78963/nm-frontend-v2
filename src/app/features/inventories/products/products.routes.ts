@@ -30,6 +30,10 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'edit/:id',
+    redirectTo: ':id/general',
+  },
+  {
     path: ':id',
     loadComponent: () =>
       import('./components/product-stepper/product-stepper.component').then(
