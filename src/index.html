@@ -1,10 +1,19 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="utf-8">
   <title>Novedades Maritex</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="¡Moda para toda la familia!">
+  <!--
+    SEC-022 — CSP en desarrollo (ng serve). Producción: header nginx (deploy/nginx.conf.example).
+    style-src 'unsafe-inline': requerido por Angular (estilos de componente).
+    Ver docs/CSP.md
+  -->
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: http://127.0.0.1:3050 http://localhost:8000 https://api.novedadesmaritex.net.pe https://upload.novedadesmaritex.net.pe; connect-src 'self' http://localhost:8000 http://127.0.0.1:3050 ws://localhost:4200 wss://localhost:4200 https://api.novedadesmaritex.net.pe https://upload.novedadesmaritex.net.pe; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self';">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
 <body>
