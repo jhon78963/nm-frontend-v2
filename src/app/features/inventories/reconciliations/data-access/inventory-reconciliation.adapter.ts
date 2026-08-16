@@ -37,12 +37,18 @@ function adaptInventory(raw: unknown): ProductVariantInventory | undefined {
 
 function adaptColor(raw: unknown): ReconciliationColor {
   const r = raw as Record<string, unknown>;
+  // Backend may send stock directly as `stock` or nested as `inventory.available_quantity`
+  const inventory = r['inventory']
+    ? adaptInventory(r['inventory'])
+    : r['stock'] != null
+      ? { availableQuantity: readNumber(r['stock']), warehouseId: 0 }
+      : undefined;
   return {
     id: readNumber(r['id']),
     colorId: readNumber(r['colorId'] ?? r['color_id']),
     description: readString(r['description'], `Color #${readNumber(r['colorId'] ?? r['color_id'])}`),
     hash: readNullableString(r['hash']),
-    inventory: adaptInventory(r['inventory']),
+    inventory,
   };
 }
 
@@ -60,11 +66,18 @@ function adaptSize(raw: unknown): ReconciliationSize {
   const colorsRaw = r['colors'];
   const colors = Array.isArray(colorsRaw) ? colorsRaw.map(adaptColor) : [];
 
+  // Backend may send stock directly as `stock` or nested as `inventory.available_quantity`
+  const inventory = r['inventory']
+    ? adaptInventory(r['inventory'])
+    : r['stock'] != null
+      ? { availableQuantity: readNumber(r['stock']), warehouseId: 0 }
+      : undefined;
+
   return {
     id: readNumber(r['id']),
     sizeId: readNumber(r['sizeId'] ?? r['size_id']),
     barcode: readNullableString(r['barcode']),
-    inventory: adaptInventory(r['inventory']),
+    inventory,
     purchasePrice:
       r['purchasePrice'] != null || r['purchase_price'] != null
         ? readNumber(r['purchasePrice'] ?? r['purchase_price'])
