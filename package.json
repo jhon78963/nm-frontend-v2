@@ -6,6 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "build:production": "./deploy/build-production.sh",
+    "pre-cutover": "./deploy/pre-cutover-check.sh",
+    "cutover:t0": "./deploy/cutover-t0.sh",
     "deploy": "ng build --configuration production",
     "smoke:routes": "./deploy/smoke-routes.sh",
     "watch": "ng build --watch --configuration development",
