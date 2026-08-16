@@ -4,12 +4,21 @@ import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import { csrfInterceptor } from './core/auth/csrf.interceptor';
+import { errorInterceptor } from './core/http/error.interceptor';
 import { tokenInterceptor } from './core/auth/token.interceptor';
+import { warehouseInterceptor } from './core/warehouse/warehouse.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideHttpClient(withInterceptors([csrfInterceptor, tokenInterceptor])),
+    provideHttpClient(
+      withInterceptors([
+        csrfInterceptor,
+        warehouseInterceptor,
+        errorInterceptor,
+        tokenInterceptor,
+      ]),
+    ),
     provideRouter(routes),
   ],
 };

@@ -16,6 +16,7 @@ import {
   userHasPermission,
 } from '../../../core/auth/permission.util';
 import { CsrfTokenService } from '../../../core/auth/csrf-token.service';
+import { ActiveWarehouseService } from '../../../core/warehouse/active-warehouse.service';
 import { adaptAuthUser } from './auth.adapter';
 import {
   AuthUser,
@@ -28,9 +29,11 @@ import {
 @Service()
 export class AuthService {
   private static readonly SESSION_FLAG_KEY = 'authSession';
+  private static readonly PERSISTENT_STORAGE_KEYS: readonly string[] = [];
 
   private readonly http = inject(HttpClient);
   private readonly csrfTokenService = inject(CsrfTokenService);
+  private readonly activeWarehouseService = inject(ActiveWarehouseService);
 
   readonly currentUser = signal<AuthUser | null>(null);
 
@@ -183,10 +186,7 @@ export class AuthService {
   }
 
   private handleSessionRestoreFailure(): Observable<null> {
-    this.currentUser.set(null);
-    this.csrfTokenService.clear();
-    localStorage.removeItem(AuthService.SESSION_FLAG_KEY);
-    this.sessionLoadRequest$ = undefined;
+    this.clearLocalSession();
     return of(null);
   }
 
@@ -211,11 +211,45 @@ export class AuthService {
     this.currentUser.set(null);
     this.sessionLoadRequest$ = undefined;
     this.csrfTokenService.clear();
-    localStorage.removeItem(AuthService.SESSION_FLAG_KEY);
+    this.activeWarehouseService.clearWarehouse();
+
+    const preserved = this.preservePersistentStorage();
+    localStorage.clear();
+    sessionStorage.clear();
+    this.restorePersistentStorage(preserved);
+  }
+
+  private preservePersistentStorage(): Record<string, string> {
+    const preserved: Record<string, string> = {};
+
+    for (const key of AuthService.PERSISTENT_STORAGE_KEYS) {
+      const localValue = localStorage.getItem(key);
+      if (localValue !== null) {
+        preserved[`local:${key}`] = localValue;
+      }
+
+      const sessionValue = sessionStorage.getItem(key);
+      if (sessionValue !== null) {
+        preserved[`session:${key}`] = sessionValue;
+      }
+    }
+
+    return preserved;
+  }
+
+  private restorePersistentStorage(preserved: Record<string, string>): void {
+    for (const [key, value] of Object.entries(preserved)) {
+      if (key.startsWith('local:')) {
+        localStorage.setItem(key.slice('local:'.length), value);
+      } else if (key.startsWith('session:')) {
+        sessionStorage.setItem(key.slice('session:'.length), value);
+      }
+    }
   }
 
   private setUserData(user: AuthUser): void {
     this.currentUser.set({ ...user });
+    this.activeWarehouseService.syncFromAuthUser(user);
     this.sessionLoadRequest$ = undefined;
     localStorage.setItem(
       AuthService.SESSION_FLAG_KEY,
