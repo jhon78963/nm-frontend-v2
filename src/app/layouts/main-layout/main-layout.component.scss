@@ -1,0 +1,14 @@
+:host {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Routed views render as siblings of router-outlet — constrain them here */
+main > :not(router-outlet) {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}

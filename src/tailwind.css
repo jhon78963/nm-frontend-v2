@@ -26,6 +26,19 @@
    Base layer
    ───────────────────────────────────────────────────────────── */
 @layer base {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  app-root {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+  }
+
   body {
     @apply bg-gray-50 text-gray-800;
     color: var(--color-text-base);

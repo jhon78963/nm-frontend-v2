@@ -1,11 +1,11 @@
 <div
+  class="max-w-full overflow-x-auto"
   [class.rounded-2xl]="variant() === 'card'"
   [class.border]="variant() !== 'embedded'"
   [class.border-gray-200]="variant() !== 'embedded'"
   [class.bg-white]="variant() !== 'embedded'"
   [class.shadow-sm]="variant() === 'card'"
   [class.rounded-xl]="variant() === 'plain'"
-  [class.overflow-x-auto]="variant() === 'plain'"
 >
   @if (loading()) {
     <div aria-label="Cargando datos…" aria-busy="true">

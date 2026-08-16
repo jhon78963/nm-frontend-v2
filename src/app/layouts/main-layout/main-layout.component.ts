@@ -30,6 +30,7 @@ export interface HeaderShortcut {
   selector: 'app-main-layout',
   imports: [RouterOutlet, RouterLink, BreadcrumbComponent],
   templateUrl: './main-layout.component.html',
+  styleUrl: './main-layout.component.scss',
 })
 export class MainLayoutComponent implements OnInit {
   private readonly router = inject(Router);

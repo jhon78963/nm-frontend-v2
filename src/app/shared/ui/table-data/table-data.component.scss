@@ -2,6 +2,8 @@
 
 app-table-data {
   display: block;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .dt-table {
