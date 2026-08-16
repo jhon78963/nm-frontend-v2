@@ -201,29 +201,49 @@
             <div>
               <h2 id="section-inventory" class="text-lg font-semibold text-gray-900">Tallas y colores</h2>
               <p class="text-sm text-gray-500">
-                Edite stocks por color. Marque el checkbox al revisar cada stock.
+                Edite stocks por color. Use el ícono de sincronizar para cambiar el color (conserva stock).
+                Marque el checkbox de stock al revisar cada variante.
+                Seleccione con el checkbox a la izquierda del nombre para eliminar en lote.
+                Use el ícono de papelera para quitar colores o tallas con stock 0.
                 @if (hasPosSalesSinceInventory()) {
                   Las etiquetas naranjas indican unidades vendidas por POS.
                 }
               </p>
             </div>
           </div>
-          <app-button
-            type="button"
-            variant="secondary"
-            [disabled]="saving() || addingSize()"
-            (clicked)="openAddSizeDialog()">
-            Agregar talla
-          </app-button>
+          <div class="flex flex-wrap items-center gap-2">
+            <app-button
+              type="button"
+              variant="danger"
+              [loading]="bulkDeleting()"
+              [disabled]="
+                !hasBulkSelection() ||
+                saving() ||
+                bulkDeleting() ||
+                removingSize() ||
+                removingColor() ||
+                addingSize() ||
+                addingColor()
+              "
+              (clicked)="confirmBulkDelete()">
+              {{ bulkDeleteButtonLabel() }}
+            </app-button>
+            <app-button
+              type="button"
+              variant="secondary"
+              [disabled]="saving() || addingSize() || bulkDeleting()"
+              (clicked)="openAddSizeDialog()">
+              Agregar talla
+            </app-button>
+          </div>
         </div>
 
-        <div class="min-w-0 rounded-lg border border-gray-200">
+        <div class="reconciliation-table min-w-0 rounded-lg border border-gray-200">
           <app-table-data
             [columns]="reconciliationTableColumns"
             [data]="inventoryTableRows()"
             [variant]="'embedded'"
             [theme]="'sky'"
-            [minWidth]="'56rem'"
             [mobileCompact]="false"
             [headerRowClass]="'bg-gray-50'"
             [ariaLabel]="'Tallas y colores en conciliación'"
@@ -241,11 +261,18 @@
 
             <ng-template #rowTemplate let-row>
               @if (row.kind === 'size') {
-                <tr [class]="sizeRowClasses(row.size)">
+                <tr [class]="sizeRowClasses(row.size) + ' reconciliation-row-size'">
                   <td class="px-4 py-3 align-top">
                     <div class="flex flex-wrap items-center justify-between gap-2">
-                      <span class="font-semibold text-gray-900">{{ row.size.sizeLabel }}</span>
-                      <div class="flex items-center gap-1">
+                      <div class="flex min-w-0 flex-wrap items-center gap-2">
+                        <app-checkbox
+                          class="bulk-select-checkbox shrink-0"
+                          [value]="isBulkSelectedSize(row.size)"
+                          [disabled]="!canBulkSelectSize(row.size)"
+                          [attr.aria-label]="bulkSizeSelectTooltip(row.size)"
+                          [attr.title]="bulkSizeSelectTooltip(row.size)"
+                          (valueChange)="onBulkSelectSizeChange(row.size, $event)" />
+                        <span class="font-semibold text-gray-900">{{ row.size.sizeLabel }}</span>
                         @if (!hasColorBreakdown(row.size) && sizePosSoldQty(row.size) > 0) {
                           <span
                             class="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800"
@@ -253,10 +280,12 @@
                             {{ posSoldTagLabel(sizePosSoldQty(row.size)) }}
                           </span>
                         }
+                      </div>
+                      <div class="flex items-center gap-1">
                         <app-table-action-button
                           label="Agregar color a esta talla"
                           tone="neutral"
-                          [disabled]="saving() || addingColor() || removingSize()"
+                          [disabled]="saving() || addingColor() || removingSize() || bulkDeleting()"
                           (clicked)="openAddColorDialog(row.size)">
                           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -319,17 +348,24 @@
                           [ngModel]="row.size.masterStock"
                           (ngModelChange)="updateSizeField(row.size.id, 'masterStock', +$event)" />
                         @if (sizePosSoldQty(row.size) > 0) {
-                          <span class="text-xs text-amber-700">{{ posStockHint(row.size) }}</span>
+                          <span class="text-xs text-amber-700 pos-stock-hint">{{ posStockHint(row.size) }}</span>
                         }
                       </div>
                     }
                   </td>
                 </tr>
               } @else {
-                <tr [class]="colorRowClasses(row.color)">
-                  <td class="px-4 py-2.5 pl-10">
+                <tr [class]="colorRowClasses(row.color) + ' reconciliation-row-color'">
+                  <td class="reconciliation-color-label border-l-4 border-l-emerald-500 px-4 py-2.5 pl-6">
                     <div class="flex flex-wrap items-center justify-between gap-2">
-                      <div class="flex flex-wrap items-center gap-2">
+                      <div class="flex min-w-0 flex-wrap items-center gap-2">
+                        <app-checkbox
+                          class="bulk-select-checkbox shrink-0"
+                          [value]="isBulkSelectedColor(row.size, row.color)"
+                          [disabled]="!canBulkSelectColor(row.size)"
+                          aria-label="Seleccionar color para eliminar"
+                          title="Seleccionar color para eliminar"
+                          (valueChange)="onBulkSelectColorChange(row.size, row.color, $event)" />
                         <span class="text-gray-800">{{ row.color.description }}</span>
                         @if (colorPosSoldQty(row.color) > 0) {
                           <span
@@ -338,7 +374,7 @@
                             {{ posSoldTagLabel(colorPosSoldQty(row.color)) }}
                           </span>
                         } @else if (variantShowNoPosSaleChip(row.color)) {
-                          <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600" [title]="'Sin ventas POS desde el ' + posSalesSinceLabel()">
+                          <span class="pos-no-sale-chip rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600" [title]="'Sin ventas POS desde el ' + posSalesSinceLabel()">
                             Sin venta POS
                           </span>
                         }
@@ -347,7 +383,7 @@
                         <app-table-action-button
                           label="Sustituir por otro color (conserva stock)"
                           tone="neutral"
-                          [disabled]="saving() || replacingVariantColor() || removingColor()"
+                          [disabled]="saving() || replacingVariantColor() || removingColor() || bulkDeleting()"
                           (clicked)="openReplaceColorDialog(row.size, row.color)">
                           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -356,7 +392,7 @@
                         <app-table-action-button
                           label="Eliminar variante de color"
                           tone="danger"
-                          [disabled]="saving() || replacingVariantColor() || removingColor() || removingSize()"
+                          [disabled]="saving() || replacingVariantColor() || removingColor() || removingSize() || bulkDeleting()"
                           (clicked)="confirmRemoveColor(row.size, row.color)">
                           <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -371,7 +407,7 @@
                       <div class="flex items-center justify-end gap-2">
                         <app-checkbox
                           [value]="row.color.stockReviewed"
-                          [disabled]="saving() || replacingVariantColor()"
+                          [disabled]="saving() || replacingVariantColor() || bulkDeleting()"
                           [attr.aria-label]="'Marcar stock revisado — ' + row.color.description"
                           (valueChange)="updateColorReviewed(row.size.id, row.color.colorId, $event)" />
                         <app-input
@@ -382,7 +418,7 @@
                           (ngModelChange)="updateColorStock(row.size.id, row.color.colorId, +$event)" />
                       </div>
                       @if (colorPosSoldQty(row.color) > 0) {
-                        <span class="text-xs text-amber-700">{{ posStockHint(row.size, row.color) }}</span>
+                        <span class="text-xs text-amber-700 pos-stock-hint">{{ posStockHint(row.size, row.color) }}</span>
                       }
                     </div>
                   </td>

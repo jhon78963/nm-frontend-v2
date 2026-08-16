@@ -1,4 +1,5 @@
 import {
+  AfterViewInit,
   Component,
   computed,
   DestroyRef,
@@ -69,7 +70,8 @@ interface ProductFormSlice {
 
 type ConfirmAction =
   | { type: 'remove-color'; size: ReconciliationSizeDraft; color: ReconciliationColorDraft }
-  | { type: 'remove-size'; size: ReconciliationSizeDraft };
+  | { type: 'remove-size'; size: ReconciliationSizeDraft }
+  | { type: 'bulk-delete' };
 
 type ReconciliationTableRow =
   | { kind: 'size'; size: ReconciliationSizeDraft }
@@ -93,8 +95,9 @@ type ReconciliationTableRow =
     TableDataComponent,
   ],
   templateUrl: './inventory-reconciliation.component.html',
+  styleUrl: './inventory-reconciliation.component.scss',
 })
-export class InventoryReconciliationComponent implements OnInit {
+export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly inventoryService = inject(InventoryReconciliationService);
@@ -151,6 +154,8 @@ export class InventoryReconciliationComponent implements OnInit {
 
   protected readonly removingColor = signal(false);
   protected readonly removingSize = signal(false);
+  protected readonly bulkDeleting = signal(false);
+  protected readonly bulkSelectionKeys = signal<string[]>([]);
   protected readonly confirmAction = signal<ConfirmAction | null>(null);
 
   protected readonly productFormModel = signal<ProductFormSlice>({
@@ -258,17 +263,48 @@ export class InventoryReconciliationComponent implements OnInit {
       };
     }
 
-    const colorNote =
-      action.size.colors.length > 0
-        ? ` También se quitarán ${action.size.colors.length} color(es) asociados.`
+    if (action.type === 'remove-size') {
+      const colorNote =
+        action.size.colors.length > 0
+          ? ` También se quitarán ${action.size.colors.length} color(es) asociados.`
+          : '';
+
+      return {
+        title: 'Eliminar talla',
+        message:
+          `¿Eliminar la talla ${action.size.sizeLabel} de este producto?${colorNote} ` +
+          'Las ventas anteriores se conservan en historial.',
+        loading: this.removingSize(),
+      };
+    }
+
+    const { sizesToDelete, colorsToDelete } = this.collectBulkDeleteTargets();
+    const parts: string[] = [];
+    if (sizesToDelete.length > 0) {
+      parts.push(
+        `${sizesToDelete.length} talla${sizesToDelete.length === 1 ? '' : 's'}`,
+      );
+    }
+    if (colorsToDelete.length > 0) {
+      parts.push(
+        `${colorsToDelete.length} color${colorsToDelete.length === 1 ? '' : 'es'}`,
+      );
+    }
+
+    const withStock = colorsToDelete.filter(
+      ({ color }) => Math.max(0, Math.trunc(Number(color.stock) || 0)) > 0,
+    ).length;
+    const stockNote =
+      withStock > 0
+        ? ` ${withStock} variante${withStock === 1 ? '' : 's'} con stock se pondrá${withStock === 1 ? '' : 'n'} en 0 antes de quitarlas.`
         : '';
 
     return {
-      title: 'Eliminar talla',
+      title: 'Eliminar seleccionados',
       message:
-        `¿Eliminar la talla ${action.size.sizeLabel} de este producto?${colorNote} ` +
-        'Las ventas anteriores se conservan en historial.',
-      loading: this.removingSize(),
+        `¿Eliminar ${parts.join(' y ')}?${stockNote} ` +
+        'Las ventas, tickets de caja y kardex anteriores se conservan en el historial.',
+      loading: this.bulkDeleting(),
     };
   });
 
@@ -285,11 +321,19 @@ export class InventoryReconciliationComponent implements OnInit {
 
       const id = Number(raw);
       if (!Number.isFinite(id) || id < 1) {
+        this.toastService.show('error', 'ID de producto inválido.');
+        void this.router.navigate(['/inventories/reconciliations'], {
+          replaceUrl: true,
+        });
         return;
       }
 
       this.loadFullProduct(id);
     });
+  }
+
+  ngAfterViewInit(): void {
+    this.focusSearch();
   }
 
   protected onSearchQueryChange(value: string): void {
@@ -460,7 +504,7 @@ export class InventoryReconciliationComponent implements OnInit {
     const since = this.posSalesSinceLabel();
     const parts = [
       `${qty} unidad${qty === 1 ? '' : 'es'} vendida${qty === 1 ? '' : 's'} por caja (POS) desde el ${since}.`,
-      'Cuente solo lo que queda en anaquel.',
+      'Cuente solo lo que queda en anaquel; no incluya piezas ya entregadas al cliente.',
     ];
     if (saleCount > 0) {
       parts.push(`${saleCount} venta${saleCount === 1 ? '' : 's'} registrada${saleCount === 1 ? '' : 's'}.`);
@@ -485,10 +529,118 @@ export class InventoryReconciliationComponent implements OnInit {
       !this.saving() &&
       !this.removingSize() &&
       !this.removingColor() &&
+      !this.bulkDeleting() &&
       !this.addingColor() &&
       !this.addingSize() &&
       effectiveSizeStock(size) === 0
     );
+  }
+
+  protected bulkSelectionCount(): number {
+    return this.bulkSelectionKeys().length;
+  }
+
+  protected hasBulkSelection(): boolean {
+    return this.bulkSelectionCount() > 0;
+  }
+
+  protected isBulkSelectedSize(size: ReconciliationSizeDraft): boolean {
+    return this.bulkSelectionKeys().includes(this.sizeSelectionKey(size));
+  }
+
+  protected isBulkSelectedColor(
+    size: ReconciliationSizeDraft,
+    color: ReconciliationColorDraft,
+  ): boolean {
+    return this.bulkSelectionKeys().includes(
+      this.colorSelectionKey(size, color),
+    );
+  }
+
+  protected canBulkSelectSize(size: ReconciliationSizeDraft): boolean {
+    return (
+      !this.saving() &&
+      !this.bulkDeleting() &&
+      !this.removingSize() &&
+      !this.removingColor() &&
+      effectiveSizeStock(size) === 0
+    );
+  }
+
+  protected canBulkSelectColor(size: ReconciliationSizeDraft): boolean {
+    return (
+      !this.saving() &&
+      !this.bulkDeleting() &&
+      !this.removingSize() &&
+      !this.removingColor() &&
+      !this.isBulkSelectedSize(size)
+    );
+  }
+
+  protected onBulkSelectSizeChange(
+    size: ReconciliationSizeDraft,
+    checked: boolean,
+  ): void {
+    const key = this.sizeSelectionKey(size);
+    this.updateBulkSelection((selection) => {
+      if (checked) {
+        selection.add(key);
+        for (const color of size.colors) {
+          selection.delete(this.colorSelectionKey(size, color));
+        }
+      } else {
+        selection.delete(key);
+      }
+    });
+  }
+
+  protected onBulkSelectColorChange(
+    size: ReconciliationSizeDraft,
+    color: ReconciliationColorDraft,
+    checked: boolean,
+  ): void {
+    const key = this.colorSelectionKey(size, color);
+    this.updateBulkSelection((selection) => {
+      if (checked) {
+        selection.add(key);
+      } else {
+        selection.delete(key);
+      }
+    });
+  }
+
+  protected bulkSizeSelectTooltip(size: ReconciliationSizeDraft): string {
+    if (effectiveSizeStock(size) > 0) {
+      return 'Solo puede seleccionar tallas con stock 0 para eliminar';
+    }
+    return 'Seleccionar talla para eliminar';
+  }
+
+  protected bulkDeleteButtonLabel(): string {
+    const count = this.bulkSelectionCount();
+    if (count === 0) {
+      return 'Eliminar seleccionados';
+    }
+    return `Eliminar seleccionados (${count})`;
+  }
+
+  protected confirmBulkDelete(): void {
+    if (
+      !this.draft() ||
+      !this.hasBulkSelection() ||
+      this.bulkDeleting() ||
+      this.saving()
+    ) {
+      return;
+    }
+
+    const { sizesToDelete, colorsToDelete } = this.collectBulkDeleteTargets();
+    if (sizesToDelete.length + colorsToDelete.length === 0) {
+      this.clearBulkSelection();
+      return;
+    }
+
+    this.confirmAction.set({ type: 'bulk-delete' });
   }
 
   protected sizeRemoveTooltip(size: ReconciliationSizeDraft): string {
@@ -523,7 +675,12 @@ export class InventoryReconciliationComponent implements OnInit {
       return;
     }
 
-    this.removeSizeVariant(action.size);
+    if (action.type === 'remove-size') {
+      this.removeSizeVariant(action.size);
+      return;
+    }
+
+    this.executeBulkDelete();
   }
 
   protected updateSizeField<K extends keyof ReconciliationSizeDraft>(
@@ -598,16 +755,18 @@ export class InventoryReconciliationComponent implements OnInit {
   protected colorRowClasses(color: ReconciliationColorDraft): string {
     const classes: string[] = [];
     if (isColorZeroStock(color)) {
-      classes.push('bg-gray-50/80');
+      classes.push('reconciliation-row-zero');
     } else {
-      if (color.stockReviewed) classes.push('bg-emerald-50/60');
-      if (this.colorPosSoldQty(color) > 0) classes.push('ring-1 ring-inset ring-amber-200/70');
+      if (color.stockReviewed) classes.push('reconciliation-row-reviewed');
+      if (this.colorPosSoldQty(color) > 0) {
+        classes.push('reconciliation-row-pos-sold');
+      }
     }
     return classes.join(' ');
   }
 
   protected sizeRowClasses(size: ReconciliationSizeDraft): string {
-    return isSizeZeroStock(size) ? 'bg-gray-50/60' : '';
+    return isSizeZeroStock(size) ? 'reconciliation-row-zero' : '';
   }
 
   protected openAddSizeDialog(): void {
@@ -918,6 +1077,9 @@ export class InventoryReconciliationComponent implements OnInit {
               String(id),
           );
           this.navigationHint.set(null);
+          if (!preserveEditsFrom) {
+            this.clearBulkSelection();
+          }
         },
         error: (message: string) => {
           this.toastService.show('error', message);
@@ -981,6 +1143,103 @@ export class InventoryReconciliationComponent implements OnInit {
 
   private posVariantKey(productSizeId: number, colorId: number | null): string {
     return `${productSizeId}:${colorId ?? 'none'}`;
+  }
+
+  private executeBulkDelete(): void {
+    const currentDraft = this.draft();
+    if (!currentDraft) return;
+
+    const { sizesToDelete, colorsToDelete } = this.collectBulkDeleteTargets();
+    const requests = [
+      ...colorsToDelete.map(({ size, color }) =>
+        this.inventoryService.removeColorVariant(size.id, color.colorId),
+      ),
+      ...sizesToDelete.map((size) =>
+        this.inventoryService.removeSize(currentDraft.productId, size.sizeId),
+      ),
+    ];
+
+    if (requests.length === 0) {
+      this.clearBulkSelection();
+      this.confirmAction.set(null);
+      return;
+    }
+
+    this.bulkDeleting.set(true);
+    const snapshot = captureDraftSnapshot(currentDraft);
+    const total = requests.length;
+
+    forkJoin(requests)
+      .pipe(
+        finalize(() => this.bulkDeleting.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.clearBulkSelection();
+          this.confirmAction.set(null);
+          this.toastService.show(
+            'success',
+            `${total} elemento${total === 1 ? '' : 's'} eliminado${total === 1 ? '' : 's'}.`,
+          );
+          this.loadFullProduct(currentDraft.productId, snapshot);
+        },
+        error: (message: string) => this.toastService.show('error', message),
+      });
+  }
+
+  private collectBulkDeleteTargets(): {
+    sizesToDelete: ReconciliationSizeDraft[];
+    colorsToDelete: Array<{
+      size: ReconciliationSizeDraft;
+      color: ReconciliationColorDraft;
+    }>;
+  } {
+    const currentDraft = this.draft();
+    const sizesToDelete: ReconciliationSizeDraft[] = [];
+    const colorsToDelete: Array<{
+      size: ReconciliationSizeDraft;
+      color: ReconciliationColorDraft;
+    }> = [];
+
+    if (!currentDraft) {
+      return { sizesToDelete, colorsToDelete };
+    }
+
+    for (const size of currentDraft.sizes) {
+      if (this.isBulkSelectedSize(size)) {
+        sizesToDelete.push(size);
+        continue;
+      }
+      for (const color of size.colors) {
+        if (this.isBulkSelectedColor(size, color)) {
+          colorsToDelete.push({ size, color });
+        }
+      }
+    }
+
+    return { sizesToDelete, colorsToDelete };
+  }
+
+  private clearBulkSelection(): void {
+    this.bulkSelectionKeys.set([]);
+  }
+
+  private updateBulkSelection(mutator: (selection: Set<string>) => void): void {
+    const next = new Set(this.bulkSelectionKeys());
+    mutator(next);
+    this.bulkSelectionKeys.set([...next]);
+  }
+
+  private sizeSelectionKey(size: ReconciliationSizeDraft): string {
+    return `s:${size.id}`;
+  }
+
+  private colorSelectionKey(
+    size: ReconciliationSizeDraft,
+    color: ReconciliationColorDraft,
+  ): string {
+    return `c:${size.id}:${color.colorId}`;
   }
 
   private removeColorVariant(
@@ -1075,6 +1334,7 @@ export class InventoryReconciliationComponent implements OnInit {
     this.closeAddSizeDialog();
     this.closeAddColorDialog();
     this.confirmAction.set(null);
+    this.clearBulkSelection();
 
     if (navigate) {
       void this.router.navigate(['/inventories/reconciliations'], {

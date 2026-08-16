@@ -1,0 +1,66 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.reconciliation-table {
+  ::ng-deep .dt-table {
+    width: 100%;
+    min-width: 0;
+    border-collapse: collapse;
+  }
+
+  ::ng-deep .dt-table th,
+  ::ng-deep .dt-table td {
+    border: 1px solid #e5e7eb;
+    vertical-align: middle;
+  }
+
+  ::ng-deep tr.reconciliation-row-size td {
+    background-color: #fafafa;
+  }
+
+  ::ng-deep tr.reconciliation-row-color td {
+    background-color: #fff;
+  }
+
+  ::ng-deep tr.reconciliation-row-zero td {
+    background-color: #dc2626;
+    color: #fff;
+    border-color: #b91c1c;
+  }
+
+  ::ng-deep tr.reconciliation-row-zero:hover td {
+    background-color: #b91c1c;
+  }
+
+  ::ng-deep tr.reconciliation-row-reviewed td {
+    background-color: #f0fdf4;
+  }
+
+  ::ng-deep tr.reconciliation-row-pos-sold td {
+    background-color: #fff7ed;
+  }
+
+  ::ng-deep tr.reconciliation-row-reviewed.reconciliation-row-pos-sold td {
+    background: linear-gradient(90deg, #fff7ed 0%, #f0fdf4 100%);
+  }
+
+  ::ng-deep tr.reconciliation-row-zero .reconciliation-color-label {
+    border-left-color: rgba(255, 255, 255, 0.85);
+  }
+
+  ::ng-deep tr.reconciliation-row-zero .pos-stock-hint,
+  ::ng-deep tr.reconciliation-row-zero .pos-no-sale-chip {
+    color: rgba(255, 255, 255, 0.92);
+  }
+
+  ::ng-deep tr.reconciliation-row-zero .pos-no-sale-chip {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+}
+
+.bulk-select-checkbox {
+  accent-color: #dc2626;
+}
