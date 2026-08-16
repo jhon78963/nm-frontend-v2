@@ -28,15 +28,18 @@
 @layer base {
   html,
   body {
+    height: 100%;
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
+    overflow: hidden;
   }
 
   app-root {
     display: block;
+    height: 100%;
     width: 100%;
     max-width: 100%;
+    overflow: hidden;
   }
 
   body {
