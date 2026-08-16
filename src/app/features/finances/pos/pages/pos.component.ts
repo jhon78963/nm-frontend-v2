@@ -62,6 +62,12 @@ export class PosComponent {
 
   protected async onScanKeydown(): Promise<void> {
     if (this.hasNoWarehouse()) return;
+
+    const fromDom = this.barcodeInputRef()?.nativeElement.value?.trim() ?? '';
+    if (fromDom) {
+      this.barcodeQuery.set(fromDom);
+    }
+
     await this.performScan(this.barcodeQuery());
   }
 

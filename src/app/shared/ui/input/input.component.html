@@ -14,6 +14,7 @@
       [value]="value()"
       [placeholder]="placeholder()"
       [attr.autocomplete]="autocomplete() || null"
+      [attr.data-testid]="testId() || null"
       [disabled]="isDisabled()"
       [attr.aria-invalid]="errorMessage() ? true : null"
       [attr.aria-describedby]="errorMessage() ? errorMessageId : null"
