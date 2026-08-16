@@ -6,6 +6,7 @@
     "start": "ng serve",
     "build": "ng build",
     "build:production": "./deploy/build-production.sh",
+    "build:staging": "ng build --configuration=staging",
     "pre-cutover": "./deploy/pre-cutover-check.sh",
     "cutover:t0": "./deploy/cutover-t0.sh",
     "archive:legacy": "./deploy/archive-legacy-backup.sh",
