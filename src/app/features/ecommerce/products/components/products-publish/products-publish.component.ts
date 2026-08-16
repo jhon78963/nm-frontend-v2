@@ -15,7 +15,6 @@ import {
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
-import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataComponent,
   TableDataColumn,
@@ -38,7 +37,6 @@ import { ProductPublishPanelComponent } from '../product-publish-panel/product-p
     ReactiveFormsModule,
     InputComponent,
     ButtonComponent,
-    TableActionButtonComponent,
     TableDataComponent,
     DtCellDirective,
     DtExpandCellComponent,

@@ -1,5 +1,8 @@
 # Índice de Prompts — Paridad Funcional nm-frontend-v2
 
+> **Producción / cutover:** usa la carpeta [`cutover/`](../cutover/00-INDICE.md) (guías 01–08).
+> Este índice `_prompts/` es **histórico** — prompts de migración de features ya implementadas.
+
 > Ejecuta cada prompt en orden en Cursor Agent. Cada archivo es autónomo y contiene toda la
 > información necesaria para implementar esa funcionalidad desde cero, respetando la arquitectura
 > Angular 22 + DDD + Signals definida en `.cursorrules`.

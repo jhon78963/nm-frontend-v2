@@ -15,7 +15,6 @@ import { downloadFile } from '../../../../../core/utils/file-download.util';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { ExportButtonComponent } from '../../../../../shared/ui/export-button/export-button.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
-import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import {
   TableDataColumn,
   TableDataComponent,
@@ -44,7 +43,6 @@ const DEFAULT_HORIZON_DAYS = 30;
     ButtonComponent,
     ExportButtonComponent,
     InputComponent,
-    TableActionButtonComponent,
     TableDataComponent,
   ],
   providers: [ProductsInventoryService],
