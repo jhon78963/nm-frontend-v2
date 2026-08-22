@@ -64,21 +64,25 @@
       placeholder="Buscar por nombre, email o usuario…"
     />
 
-    <app-select
-      class="block w-full"
-      label="Cliente"
-      placeholder="Todos los clientes"
-      [options]="tenantOptions()"
-      formControlName="tenantId"
-    />
+    @if (canFilterByTenant()) {
+      <app-select
+        class="block w-full"
+        label="Cliente"
+        placeholder="Todos los clientes"
+        [options]="tenantOptions()"
+        formControlName="tenantId"
+      />
+    }
 
-    <app-select
-      class="block w-full"
-      label="Tienda"
-      placeholder="Todas las tiendas"
-      [options]="warehouseOptions()"
-      formControlName="warehouseId"
-    />
+    @if (canFilterByWarehouse()) {
+      <app-select
+        class="block w-full"
+        label="Tienda"
+        placeholder="Todas las tiendas"
+        [options]="warehouseOptions()"
+        formControlName="warehouseId"
+      />
+    }
 
     @if (hasActiveFilters()) {
       <div class="flex flex-col gap-2 sm:col-span-2 xl:col-span-1">

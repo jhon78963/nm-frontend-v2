@@ -33,6 +33,7 @@ import {
 } from '../../../../auth/utils/password.validators';
 import { UserLookupService } from '../../data-access/user-lookup.service';
 import { UserService } from '../../data-access/user.service';
+import { AuthService } from '../../../../auth/data-access/auth.service';
 import { UserFormModel, UserPayload } from '../../models/user.model';
 
 @Component({
@@ -43,6 +44,7 @@ import { UserFormModel, UserPayload } from '../../models/user.model';
 export class UserFormComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly lookupService = inject(UserLookupService);
+  private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly userId = input<number | null>(null);
@@ -194,6 +196,7 @@ export class UserFormComponent implements OnInit {
             this.roleOptions.set(
               lookups.roles.map((r) => ({ label: r.name, value: r.name })),
             );
+            this.applyDefaultTenantForActor(lookups.tenants);
 
             this.formModel.set({
               tenantId: user.tenantId,
@@ -228,6 +231,7 @@ export class UserFormComponent implements OnInit {
             this.roleOptions.set(
               roles.map((r) => ({ label: r.name, value: r.name })),
             );
+            this.applyDefaultTenantForActor(tenants);
             this.loadingData.set(false);
           },
           error: () => {
@@ -324,5 +328,22 @@ export class UserFormComponent implements OnInit {
           this.warehouseOptions.set([]);
         },
       });
+  }
+
+  private applyDefaultTenantForActor(
+    tenants: { id: number; name: string }[],
+  ): void {
+    if (this.userId() !== null || tenants.length !== 1) {
+      return;
+    }
+
+    const tenantId = tenants[0]?.id;
+    if (tenantId == null) {
+      return;
+    }
+
+    this.formModel.update((model) =>
+      model.tenantId === null ? { ...model, tenantId } : model,
+    );
   }
 }

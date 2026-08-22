@@ -29,6 +29,7 @@ import {
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TableActionsComponent } from '../../../../../shared/ui/table-actions/table-actions.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
+import { AuthService } from '../../../../auth/data-access/auth.service';
 import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
 import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
 import {
@@ -83,6 +84,7 @@ function isUserFilterState(value: unknown): value is UserFilterState {
 export class UsersListComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly lookupService = inject(UserLookupService);
+  private readonly authService = inject(AuthService);
   private readonly filterStorage = inject(TableFilterStorageService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
@@ -114,6 +116,14 @@ export class UsersListComponent implements OnInit {
   protected readonly currentSearch = signal('');
   protected readonly currentTenantId = signal<number | null>(null);
   protected readonly currentWarehouseId = signal<number | null>(null);
+
+  protected readonly canFilterByTenant = computed(() =>
+    this.authService.hasPermission('tenant.getAll'),
+  );
+
+  protected readonly canFilterByWarehouse = computed(() =>
+    this.authService.hasPermission('warehouse.getAll'),
+  );
 
   protected readonly tenantOptions = computed<SelectOption<number>[]>(() =>
     this.tenants().map((tenant) => ({ label: tenant.name, value: tenant.id })),
@@ -392,8 +402,8 @@ export class UsersListComponent implements OnInit {
   protected hasActiveFilters(): boolean {
     return (
       this.currentSearch().length > 0 ||
-      this.currentTenantId() !== null ||
-      this.currentWarehouseId() !== null
+      (this.canFilterByTenant() && this.currentTenantId() !== null) ||
+      (this.canFilterByWarehouse() && this.currentWarehouseId() !== null)
     );
   }
 
@@ -406,25 +416,34 @@ export class UsersListComponent implements OnInit {
   }
 
   private loadLookups(): void {
-    this.lookupService
-      .getTenants()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (tenants) => this.tenants.set(tenants),
-        error: () => {
-          this.toastService.show('error', 'No se pudo cargar la lista de clientes.');
-        },
-      });
+    if (this.canFilterByTenant()) {
+      this.lookupService
+        .getTenants()
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (tenants) => this.tenants.set(tenants),
+          error: () => {
+            this.toastService.show('error', 'No se pudo cargar la lista de clientes.');
+          },
+        });
+    }
 
-    this.lookupService
-      .getWarehouses()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (warehouses) => this.warehouses.set(warehouses),
-        error: () => {
-          this.toastService.show('error', 'No se pudo cargar la lista de tiendas.');
-        },
-      });
+    if (this.canFilterByWarehouse()) {
+      const tenantScope =
+        this.canFilterByTenant()
+          ? null
+          : this.authService.currentUser()?.tenantId ?? null;
+
+      this.lookupService
+        .getWarehouses(tenantScope)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (warehouses) => this.warehouses.set(warehouses),
+          error: () => {
+            this.toastService.show('error', 'No se pudo cargar la lista de tiendas.');
+          },
+        });
+    }
   }
 
   private restoreFilters(): void {

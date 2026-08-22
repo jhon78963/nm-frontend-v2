@@ -1,7 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { map, Observable, of } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
+import { isSuperAdmin } from '../../../../core/auth/permission.util';
+import { AuthService } from '../../../auth/data-access/auth.service';
 import { Gender, Warehouse, SizeType } from '../models/product.model';
 import {
   adaptGender,
@@ -13,6 +15,7 @@ import {
 @Service()
 export class ProductLookupService {
   private readonly http = inject(HttpClient);
+  private readonly authService = inject(AuthService);
   private readonly apiUrl = environment.apiUrl;
 
   getGenders(): Observable<Gender[]> {
@@ -22,8 +25,19 @@ export class ProductLookupService {
   }
 
   getWarehouses(): Observable<Warehouse[]> {
+    if (!this.authService.hasPermission('warehouse.getAll')) {
+      return of(this.warehousesFromSessionUser());
+    }
+
+    let url = `${this.apiUrl}/warehouses?limit=200&page=1`;
+    const tenantId = this.actorTenantIdForWarehouseLookup();
+
+    if (tenantId != null && tenantId > 0) {
+      url += `&tenant_id=${tenantId}`;
+    }
+
     return this.http
-      .get<unknown>(`${this.apiUrl}/warehouses?limit=200&page=1`)
+      .get<unknown>(url)
       .pipe(map((raw) => extractApiList(raw).map(adaptWarehouse)));
   }
 
@@ -31,5 +45,27 @@ export class ProductLookupService {
     return this.http
       .get<unknown>(`${this.apiUrl}/size-types?limit=200&page=1`)
       .pipe(map((raw) => extractApiList(raw).map(adaptSizeType)));
+  }
+
+  private actorTenantIdForWarehouseLookup(): number | null {
+    const user = this.authService.currentUser();
+
+    if (isSuperAdmin(user) && this.authService.hasPermission('tenant.getAll')) {
+      return null;
+    }
+
+    const tenantId = user?.tenantId;
+    return typeof tenantId === 'number' && tenantId > 0 ? tenantId : null;
+  }
+
+  private warehousesFromSessionUser(): Warehouse[] {
+    const user = this.authService.currentUser();
+    const warehouseId = user?.warehouseId;
+
+    if (typeof warehouseId === 'number' && warehouseId > 0) {
+      return [{ id: warehouseId, name: `Tienda #${warehouseId}` }];
+    }
+
+    return [];
   }
 }
