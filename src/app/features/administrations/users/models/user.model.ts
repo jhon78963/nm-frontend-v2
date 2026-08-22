@@ -8,7 +8,9 @@ export interface User {
   roles: string[];
   role?: string;
   tenantId: number;
+  tenantName?: string | null;
   warehouseId: number;
+  warehouseName?: string | null;
   isEnabled: boolean;
 }
 

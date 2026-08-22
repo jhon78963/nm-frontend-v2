@@ -24,10 +24,13 @@ export class UserLookupService {
       .pipe(map(adaptTenantOptions));
   }
 
-  getWarehouses(tenantId: number): Observable<WarehouseOption[]> {
-    return this.http
-      .get<unknown>(`${this.api}/warehouses?tenant_id=${tenantId}`)
-      .pipe(map(adaptWarehouseOptions));
+  getWarehouses(tenantId?: number | null): Observable<WarehouseOption[]> {
+    let url = `${this.api}/warehouses?limit=200&page=1`;
+    if (tenantId != null && tenantId > 0) {
+      url += `&tenant_id=${tenantId}`;
+    }
+
+    return this.http.get<unknown>(url).pipe(map(adaptWarehouseOptions));
   }
 
   getRoles(): Observable<RoleOption[]> {

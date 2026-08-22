@@ -9,7 +9,7 @@ export const TABLE_FILTER_KEYS = {
   customers: 'directories.customers.v1',
   vendors: 'directories.vendors.v1',
   teams: 'directories.teams.v1',
-  users: 'administrations.users.v1',
+  users: 'administrations.users.v2',
   roles: 'administrations.roles.v1',
   tenants: 'administrations.tenants.v1',
   warehouses: 'administrations.warehouses.v1',

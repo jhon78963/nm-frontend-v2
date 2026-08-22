@@ -54,18 +54,43 @@
 
   <!-- ── Toolbar ── -->
   <div
-    class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] filter-toolbar"
-    [formGroup]="searchForm"
+    class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(12rem,16rem)_minmax(12rem,16rem)_auto_auto] filter-toolbar"
+    [formGroup]="filterForm"
   >
     <app-input
-      class="block w-full max-w-sm"
+      class="block w-full sm:col-span-2 xl:col-span-1"
       label="Buscar"
       formControlName="search"
       placeholder="Buscar por nombre, email o usuario…"
     />
 
+    <app-select
+      class="block w-full"
+      label="Cliente"
+      placeholder="Todos los clientes"
+      [options]="tenantOptions()"
+      formControlName="tenantId"
+    />
+
+    <app-select
+      class="block w-full"
+      label="Tienda"
+      placeholder="Todas las tiendas"
+      [options]="warehouseOptions()"
+      formControlName="warehouseId"
+    />
+
+    @if (hasActiveFilters()) {
+      <div class="flex flex-col gap-2 sm:col-span-2 xl:col-span-1">
+        <span class="text-sm font-medium text-gray-700 invisible" aria-hidden="true">Acciones</span>
+        <app-button type="button" variant="secondary" (clicked)="clearFilters()">
+          Limpiar filtros
+        </app-button>
+      </div>
+    }
+
     @if (!loading()) {
-      <div class="inline-flex items-center gap-1.5 self-end rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm lg:justify-self-end">
+      <div class="inline-flex items-center gap-1.5 self-end rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm sm:col-span-2 xl:col-span-1 xl:justify-self-end">
         <span class="font-semibold text-gray-900">{{ total() }}</span>
         <span class="text-gray-400">{{ total() === 1 ? 'usuario' : 'usuarios' }}</span>
       </div>
@@ -80,9 +105,9 @@
     [emptySearch]="currentSearch()"
     [pagination]="paginationData()"
     [theme]="'indigo'"
-    [minWidth]="'680px'"
+    [minWidth]="'880px'"
     [ariaLabel]="'Lista de usuarios'"
-    (emptyAction)="openCreate()"
+    (emptyAction)="onEmptyAction()"
     (clearSearch)="clearSearch()"
     (pageChange)="goToPage($event)"
   >
@@ -118,6 +143,16 @@
           } @else {
             <span class="text-xs text-gray-400">Sin rol</span>
           }
+        </td>
+        <td dtCell="tenant" class="px-6 py-4">
+          <span class="inline-flex items-center rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-medium text-slate-700 ring-1 ring-inset ring-slate-200">
+            {{ tenantLabel(user) }}
+          </span>
+        </td>
+        <td dtCell="warehouse" class="px-6 py-4">
+          <span class="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">
+            {{ warehouseLabel(user) }}
+          </span>
         </td>
         <td dtCell="status" class="px-6 py-4">
           @if (user.isEnabled) {

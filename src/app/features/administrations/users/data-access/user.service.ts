@@ -40,10 +40,18 @@ export class UserService {
     limit: number;
     page: number;
     search?: string;
+    tenantId?: number | null;
+    warehouseId?: number | null;
   }): Observable<UserListResponse> {
     let url = `${this.base}?limit=${params.limit}&page=${params.page}`;
     if (params.search?.trim()) {
       url += `&search=${encodeURIComponent(params.search.trim())}`;
+    }
+    if (params.tenantId != null && params.tenantId > 0) {
+      url += `&tenant_id=${params.tenantId}`;
+    }
+    if (params.warehouseId != null && params.warehouseId > 0) {
+      url += `&warehouse_id=${params.warehouseId}`;
     }
 
     return this.http.get<unknown>(url).pipe(map(adaptUserList));

@@ -18,7 +18,9 @@ export function adaptUser(raw: unknown): User {
     roles: r.roles ?? [],
     role: r.role ?? r.roles?.[0],
     tenantId: r.tenantId,
+    tenantName: r.tenantName ?? null,
     warehouseId: r.warehouseId,
+    warehouseName: r.warehouseName ?? null,
     isEnabled: r.isEnabled ?? true,
   };
 }
