@@ -23,6 +23,7 @@ export const TENANT_ADMIN_PERMISSIONS: readonly string[] = [
   'warehouse.update',
   'warehouse.delete',
   'tenant.get',
+  'audit.getAll',
 ];
 
 export function isAuthenticatedUser(user: AuthUser | null): user is AuthUser {
@@ -94,6 +95,5 @@ export function userHasAnyPermission(
     return true;
   }
 
-  const granted = readUserPermissions(user);
-  return required.some((permission) => granted.has(permission));
+  return required.some((permission) => userHasPermission(user, permission));
 }

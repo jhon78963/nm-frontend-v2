@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
-import { isSuperAdmin } from '../../../../core/auth/permission.util';
+import { isSuperAdmin, SUPER_ADMIN_ROLE } from '../../../../core/auth/permission.util';
 import { AuthService } from '../../../auth/data-access/auth.service';
 import {
   RoleOption,
@@ -65,7 +65,16 @@ export class UserLookupService {
   getRoles(): Observable<RoleOption[]> {
     return this.http
       .get<unknown>(`${this.api}/roles?limit=200&page=1`)
-      .pipe(map(adaptRoleOptions));
+      .pipe(
+        map(adaptRoleOptions),
+        map((roles) => {
+          if (isSuperAdmin(this.authService.currentUser())) {
+            return roles;
+          }
+
+          return roles.filter((role) => role.name !== SUPER_ADMIN_ROLE);
+        }),
+      );
   }
 
   /** Admin de tenant: solo almacenes de su cliente; Super Admin puede filtrar por tenant. */

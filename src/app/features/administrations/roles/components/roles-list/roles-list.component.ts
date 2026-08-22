@@ -37,7 +37,7 @@ import {
   restoreSearchPageFilters,
 } from '../../../../../core/table-filters/table-filter-state.util';
 import { RoleService } from '../../data-access/role.service';
-import { Role } from '../../models/role.model';
+import { Role, isTenantManagedRole } from '../../models/role.model';
 import { RoleFormComponent } from '../role-form/role-form.component';
 
 const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.roles;
@@ -134,6 +134,10 @@ export class RolesListComponent implements OnInit {
     { key: 'name', label: 'Nombre del rol', align: 'left', mobilePrimary: true },
     { key: 'actions', label: 'Acciones', align: 'right' },
   ]);
+
+  protected isTenantManagedRole(role: Role): boolean {
+    return isTenantManagedRole(role);
+  }
 
   ngOnInit(): void {
     this.restoreFilters();

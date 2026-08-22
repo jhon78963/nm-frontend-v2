@@ -11,10 +11,16 @@ function adaptPermission(raw: unknown): Permission {
 }
 
 export function adaptRole(raw: unknown): Role {
-  const r = raw as { id: number; name: string; permissions?: unknown[] };
+  const r = raw as {
+    id: number;
+    name: string;
+    tenantId?: number | null;
+    permissions?: unknown[];
+  };
   return {
     id: r.id,
     name: r.name,
+    tenantId: r.tenantId ?? null,
     permissions: r.permissions?.map(adaptPermission),
   };
 }
