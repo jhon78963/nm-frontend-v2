@@ -2,6 +2,7 @@ import { Component, computed, DestroyRef, effect, inject, OnInit, signal } from 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
+import { isSuperAdmin } from '../../core/auth/permission.util';
 import { buildBreadcrumbPaths } from '../../core/navigation/breadcrumb.util';
 import { AuthService } from '../../features/auth/data-access/auth.service';
 import {
@@ -256,6 +257,13 @@ export class MainLayoutComponent implements OnInit {
   }
 
   private canSeeNavItem(item: NavItem): boolean {
+    if (
+      item.route === '/administrations/tenants' &&
+      !isSuperAdmin(this.authService.currentUser())
+    ) {
+      return false;
+    }
+
     return this.canSeeShortcut(item);
   }
 

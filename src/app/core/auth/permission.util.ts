@@ -3,6 +3,28 @@ import { AuthUser } from '../../features/auth/models/auth.model';
 export const SUPER_ADMIN_ROLE = 'Super Admin';
 export const ADMIN_ROLE = 'Admin';
 
+/** Permisos de administración acotados al tenant del rol Admin. */
+export const TENANT_ADMIN_PERMISSIONS: readonly string[] = [
+  'role.getAll',
+  'role.get',
+  'role.create',
+  'role.update',
+  'role.delete',
+  'role.syncPermissions',
+  'role.permissionsIndex',
+  'user.getAll',
+  'user.get',
+  'user.create',
+  'user.update',
+  'user.delete',
+  'warehouse.getAll',
+  'warehouse.get',
+  'warehouse.create',
+  'warehouse.update',
+  'warehouse.delete',
+  'tenant.get',
+];
+
 export function isAuthenticatedUser(user: AuthUser | null): user is AuthUser {
   return !!user?.username?.trim();
 }
@@ -50,6 +72,10 @@ export function userHasPermission(
   permission: string,
 ): boolean {
   if (isSuperAdmin(user)) {
+    return true;
+  }
+
+  if (isAdmin(user) && TENANT_ADMIN_PERMISSIONS.includes(permission)) {
     return true;
   }
 

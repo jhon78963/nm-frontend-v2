@@ -37,4 +37,16 @@ describe('permission.util', () => {
     };
     expect(userHasAnyPermission(admin, ['product.getAll'])).toBe(true);
   });
+
+  it('Admin de tenant tiene permisos de administración local', () => {
+    const tenantAdmin: AuthUser = {
+      ...user,
+      role: 'Admin',
+      roles: ['Admin'],
+      permissions: [],
+    };
+    expect(userHasAnyPermission(tenantAdmin, ['user.getAll'])).toBe(true);
+    expect(userHasAnyPermission(tenantAdmin, ['warehouse.getAll'])).toBe(true);
+    expect(userHasAnyPermission(tenantAdmin, ['tenant.getAll'])).toBe(false);
+  });
 });
