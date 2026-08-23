@@ -14,6 +14,8 @@ export class ConfirmDialogComponent {
   readonly cancelLabel = input('Cancelar');
   readonly loading = input(false);
   readonly variant = input<'danger' | 'primary'>('danger');
+  /** Sobre paneles laterales (z-[60]); usa z-[70]. */
+  readonly nested = input(false);
 
   readonly confirmed = output<void>();
   readonly cancelled = output<void>();

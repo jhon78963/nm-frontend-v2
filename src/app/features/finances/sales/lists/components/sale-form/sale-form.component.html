@@ -1,5 +1,6 @@
 <app-confirm-dialog
   [open]="removeItemIndex() !== null"
+  [nested]="true"
   title="Eliminar producto"
   confirmLabel="Sí, eliminar"
   cancelLabel="Cancelar"
@@ -14,13 +15,6 @@
     </p>
   }
 </app-confirm-dialog>
-
-@if (productSelectorOpen()) {
-  <app-sale-product-selector
-    (selected)="onProductSelected($event)"
-    (closed)="closeProductSelector()"
-  />
-}
 
 <div
   class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
@@ -294,3 +288,10 @@
     </form>
   }
 </aside>
+
+@if (productSelectorOpen()) {
+  <app-sale-product-selector
+    (selected)="onProductSelected($event)"
+    (closed)="closeProductSelector()"
+  />
+}
