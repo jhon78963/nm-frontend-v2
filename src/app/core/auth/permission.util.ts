@@ -58,6 +58,11 @@ export function isAdminOrSuperAdmin(user: AuthUser | null): boolean {
   return isSuperAdmin(user) || isAdmin(user);
 }
 
+/** Ruta de inicio según rol: Super Admin solo usa Administración. */
+export function defaultAppHomeRoute(user: AuthUser | null): string {
+  return isSuperAdmin(user) ? '/administrations' : '/dashboard';
+}
+
 function readUserPermissions(user: AuthUser | null): Set<string> {
   const names = user?.permissions ?? [];
   return new Set(

@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth/auth.guard';
 import { roleGuard } from './core/auth/role.guard';
+import { superAdminOperationalBlockGuard } from './core/auth/super-admin-scope.guard';
 
 export const routes: Routes = [
   {
@@ -40,42 +41,49 @@ export const routes: Routes = [
       {
         path: 'inventories',
         title: 'Inventario',
+        canActivate: [superAdminOperationalBlockGuard],
         data: { breadcrumb: 'Inventario' },
         loadChildren: () => import('./features/inventories/inventories.routes'),
       },
       {
         path: 'ecommerce',
         title: 'Ecommerce',
+        canActivate: [superAdminOperationalBlockGuard],
         data: { breadcrumb: 'Ecommerce' },
         loadChildren: () => import('./features/ecommerce/ecommerce.routes'),
       },
       {
         path: 'reports',
         title: 'Reportes',
+        canActivate: [superAdminOperationalBlockGuard],
         data: { breadcrumb: 'Reportes' },
         loadChildren: () => import('./features/reports/reports.routes'),
       },
       {
         path: 'directories',
         title: 'Directorio',
+        canActivate: [superAdminOperationalBlockGuard],
         data: { breadcrumb: 'Directorio' },
         loadChildren: () => import('./features/directories/directories.routes'),
       },
       {
         path: 'finances',
         title: 'Finanzas',
+        canActivate: [superAdminOperationalBlockGuard],
         data: { breadcrumb: 'Finanzas' },
         loadChildren: () => import('./features/finances/finances.routes'),
       },
       {
         path: 'expenses',
         title: 'Gastos',
+        canActivate: [superAdminOperationalBlockGuard],
         data: { breadcrumb: 'Gastos' },
         loadChildren: () => import('./features/expenses/expenses.routes'),
       },
       {
         path: 'ai',
         title: 'Asistente IA',
+        canActivate: [superAdminOperationalBlockGuard],
         data: { breadcrumb: 'Asistente IA' },
         loadChildren: () => import('./features/ai/ai.routes'),
       },
@@ -165,6 +173,7 @@ export const routes: Routes = [
       {
         path: 'dashboard',
         title: 'Inicio',
+        canActivate: [superAdminOperationalBlockGuard],
         data: { breadcrumb: 'Inicio' },
         loadChildren: () =>
           import('./features/dashboards/dashboards.routes').then(

@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { form, FormField, minLength, required } from '@angular/forms/signals';
+import { defaultAppHomeRoute } from '../../../../core/auth/permission.util';
 import { AlertComponent } from '../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
 import { InputComponent } from '../../../../shared/ui/input/input.component';
@@ -70,7 +71,7 @@ export class LoginComponent {
           return;
         }
 
-        void this.router.navigate(['/dashboard']);
+        void this.router.navigate([defaultAppHomeRoute(user)]);
       },
       error: (error: unknown) => {
         this.isLoading.set(false);

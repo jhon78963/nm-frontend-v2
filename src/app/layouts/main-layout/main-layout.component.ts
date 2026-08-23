@@ -50,10 +50,10 @@ export class MainLayoutComponent implements OnInit {
     {
       label: 'Administración',
       items: [
-        { label: 'Roles y permisos', route: '/administrations/roles', permission: 'role.getAll' },
-        { label: 'Usuarios', route: '/administrations/users', permission: 'user.getAll' },
         { label: 'Clientes (tenants)', route: '/administrations/tenants', permission: 'tenant.getAll' },
         { label: 'Tiendas (warehouses)', route: '/administrations/warehouses', permission: 'warehouse.getAll' },
+        { label: 'Roles y permisos', route: '/administrations/roles', permission: 'role.getAll' },
+        { label: 'Usuarios', route: '/administrations/users', permission: 'user.getAll' },
         { label: 'Historial de acciones', route: '/administrations/action-logs', permission: 'audit.getAll' },
       ],
     },
@@ -161,18 +161,31 @@ export class MainLayoutComponent implements OnInit {
     },
   ];
 
-  protected readonly navItems = computed(() =>
-    this.allNavItems
+  protected readonly showHomeLink = computed(
+    () => !isSuperAdmin(this.authService.currentUser()),
+  );
+
+  protected readonly navItems = computed(() => {
+    const user = this.authService.currentUser();
+    const groups = isSuperAdmin(user)
+      ? this.allNavItems.filter((group) => group.label === 'Administración')
+      : this.allNavItems;
+
+    return groups
       .map((group) => ({
         ...group,
         items: (group.items ?? []).filter((item) => this.canSeeNavItem(item)),
       }))
-      .filter((group) => (group.items?.length ?? 0) > 0),
-  );
+      .filter((group) => (group.items?.length ?? 0) > 0);
+  });
 
-  protected readonly visibleHeaderShortcuts = computed(() =>
-    this.headerShortcuts.filter((item) => this.canSeeShortcut(item)),
-  );
+  protected readonly visibleHeaderShortcuts = computed(() => {
+    if (isSuperAdmin(this.authService.currentUser())) {
+      return [];
+    }
+
+    return this.headerShortcuts.filter((item) => this.canSeeShortcut(item));
+  });
 
   private readonly closeProfileMenuOnModal = effect(() => {
     if (this.hasActiveModal()) {

@@ -17,6 +17,7 @@ import {
   required,
 } from '@angular/forms/signals';
 import { AuthService } from '../../../../auth/data-access/auth.service';
+import { isSuperAdmin } from '../../../../../core/auth/permission.util';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
@@ -108,15 +109,17 @@ export class TeamFormComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    const tenantId = this.authService.currentUser()?.tenantId ?? null;
-
     this.lookupService
-      .getWarehouses(tenantId)
+      .getWarehouses()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (warehouses) => {
+          const showTenant = isSuperAdmin(this.authService.currentUser());
           this.warehouseOptions.set(
-            warehouses.map((w) => ({ label: w.name, value: w.id })),
+            warehouses.map((w) => ({
+              label: this.warehouseOptionLabel(w, showTenant),
+              value: w.id,
+            })),
           );
         },
         error: () => {
@@ -215,5 +218,17 @@ export class TeamFormComponent implements OnInit {
 
   protected close(): void {
     this.closed.emit();
+  }
+
+  private warehouseOptionLabel(
+    warehouse: { name: string; tenantName?: string | null },
+    showTenant: boolean,
+  ): string {
+    const tenantName = warehouse.tenantName?.trim();
+    if (showTenant && tenantName) {
+      return `${tenantName} · ${warehouse.name}`;
+    }
+
+    return warehouse.name;
   }
 }

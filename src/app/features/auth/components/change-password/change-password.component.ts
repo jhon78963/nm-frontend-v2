@@ -10,7 +10,7 @@ import {
   required,
   validate,
 } from '@angular/forms/signals';
-import { AlertComponent } from '../../../../shared/ui/alert/alert.component';
+import { defaultAppHomeRoute } from '../../../../core/auth/permission.util';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
 import { InputComponent } from '../../../../shared/ui/input/input.component';
 import { ToastService } from '../../../../shared/ui/toast/toast.service';
@@ -148,7 +148,9 @@ export class ChangePasswordComponent implements OnInit {
           'success',
           'Contraseña actualizada. Ya puedes usar el sistema.',
         );
-        void this.router.navigate(['/dashboard']);
+        void this.router.navigate([
+          defaultAppHomeRoute(this.authService.currentUser()),
+        ]);
       },
       error: (error: unknown) => {
         this.isLoading.set(false);

@@ -38,4 +38,6 @@ export interface TeamCreateResponse {
 export interface WarehouseLookupOption {
   id: number;
   name: string;
+  tenantId?: number | null;
+  tenantName?: string | null;
 }

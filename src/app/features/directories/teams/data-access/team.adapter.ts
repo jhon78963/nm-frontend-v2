@@ -57,6 +57,8 @@ export function adaptWarehouseLookupOptions(raw: unknown): WarehouseLookupOption
     return {
       id: readNumber(w['id']),
       name: readString(w['name']),
+      tenantId: (w['tenantId'] ?? w['tenant_id']) as number | null ?? null,
+      tenantName: (w['tenantName'] ?? w['tenant_name']) as string | null ?? null,
     };
   });
 }
