@@ -119,10 +119,7 @@ export function buildPermissionTree(perms: Permission[]): PermissionModule[] {
     }));
 }
 
-export function filterPermissionTree(
-  tree: PermissionModule[],
-  query: string,
-): PermissionModule[] {
+export function filterPermissionTree(tree: PermissionModule[], query: string): PermissionModule[] {
   const term = query.trim().toLowerCase();
   if (!term) return tree;
 
@@ -131,9 +128,7 @@ export function filterPermissionTree(
       const moduleMatches = moduleEntry.label.toLowerCase().includes(term);
       const submodules = moduleEntry.submodules
         .map((submoduleEntry) => {
-          const submoduleMatches = submoduleEntry.label
-            .toLowerCase()
-            .includes(term);
+          const submoduleMatches = submoduleEntry.label.toLowerCase().includes(term);
           const permissions = submoduleEntry.permissions.filter(
             (permission) =>
               moduleMatches ||
@@ -145,9 +140,7 @@ export function filterPermissionTree(
           if (permissions.length === 0) return null;
           return { ...submoduleEntry, permissions };
         })
-        .filter(
-          (sub): sub is PermissionSubmodule => sub !== null,
-        );
+        .filter((sub): sub is PermissionSubmodule => sub !== null);
 
       if (submodules.length === 0) return null;
       return { ...moduleEntry, submodules };
@@ -200,10 +193,10 @@ function resolvePermissionPlacement(perm: Permission): MenuPlacement {
   if (prefix === 'financialSummary') return placement('Reportes', 'Resumen Financiero', 2);
 
   const byPrefix: Record<string, MenuPlacement> = {
-    role: placement('Administración', 'Roles y permisos', 0),
-    user: placement('Administración', 'Usuarios', 1),
-    tenant: placement('Administración', 'Clientes (tenants)', 2),
-    warehouse: placement('Administración', 'Tiendas (warehouses)', 3),
+    tenant: placement('Administración', 'Clientes (tenants)', 0),
+    warehouse: placement('Administración', 'Tiendas (warehouses)', 1),
+    role: placement('Administración', 'Roles y permisos', 2),
+    user: placement('Administración', 'Usuarios', 3),
     audit: placement('Administración', 'Historial de acciones', 4),
     team: placement('Directorio', 'Equipo', 0),
     customer: placement('Directorio', 'Clientes', 1),
@@ -232,11 +225,7 @@ function resolvePermissionPlacement(perm: Permission): MenuPlacement {
   };
 }
 
-function placement(
-  module: string,
-  submodule: string,
-  submoduleOrder: number,
-): MenuPlacement {
+function placement(module: string, submodule: string, submoduleOrder: number): MenuPlacement {
   return {
     module,
     submodule,

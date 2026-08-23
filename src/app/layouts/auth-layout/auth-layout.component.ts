@@ -7,5 +7,5 @@ import { RouterOutlet } from '@angular/router';
   templateUrl: './auth-layout.component.html',
 })
 export class AuthLayoutComponent {
-  readonly subtitle = input('ERP & POS');
+  readonly subtitle = input('Intranet');
 }
