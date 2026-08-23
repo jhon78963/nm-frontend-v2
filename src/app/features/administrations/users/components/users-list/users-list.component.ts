@@ -13,6 +13,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
+import { SUPER_ADMIN_ROLE } from '../../../../../core/auth/permission.util';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
@@ -380,6 +381,10 @@ export class UsersListComponent implements OnInit {
   }
 
   protected tenantLabel(user: User): string {
+    if (this.isSuperAdminUser(user)) {
+      return '—';
+    }
+
     if (user.tenantName?.trim()) {
       return user.tenantName;
     }
@@ -390,6 +395,10 @@ export class UsersListComponent implements OnInit {
   }
 
   protected warehouseLabel(user: User): string {
+    if (this.isSuperAdminUser(user)) {
+      return '—';
+    }
+
     if (user.warehouseName?.trim()) {
       return user.warehouseName;
     }
@@ -397,6 +406,17 @@ export class UsersListComponent implements OnInit {
       return `Tienda #${user.warehouseId}`;
     }
     return 'Sin tienda';
+  }
+
+  protected canManageUser(user: User): boolean {
+    return !this.isSuperAdminUser(user);
+  }
+
+  private isSuperAdminUser(user: User): boolean {
+    return (
+      user.role === SUPER_ADMIN_ROLE ||
+      (user.roles ?? []).includes(SUPER_ADMIN_ROLE)
+    );
   }
 
   protected hasActiveFilters(): boolean {

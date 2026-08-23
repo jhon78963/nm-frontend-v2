@@ -67,13 +67,9 @@ export class UserLookupService {
       .get<unknown>(`${this.api}/roles?limit=200&page=1`)
       .pipe(
         map(adaptRoleOptions),
-        map((roles) => {
-          if (isSuperAdmin(this.authService.currentUser())) {
-            return roles;
-          }
-
-          return roles.filter((role) => role.name !== SUPER_ADMIN_ROLE);
-        }),
+        map((roles) =>
+          roles.filter((role) => role.name !== SUPER_ADMIN_ROLE),
+        ),
       );
   }
 

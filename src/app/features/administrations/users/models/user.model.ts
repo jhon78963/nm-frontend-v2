@@ -7,9 +7,9 @@ export interface User {
   profilePicture?: string | null;
   roles: string[];
   role?: string;
-  tenantId: number;
+  tenantId: number | null;
   tenantName?: string | null;
-  warehouseId: number;
+  warehouseId: number | null;
   warehouseName?: string | null;
   isEnabled: boolean;
 }
@@ -26,8 +26,8 @@ export interface UserPayload {
   surname?: string;
   profilePicture?: string;
   roleNames: string[];
-  tenantId: number;
-  warehouseId: number;
+  tenantId?: number | null;
+  warehouseId?: number | null;
   password?: string;
   passwordConfirmation?: string;
 }

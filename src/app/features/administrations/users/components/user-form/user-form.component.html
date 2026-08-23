@@ -92,6 +92,13 @@
           </div>
           <div class="flex flex-col space-y-5">
             <app-select
+              label="Rol"
+              placeholder="Selecciona un rol"
+              [options]="roleOptions()"
+              [formField]="userForm.roleName"
+              [errorMessage]="roleError()"
+            />
+            <app-select
               label="Cliente (tenant)"
               placeholder="Selecciona un cliente"
               [options]="tenantOptions()"
@@ -105,13 +112,6 @@
               [disabled]="!formModel().tenantId"
               [formField]="userForm.warehouseId"
               [errorMessage]="warehouseError()"
-            />
-            <app-select
-              label="Rol"
-              placeholder="Selecciona un rol"
-              [options]="roleOptions()"
-              [formField]="userForm.roleName"
-              [errorMessage]="roleError()"
             />
           </div>
         </section>
