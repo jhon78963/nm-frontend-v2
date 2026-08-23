@@ -182,7 +182,14 @@
   &__price {
     font-size: 0.875rem;
     font-weight: 700;
-    color: #9ca3af;
+    color: #374151;
+  }
+
+  &__min {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: #6b7280;
+    letter-spacing: -0.01em;
   }
 
   &__add {
@@ -210,17 +217,44 @@
 }
 
 .variant-swatch {
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 50%;
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.625rem;
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 
   &--white {
     border: 2px solid #e5e7eb;
+  }
+
+  &__check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    inset: 0;
+    background: rgba(124, 58, 237, 0.28);
+  }
+
+  &__min-label {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.2rem 0.15rem;
+    font-size: 0.5625rem;
+    font-weight: 800;
+    line-height: 1.1;
+    text-align: center;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+    background: rgba(17, 24, 39, 0.82);
+    backdrop-filter: blur(2px);
   }
 }
 
@@ -250,6 +284,12 @@
   &:focus {
     border-color: #7c3aed;
     box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12);
+  }
+
+  &--below-min {
+    border-color: #f59e0b;
+    background: #fffbeb;
+    color: #b45309;
   }
 }
 

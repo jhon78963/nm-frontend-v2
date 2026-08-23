@@ -2,7 +2,6 @@ import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivateFn, Router } from '@angular/router';
 import { map } from 'rxjs';
 import { AuthService } from '../../features/auth/data-access/auth.service';
-import { ToastService } from '../../shared/ui/toast/toast.service';
 import { isAuthenticatedUser, userHasAnyPermission } from './permission.util';
 
 function resolveRequiredPermissions(route: ActivatedRouteSnapshot): string[] {
@@ -24,7 +23,6 @@ function resolveRequiredPermissions(route: ActivatedRouteSnapshot): string[] {
 
 export const permissionGuard: CanActivateFn = (route) => {
   const router = inject(Router);
-  const toastService = inject(ToastService);
   const authService = inject(AuthService);
   const required = resolveRequiredPermissions(route);
 
@@ -43,8 +41,7 @@ export const permissionGuard: CanActivateFn = (route) => {
         return true;
       }
 
-      toastService.show('error', 'Acceso denegado. No tienes permisos para esta sección.');
-      return router.createUrlTree(['/dashboard']);
+      return router.createUrlTree(['/not-found']);
     }),
   );
 };

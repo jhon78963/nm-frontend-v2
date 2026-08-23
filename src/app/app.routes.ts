@@ -172,6 +172,15 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'not-found',
+        title: 'No encontrado',
+        data: { breadcrumb: 'No encontrado' },
+        loadComponent: () =>
+          import(
+            './features/not-found-pages/components/not-found-page/not-found-page.component'
+          ).then((m) => m.NotFoundPageComponent),
+      },
+      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full',
@@ -185,10 +194,11 @@ export const routes: Routes = [
   },
   {
     path: 'notfound',
-    loadChildren: () => import('./features/not-found-pages/not-found-pages.routes'),
+    redirectTo: '/not-found',
+    pathMatch: 'full',
   },
   {
     path: '**',
-    redirectTo: '/notfound',
+    redirectTo: '/not-found',
   },
 ];

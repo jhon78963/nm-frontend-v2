@@ -1,0 +1,60 @@
+.not-found {
+  display: flex;
+  min-height: min(70vh, 640px);
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.not-found__card {
+  width: min(100%, 28rem);
+  text-align: center;
+}
+
+.not-found__code {
+  margin: 0;
+  font-size: clamp(4.5rem, 16vw, 6.5rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  color: #e5e7eb;
+}
+
+.not-found__icon {
+  margin: -0.75rem auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 9999px;
+  background: #f5f3ff;
+  color: #7c3aed;
+
+  svg {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+}
+
+.not-found__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.not-found__message {
+  margin: 0.75rem 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: #6b7280;
+}
+
+.not-found__actions {
+  margin-top: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}

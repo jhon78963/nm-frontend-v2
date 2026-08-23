@@ -106,6 +106,20 @@ export class PosSelectorComponent {
     return v.inventory?.available_quantity ?? 0;
   }
 
+  protected variantMinSalePrice(v: Variant): number | null {
+    const min = v.minSalePrice;
+    if (min == null || !Number.isFinite(min) || min <= 0) {
+      return null;
+    }
+
+    return min;
+  }
+
+  protected isPriceBelowMinimum(v: Variant, price: number): boolean {
+    const min = this.variantMinSalePrice(v);
+    return min !== null && price < min;
+  }
+
   protected selectTabSize(size: string): void {
     this.activeSize.set(size);
   }
@@ -196,6 +210,14 @@ export class PosSelectorComponent {
       if (!Number.isFinite(unit) || unit <= 0) {
         this.pricingAlert.set(
           'Precio inválido. Ingresa un valor mayor a 0 en todos los ítems seleccionados.',
+        );
+        return;
+      }
+
+      const min = this.variantMinSalePrice(selection.variant);
+      if (min !== null && unit < min) {
+        this.pricingAlert.set(
+          `El precio de ${selection.variant.colorName} no puede ser menor a S/ ${min.toFixed(2)}.`,
         );
         return;
       }
