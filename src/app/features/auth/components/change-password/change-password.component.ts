@@ -11,6 +11,7 @@ import {
   validate,
 } from '@angular/forms/signals';
 import { defaultAppHomeRoute } from '../../../../core/auth/permission.util';
+import { AlertComponent } from '../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../shared/ui/button/button.component';
 import { InputComponent } from '../../../../shared/ui/input/input.component';
 import { ToastService } from '../../../../shared/ui/toast/toast.service';
