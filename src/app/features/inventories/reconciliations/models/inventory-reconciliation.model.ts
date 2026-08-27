@@ -66,6 +66,9 @@ export interface ReconciliationColorDraft {
   posSoldQty: number;
   posSaleCount: number;
   posLastSoldAt: string | null;
+  isNew?: boolean;
+  isRemoved?: boolean;
+  pendingColorLabel?: string;
 }
 
 export interface ReconciliationSizeDraft {
@@ -83,6 +86,14 @@ export interface ReconciliationSizeDraft {
   posSoldQty: number;
   posSaleCount: number;
   posLastSoldAt: string | null;
+  isNew?: boolean;
+  isRemoved?: boolean;
+}
+
+export interface PendingColorReplace {
+  productSizeId: string;
+  fromColorId: string;
+  toColorId: string;
 }
 
 export interface ReconciliationDraft {
@@ -90,6 +101,7 @@ export interface ReconciliationDraft {
   name: string;
   sku: string | null;
   sizes: ReconciliationSizeDraft[];
+  pendingColorReplaces?: PendingColorReplace[];
 }
 
 export interface ReconciliationUpdatePayload {

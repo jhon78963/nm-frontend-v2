@@ -19,7 +19,7 @@ import {
   required,
 } from '@angular/forms/signals';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { catchError, finalize, forkJoin, of, switchMap, Observable } from 'rxjs';
+import { finalize, forkJoin, switchMap } from 'rxjs';
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
@@ -49,13 +49,17 @@ import type {
   ReconciliationSizeDraft,
 } from '../../models/inventory-reconciliation.model';
 import {
-  buildInventoryPayload,
-  captureDraftSnapshot,
   cloneProductToDraft,
   colorStockSum,
+  createLocalColorId,
+  createLocalSizeId,
   effectiveSizeStock,
+  getActiveColors,
+  getActiveSizes,
   hasColorBreakdown,
   isColorZeroStock,
+  isLocalColorId,
+  isLocalSizeId,
   isSizeZeroStock,
   mergeDraftPreservingEdits,
   sortedColors,
@@ -243,7 +247,9 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
   protected readonly addColorOptions = computed<SelectOption<string>[]>(() => {
     const ctx = this.addColorCtx();
     const size = this.draft()?.sizes.find((item) => item.id === ctx?.productSizeId);
-    const used = new Set((size?.colors ?? []).map((color) => color.colorId));
+    const used = new Set(
+      (size ? getActiveColors(size) : []).map((color) => color.colorId),
+    );
     return this.catalogColors()
       .filter((color) => !used.has(color.id))
       .map((color) => ({ label: color.description, value: color.id }));
@@ -256,32 +262,27 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
     }
 
     if (action.type === 'remove-color') {
-      const stock = Math.max(0, Math.trunc(Number(action.color.stock) || 0));
-      const stockNote =
-        stock > 0
-          ? ` El stock actual (${stock}) se pondrá en 0 antes de quitar la variante.`
-          : '';
       return {
         title: 'Eliminar variante de color',
         message:
-          `¿Quitar "${action.color.description}" de la talla ${action.size.sizeLabel}?` +
-          `${stockNote} Las ventas y el kardex anteriores se conservan.`,
-        loading: this.removingColor(),
+          `¿Quitar "${action.color.description}" de la talla ${action.size.sizeLabel}? ` +
+          'El cambio se aplicará al guardar el inventario. Las ventas y el kardex anteriores se conservan.',
+        loading: false,
       };
     }
 
     if (action.type === 'remove-size') {
       const colorNote =
-        action.size.colors.length > 0
-          ? ` También se quitarán ${action.size.colors.length} color(es) asociados.`
+        getActiveColors(action.size).length > 0
+          ? ` También se quitarán ${getActiveColors(action.size).length} color(es) asociados.`
           : '';
 
       return {
         title: 'Eliminar talla',
         message:
           `¿Eliminar la talla ${action.size.sizeLabel} de este producto?${colorNote} ` +
-          'Las ventas anteriores se conservan en historial.',
-        loading: this.removingSize(),
+          'El cambio se aplicará al guardar el inventario. Las ventas anteriores se conservan en historial.',
+        loading: false,
       };
     }
 
@@ -303,15 +304,15 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
     ).length;
     const stockNote =
       withStock > 0
-        ? ` ${withStock} variante${withStock === 1 ? '' : 's'} con stock se pondrá${withStock === 1 ? '' : 'n'} en 0 antes de quitarlas.`
+        ? ` ${withStock} variante${withStock === 1 ? '' : 's'} con stock se pondrá${withStock === 1 ? '' : 'n'} en 0 al guardar.`
         : '';
 
     return {
       title: 'Eliminar seleccionados',
       message:
         `¿Eliminar ${parts.join(' y ')}?${stockNote} ` +
-        'Las ventas, tickets de caja y kardex anteriores se conservan en el historial.',
-      loading: this.bulkDeleting(),
+        'Los cambios se aplicarán al guardar el inventario. Las ventas, tickets de caja y kardex anteriores se conservan.',
+      loading: false,
     };
   });
 
@@ -447,9 +448,9 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
       .update(currentDraft.productId, productPayload)
       .pipe(
         switchMap(() =>
-          this.inventoryService.bulkUpdate(
+          this.inventoryService.persistReconciliationDraft(
             currentDraft.productId,
-            buildInventoryPayload(currentDraft),
+            currentDraft,
           ),
         ),
         finalize(() => this.saving.set(false)),
@@ -819,36 +820,38 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    if (currentDraft.sizes.some((size) => size.sizeId === target.id)) {
+    if (getActiveSizes(currentDraft).some((size) => size.sizeId === target.id)) {
       this.toastService.show('error', 'Esa talla ya está en el producto.');
       return;
     }
 
-    const reference = currentDraft.sizes[0];
+    const reference = getActiveSizes(currentDraft)[0];
+    const newSize: ReconciliationSizeDraft = {
+      id: createLocalSizeId(),
+      sizeId: target.id,
+      sizeLabel: target.value,
+      barcode: '0',
+      masterStock: 0,
+      serverMasterStock: 0,
+      shelfInconsistentOnLoad: false,
+      purchasePrice: reference?.purchasePrice ?? null,
+      salePrice: reference?.salePrice ?? null,
+      minSalePrice: reference?.minSalePrice ?? null,
+      colors: [],
+      posSoldQty: 0,
+      posSaleCount: 0,
+      posLastSoldAt: null,
+      isNew: true,
+    };
 
-    const snapshot = captureDraftSnapshot(currentDraft);
-
-    this.addingSize.set(true);
-    this.inventoryService
-      .addSizeToProduct(currentDraft.productId, target.id, {
-        barcode: '0',
-        stock: 0,
-        purchasePrice: reference?.purchasePrice ?? 0,
-        salePrice: reference?.salePrice ?? 0,
-        minSalePrice: reference?.minSalePrice ?? 0,
-      })
-      .pipe(
-        finalize(() => this.addingSize.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: () => {
-          this.toastService.show('success', `Talla "${target.value}" agregada al producto.`);
-          this.closeAddSizeDialog();
-          this.loadFullProduct(currentDraft.productId, snapshot);
-        },
-        error: (message: string) => this.toastService.show('error', message),
-      });
+    this.draft.update((draft) =>
+      draft ? { ...draft, sizes: [...draft.sizes, newSize] } : draft,
+    );
+    this.toastService.show(
+      'success',
+      `Talla "${target.value}" agregada. Guarde el inventario para aplicar los cambios.`,
+    );
+    this.closeAddSizeDialog();
   }
 
   protected openAddColorDialog(size: ReconciliationSizeDraft): void {
@@ -890,47 +893,77 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
     const ctx = this.addColorCtx();
     if (!currentDraft || !ctx) return;
 
-    this.addingColor.set(true);
     const stock = Math.max(0, Math.trunc(this.addColorInitialStock()));
-    const snapshot = captureDraftSnapshot(currentDraft);
+    const size = currentDraft.sizes.find((item) => item.id === ctx.productSizeId);
+    let newColor: ReconciliationColorDraft;
 
-    const attachColor = (colorId: string) =>
-      this.inventoryService.addColorToProductSize(ctx.productSizeId, colorId, { stock }).pipe(
-        switchMap(() =>
-          stock > 0
-            ? this.inventoryService.bulkUpdate(currentDraft.productId, {
-                sizes: [{ id: ctx.productSizeId, colors: [{ colorId, stock }] }],
-              })
-            : of(null),
-        ),
-      );
+    if (this.addColorMode() === 'new') {
+      const label = this.addColorNewName().trim();
+      if (!label) {
+        this.toastService.show('error', 'Escriba el nombre del color.');
+        return;
+      }
+      if (
+        size &&
+        getActiveColors(size).some(
+          (color) => color.description.trim().toLowerCase() === label.toLowerCase(),
+        )
+      ) {
+        this.toastService.show('error', 'Ese color ya está en la talla.');
+        return;
+      }
+      newColor = {
+        colorId: createLocalColorId(),
+        description: label,
+        pendingColorLabel: label,
+        stock,
+        baselineStock: stock,
+        stockReviewed: false,
+        posSoldQty: 0,
+        posSaleCount: 0,
+        posLastSoldAt: null,
+        isNew: true,
+      };
+    } else {
+      const colorId = this.addColorTargetId();
+      if (!colorId) {
+        this.toastService.show('error', 'Seleccione un color del catálogo.');
+        return;
+      }
+      if (size && getActiveColors(size).some((color) => color.colorId === colorId)) {
+        this.toastService.show('error', 'Ese color ya está en la talla.');
+        return;
+      }
+      const catalogColor = this.catalogColors().find((color) => color.id === colorId);
+      newColor = {
+        colorId,
+        description: catalogColor?.description ?? `Color #${colorId}`,
+        stock,
+        baselineStock: stock,
+        stockReviewed: false,
+        posSoldQty: 0,
+        posSaleCount: 0,
+        posLastSoldAt: null,
+        isNew: true,
+      };
+    }
 
-    const colorId$: Observable<string | null> =
-      this.addColorMode() === 'new'
-        ? this.inventoryService.resolveOrCreateColorId(this.addColorNewName())
-        : this.addColorTargetId() != null
-          ? of(this.addColorTargetId() as string)
-          : of<string | null>(null);
-
-    colorId$
-      .pipe(
-        switchMap((colorId) => {
-          if (!colorId) {
-            throw new Error('Seleccione un color o escriba uno nuevo.');
-          }
-          return attachColor(colorId);
+    this.draft.update((draft) => {
+      if (!draft) return draft;
+      return {
+        ...draft,
+        sizes: draft.sizes.map((item) => {
+          if (item.id !== ctx.productSizeId) return item;
+          return { ...item, colors: [...item.colors, newColor] };
         }),
-        finalize(() => this.addingColor.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: () => {
-          this.toastService.show('success', 'Color agregado a la talla.');
-          this.closeAddColorDialog();
-          this.loadFullProduct(currentDraft.productId, snapshot);
-        },
-        error: (message: string) => this.toastService.show('error', message),
-      });
+      };
+    });
+
+    this.toastService.show(
+      'success',
+      'Color agregado. Guarde el inventario para aplicar los cambios.',
+    );
+    this.closeAddColorDialog();
   }
 
   protected openReplaceColorDialog(
@@ -970,32 +1003,63 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.replacingVariantColor.set(true);
-    const snapshot = captureDraftSnapshot(currentDraft);
+    const target = this.catalogColors().find((color) => color.id === toId);
+    const fromColor = currentDraft.sizes
+      .find((size) => size.id === ctx.productSizeId)
+      ?.colors.find((color) => color.colorId === ctx.fromColorId);
 
-    this.inventoryService
-      .replaceVariantColor(currentDraft.productId, ctx.productSizeId, {
-        fromColorId: ctx.fromColorId,
-        toColorId: toId,
-      })
-      .pipe(
-        finalize(() => this.replacingVariantColor.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (response) => {
-          this.toastService.show('success', response.message ?? 'Color actualizado.');
-          if (response.product) {
-            this.applyProduct(response.product, snapshot, {
-              productSizeId: ctx.productSizeId,
-              fromColorId: ctx.fromColorId,
-              toColorId: toId,
-            });
-          }
-          this.closeReplaceColorDialog();
-        },
-        error: (message: string) => this.toastService.show('error', message),
-      });
+    this.draft.update((draft) => {
+      if (!draft) return draft;
+
+      let pending = [...(draft.pendingColorReplaces ?? [])].filter(
+        (replace) =>
+          !(
+            replace.productSizeId === ctx.productSizeId &&
+            replace.fromColorId === ctx.fromColorId
+          ),
+      );
+
+      const shouldQueueReplace =
+        fromColor &&
+        !fromColor.isNew &&
+        !isLocalSizeId(ctx.productSizeId) &&
+        !isLocalColorId(ctx.fromColorId) &&
+        !isLocalColorId(toId);
+
+      if (shouldQueueReplace) {
+        pending.push({
+          productSizeId: ctx.productSizeId,
+          fromColorId: ctx.fromColorId,
+          toColorId: toId,
+        });
+      }
+
+      return {
+        ...draft,
+        pendingColorReplaces: pending,
+        sizes: draft.sizes.map((size) => {
+          if (size.id !== ctx.productSizeId) return size;
+          return {
+            ...size,
+            colors: size.colors.map((color) => {
+              if (color.colorId !== ctx.fromColorId) return color;
+              return {
+                ...color,
+                colorId: toId,
+                description: target?.description ?? color.description,
+                pendingColorLabel: color.isNew ? undefined : color.pendingColorLabel,
+              };
+            }),
+          };
+        }),
+      };
+    });
+
+    this.toastService.show(
+      'success',
+      'Color actualizado. Guarde el inventario para aplicar los cambios.',
+    );
+    this.closeReplaceColorDialog();
   }
 
   protected onReplaceColorSelected(value: string | null): void {
@@ -1156,42 +1220,55 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
     if (!currentDraft) return;
 
     const { sizesToDelete, colorsToDelete } = this.collectBulkDeleteTargets();
-    const requests = [
-      ...colorsToDelete.map(({ size, color }) =>
-        this.inventoryService.removeColorVariant(size.id, color.colorId),
-      ),
-      ...sizesToDelete.map((size) =>
-        this.inventoryService.removeSize(currentDraft.productId, size.sizeId),
-      ),
-    ];
-
-    if (requests.length === 0) {
+    if (sizesToDelete.length === 0 && colorsToDelete.length === 0) {
       this.clearBulkSelection();
       this.confirmAction.set(null);
       return;
     }
 
-    this.bulkDeleting.set(true);
-    const snapshot = captureDraftSnapshot(currentDraft);
-    const total = requests.length;
+    const sizeIds = new Set(sizesToDelete.map((size) => size.id));
+    const colorKeys = new Set(
+      colorsToDelete.map(({ size, color }) => `${size.id}:${color.colorId}`),
+    );
+    const total = sizesToDelete.length + colorsToDelete.length;
 
-    forkJoin(requests)
-      .pipe(
-        finalize(() => this.bulkDeleting.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: () => {
-          this.clearBulkSelection();
-          this.confirmAction.set(null);
-          this.toastService.show(
-            'success',
-            `${total} elemento${total === 1 ? '' : 's'} eliminado${total === 1 ? '' : 's'}.`,
-          );
-          this.loadFullProduct(currentDraft.productId, snapshot);
-        },
-        error: (message: string) => this.toastService.show('error', message),
-      });
+    this.draft.update((draft) => {
+      if (!draft) return draft;
+      return {
+        ...draft,
+        sizes: draft.sizes
+          .filter((size) => !(sizeIds.has(size.id) && size.isNew))
+          .map((size) => {
+            if (sizeIds.has(size.id) && !size.isNew) {
+              return { ...size, isRemoved: true };
+            }
+
+            return {
+              ...size,
+              colors: size.colors
+                .filter((color) => {
+                  const key = `${size.id}:${color.colorId}`;
+                  return !(colorKeys.has(key) && color.isNew);
+                })
+                .map((color) => {
+                  const key = `${size.id}:${color.colorId}`;
+                  if (colorKeys.has(key) && !color.isNew) {
+                    return { ...color, isRemoved: true };
+                  }
+                  return color;
+                }),
+            };
+          }),
+      };
+    });
+
+    this.clearBulkSelection();
+    this.confirmAction.set(null);
+    this.toastService.show(
+      'success',
+      `${total} elemento${total === 1 ? '' : 's'} eliminado${total === 1 ? '' : 's'}. ` +
+        'Guarde el inventario para aplicar los cambios.',
+    );
   }
 
   private collectBulkDeleteTargets(): {
@@ -1252,62 +1329,52 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
     size: ReconciliationSizeDraft,
     color: ReconciliationColorDraft,
   ): void {
-    const currentDraft = this.draft();
-    if (!currentDraft) return;
-
-    this.removingColor.set(true);
-    const snapshot = captureDraftSnapshot(currentDraft);
-
-    this.inventoryService
-      .removeColorVariant(size.id, color.colorId)
-      .pipe(
-        finalize(() => this.removingColor.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: () => {
-          this.confirmAction.set(null);
-          this.toastService.show('success', 'Variante de color eliminada.');
-          this.loadFullProduct(currentDraft.productId, snapshot);
-        },
-        error: (message: string) => this.toastService.show('error', message),
-      });
+    this.draft.update((draft) => {
+      if (!draft) return draft;
+      return {
+        ...draft,
+        sizes: draft.sizes.map((item) => {
+          if (item.id !== size.id) return item;
+          if (color.isNew) {
+            return {
+              ...item,
+              colors: item.colors.filter((entry) => entry.colorId !== color.colorId),
+            };
+          }
+          return {
+            ...item,
+            colors: item.colors.map((entry) =>
+              entry.colorId === color.colorId ? { ...entry, isRemoved: true } : entry,
+            ),
+          };
+        }),
+      };
+    });
+    this.confirmAction.set(null);
+    this.toastService.show(
+      'success',
+      'Variante de color eliminada. Guarde el inventario para aplicar los cambios.',
+    );
   }
 
   private removeSizeVariant(size: ReconciliationSizeDraft): void {
-    const currentDraft = this.draft();
-    if (!currentDraft) return;
-
-    this.removingSize.set(true);
-    const snapshot = captureDraftSnapshot(currentDraft);
-
-    this.inventoryService
-      .removeSize(currentDraft.productId, size.sizeId)
-      .pipe(
-        finalize(() => this.removingSize.set(false)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: () => {
-          this.confirmAction.set(null);
-          this.toastService.show('success', 'Talla eliminada.');
-          this.loadFullProduct(currentDraft.productId, snapshot);
-        },
-        error: (message: string) => {
-          if (
-            message.toLowerCase().includes('foreign') ||
-            message.toLowerCase().includes('constraint') ||
-            message.toLowerCase().includes('referenc')
-          ) {
-            this.toastService.show(
-              'error',
-              'No se puede eliminar: esta talla tiene movimientos registrados. Deje el stock en 0.',
-            );
-            return;
-          }
-          this.toastService.show('error', message);
-        },
-      });
+    this.draft.update((draft) => {
+      if (!draft) return draft;
+      if (size.isNew) {
+        return { ...draft, sizes: draft.sizes.filter((item) => item.id !== size.id) };
+      }
+      return {
+        ...draft,
+        sizes: draft.sizes.map((item) =>
+          item.id === size.id ? { ...item, isRemoved: true } : item,
+        ),
+      };
+    });
+    this.confirmAction.set(null);
+    this.toastService.show(
+      'success',
+      'Talla eliminada. Guarde el inventario para aplicar los cambios.',
+    );
   }
 
   private ensureCatalogColorsLoaded(): void {

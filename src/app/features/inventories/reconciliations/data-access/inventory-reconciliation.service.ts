@@ -11,6 +11,7 @@ import type {
   ReplaceVariantColorBody,
   CatalogColorOption,
   AutocompleteOption,
+  ReconciliationDraft,
 } from '../models/inventory-reconciliation.model';
 import {
   adaptAutocompleteOption,
@@ -21,6 +22,7 @@ import {
   adaptReconciliationUpdateResponse,
 } from './inventory-reconciliation.adapter';
 import type { ProductSizeFormData, ProductColorFormData } from '../../products/models/product.model';
+import { persistReconciliationDraft as runPersistReconciliationDraft } from '../utils/reconciliation-persist.util';
 
 function extractErrorMessage(err: unknown): string {
   const http = err as {
@@ -220,5 +222,12 @@ export class InventoryReconciliationService {
         `${environment.apiUrl}/products/${productId}/sizes/${sizeId}`,
       )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
+  }
+
+  persistReconciliationDraft(
+    productId: string,
+    draft: ReconciliationDraft,
+  ): Observable<ReconciliationProduct> {
+    return runPersistReconciliationDraft(this, productId, draft);
   }
 }

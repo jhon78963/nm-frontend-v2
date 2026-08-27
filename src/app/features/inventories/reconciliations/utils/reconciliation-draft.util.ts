@@ -5,6 +5,33 @@ import type {
   ReconciliationSizeDraft,
 } from '../models/inventory-reconciliation.model';
 
+export const LOCAL_SIZE_ID_PREFIX = 'local:size:';
+export const LOCAL_COLOR_ID_PREFIX = 'local:color:';
+
+export function createLocalSizeId(): string {
+  return `${LOCAL_SIZE_ID_PREFIX}${crypto.randomUUID()}`;
+}
+
+export function createLocalColorId(): string {
+  return `${LOCAL_COLOR_ID_PREFIX}${crypto.randomUUID()}`;
+}
+
+export function isLocalSizeId(id: string): boolean {
+  return id.startsWith(LOCAL_SIZE_ID_PREFIX);
+}
+
+export function isLocalColorId(colorId: string): boolean {
+  return colorId.startsWith(LOCAL_COLOR_ID_PREFIX);
+}
+
+export function getActiveSizes(draft: ReconciliationDraft): ReconciliationSizeDraft[] {
+  return draft.sizes.filter((size) => !size.isRemoved);
+}
+
+export function getActiveColors(size: ReconciliationSizeDraft): ReconciliationColorDraft[] {
+  return size.colors.filter((color) => !color.isRemoved);
+}
+
 export function normalizeDraftPrice(value: unknown): number | null {
   if (value === null || value === undefined || value === '') {
     return null;
@@ -26,6 +53,7 @@ export function cloneProductToDraft(product: ReconciliationProduct): Reconciliat
     productId: product.id,
     name: product.name ?? '',
     sku: product.barcode ?? null,
+    pendingColorReplaces: [],
     sizes: (product.sizes ?? []).map((size) => {
       const colors = (size.colors ?? []).map((color) => {
         const stock = Math.max(
@@ -73,11 +101,11 @@ export function cloneProductToDraft(product: ReconciliationProduct): Reconciliat
 }
 
 export function colorStockSum(size: ReconciliationSizeDraft): number {
-  return size.colors.reduce((acc, color) => acc + (Number(color.stock) || 0), 0);
+  return getActiveColors(size).reduce((acc, color) => acc + (Number(color.stock) || 0), 0);
 }
 
 export function hasColorBreakdown(size: ReconciliationSizeDraft): boolean {
-  return size.colors.length > 0;
+  return getActiveColors(size).length > 0;
 }
 
 export function effectiveSizeStock(size: ReconciliationSizeDraft): number {
@@ -132,26 +160,31 @@ export function compareColorRows(
 
 export function sortedSizes(draft: ReconciliationDraft | null): ReconciliationSizeDraft[] {
   if (!draft) return [];
-  return [...draft.sizes].sort(compareSizeRows);
+  return [...getActiveSizes(draft)].sort(compareSizeRows);
 }
 
 export function sortedColors(size: ReconciliationSizeDraft): ReconciliationColorDraft[] {
-  return [...size.colors].sort(compareColorRows);
+  return [...getActiveColors(size)].sort(compareColorRows);
 }
 
 export function buildInventoryPayload(draft: ReconciliationDraft) {
-  const sizes = draft.sizes.map((size) => {
+  const sizes = getActiveSizes(draft)
+    .filter((size) => !isLocalSizeId(size.id))
+    .map((size) => {
     const prices = {
       purchasePrice: normalizeDraftPrice(size.purchasePrice),
       salePrice: normalizeDraftPrice(size.salePrice),
       minSalePrice: normalizeDraftPrice(size.minSalePrice),
     };
     const barcode = normalizeDraftBarcode(size.barcode);
+    const activeColors = getActiveColors(size);
 
-    if (size.colors.length > 0) {
+    if (activeColors.length > 0) {
       return {
         id: size.id,
-        colors: size.colors.map((color) => ({
+        colors: activeColors
+          .filter((color) => !isLocalColorId(color.colorId))
+          .map((color) => ({
           colorId: color.colorId,
           stock: Math.max(0, Math.trunc(Number(color.stock) || 0)),
         })),
@@ -191,6 +224,7 @@ export function mergeDraftPreservingEdits(
 
   return {
     ...fresh,
+    pendingColorReplaces: previous.pendingColorReplaces ?? [],
     sizes: fresh.sizes.map((freshSize) => {
       const prevSize = prevBySizeId.get(freshSize.id);
       if (!prevSize) return freshSize;

@@ -50,52 +50,90 @@ function readBool(value: unknown): boolean {
   return value === true || value === 1 || value === '1' || value === 'true';
 }
 
+function normalizePurchaseStatus(status: string): PurchaseStatus {
+  if (status === 'REGISTERED') {
+    return 'ACTIVE';
+  }
+  return status as PurchaseStatus;
+}
+
+export function isPurchaseActive(status: string): boolean {
+  return status === 'ACTIVE' || status === 'REGISTERED';
+}
+
 export function adaptPurchaseRow(raw: unknown): PurchaseRow {
   const r = raw as Record<string, unknown>;
+  const warehouse = r['warehouse'] as Record<string, unknown> | undefined;
+  const vendor = r['vendor'] as Record<string, unknown> | undefined;
+  const purchaseDate = r['purchaseDate'] ?? r['purchase_date'];
+
   return {
     id: readId(r['id']),
-    supplierName: readString(r['supplierName'] ?? r['supplier_name']),
+    supplierName: readString(r['supplierName'] ?? r['supplier_name'] ?? vendor?.['name']),
     vendorId: readOptionalId(r['vendorId'] ?? r['vendor_id']),
-    documentNote: readOptionalString(r['documentNote'] ?? r['document_note']),
-    registeredAt: readOptionalString(r['registeredAt'] ?? r['registered_at']),
+    documentNote: readOptionalString(r['documentNote'] ?? r['document_note'] ?? r['notes']),
+    registeredAt: readOptionalString(r['registeredAt'] ?? r['registered_at'] ?? purchaseDate),
     warehouseId: readId(r['warehouseId'] ?? r['warehouse_id']),
-    warehouseName: readOptionalString(r['warehouseName'] ?? r['warehouse_name']) ?? undefined,
+    warehouseName:
+      readOptionalString(r['warehouseName'] ?? r['warehouse_name'] ?? warehouse?.['name']) ??
+      undefined,
     currency: readString(r['currency'], 'PEN'),
-    status: readString(r['status'], 'ACTIVE') as PurchaseStatus,
-    totalSubtotal: readNumber(r['totalSubtotal'] ?? r['total_subtotal']),
-    creationTime: readOptionalString(r['creationTime'] ?? r['creation_time']),
+    status: normalizePurchaseStatus(readString(r['status'], 'ACTIVE')),
+    totalSubtotal: readNumber(
+      r['totalSubtotal'] ?? r['total_subtotal'] ?? r['totalAmount'] ?? r['total_amount'],
+    ),
+    creationTime: readOptionalString(
+      r['creationTime'] ?? r['creation_time'] ?? r['createdAt'] ?? r['created_at'],
+    ),
     cancelledAt: readOptionalString(r['cancelledAt'] ?? r['cancelled_at']),
   };
 }
 
 function adaptColorDelta(raw: unknown): PurchaseLineColorDeltaRow {
   const r = raw as Record<string, unknown>;
+  const color = r['color'] as Record<string, unknown> | undefined;
   return {
     id: readId(r['id']),
-    colorId: readId(r['colorId'] ?? r['color_id']),
-    colorDescription: readOptionalString(r['colorDescription'] ?? r['color_description']) ?? undefined,
+    colorId: readId(r['colorId'] ?? r['color_id'] ?? color?.['id']),
+    colorDescription:
+      readOptionalString(r['colorDescription'] ?? r['color_description'] ?? color?.['description']) ??
+      undefined,
     quantity: readNumber(r['quantity'], 1),
   };
 }
 
 export function adaptPurchaseLineRow(raw: unknown): PurchaseLineRow {
   const r = raw as Record<string, unknown>;
+  const productSize = r['productSize'] as Record<string, unknown> | undefined;
+  const product = productSize?.['product'] as Record<string, unknown> | undefined;
+  const size = productSize?.['size'] as Record<string, unknown> | undefined;
   const deltasRaw = r['colorDeltas'] ?? r['color_deltas'];
+  const purchasePrice = readOptionalNumber(r['purchasePrice'] ?? r['purchase_price']);
+  const quantity = readNumber(r['quantity'], 1);
+
   return {
     id: readId(r['id']),
     lineId: readOptionalString(r['lineId'] ?? r['line_id']),
-    productId: readId(r['productId'] ?? r['product_id']),
-    productName: readOptionalString(r['productName'] ?? r['product_name']) ?? undefined,
-    sizeId: readId(r['sizeId'] ?? r['size_id']),
-    sizeDescription: readOptionalString(r['sizeDescription'] ?? r['size_description']) ?? undefined,
+    productId: readId(r['productId'] ?? r['product_id'] ?? productSize?.['productId']),
+    productName:
+      readOptionalString(r['productName'] ?? r['product_name'] ?? product?.['name']) ?? undefined,
+    sizeId: readId(r['sizeId'] ?? r['size_id'] ?? productSize?.['sizeId']),
+    sizeDescription:
+      readOptionalString(r['sizeDescription'] ?? r['size_description'] ?? size?.['description']) ??
+      undefined,
     sizeTypeId: readOptionalId(r['sizeTypeId'] ?? r['size_type_id']) ?? undefined,
-    productSizeId: readId(r['productSizeId'] ?? r['product_size_id']),
-    barcode: readOptionalString(r['barcode']),
-    purchasePrice: readOptionalNumber(r['purchasePrice'] ?? r['purchase_price']),
+    productSizeId: readId(r['productSizeId'] ?? r['product_size_id'] ?? productSize?.['id']),
+    barcode: readOptionalString(r['barcode'] ?? productSize?.['barcode']),
+    purchasePrice,
     salePrice: readOptionalNumber(r['salePrice'] ?? r['sale_price']),
-    minSalePrice: readOptionalNumber(r['minSalePrice'] ?? r['min_sale_price']),
-    subtotal: readNumber(r['subtotal']),
-    sizeStockDelta: readNumber(r['sizeStockDelta'] ?? r['size_stock_delta']),
+    minSalePrice: readOptionalNumber(
+      r['minSalePrice'] ?? r['min_sale_price'] ?? productSize?.['minSalePrice'] ?? productSize?.['min_sale_price'],
+    ),
+    subtotal: readNumber(
+      r['subtotal'],
+      purchasePrice != null ? purchasePrice * quantity : 0,
+    ),
+    sizeStockDelta: readNumber(r['sizeStockDelta'] ?? r['size_stock_delta'] ?? r['quantity']),
     hasColorBreakdown: readBool(r['hasColorBreakdown'] ?? r['has_color_breakdown']),
     colorDeltas: Array.isArray(deltasRaw)
       ? deltasRaw.map(adaptColorDelta)
@@ -128,7 +166,9 @@ export function adaptPurchaseDetail(raw: unknown): PurchaseDetail {
 
   return {
     ...base,
-    cancellationReason: readOptionalString(r['cancellationReason'] ?? r['cancellation_reason']),
+    cancellationReason: readOptionalString(
+      r['cancellationReason'] ?? r['cancellation_reason'] ?? r['cancelReason'] ?? r['cancel_reason'],
+    ),
     lines: Array.isArray(linesRaw) ? linesRaw.map(adaptPurchaseLineRow) : [],
     payloadSnapshot: r['payloadSnapshot'] ?? r['payload_snapshot'] ?? null,
     linkedPayment: adaptLinkedPayment(paymentRaw),
