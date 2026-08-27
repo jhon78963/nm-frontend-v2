@@ -26,7 +26,7 @@ export interface FinancialSummaryCards {
 }
 
 export interface RecentTransaction {
-  id: number;
+  id: string;
   concept: string;
   category: string;
   date: string;
@@ -41,14 +41,14 @@ export interface FinancialSummary {
 }
 
 export interface QuickCategory {
-  id: number;
+  id: string;
   name: string;
   icon: 'sale' | 'capital' | 'transport' | 'food' | 'store' | 'other';
 }
 
 export interface QuickTransactionFormModel {
   amount: number | null;
-  categoryId: number | null;
+  categoryId: string | null;
 }
 
 export interface QuickMovementInput {
@@ -68,13 +68,13 @@ export const EMPTY_FINANCIAL_SUMMARY: FinancialSummary = {
 };
 
 export const INCOME_CATEGORIES: QuickCategory[] = [
-  { id: 1, name: 'Venta', icon: 'sale' },
-  { id: 2, name: 'Capital', icon: 'capital' },
+  { id: 'income-sale', name: 'Venta', icon: 'sale' },
+  { id: 'income-capital', name: 'Capital', icon: 'capital' },
 ];
 
 export const EXPENSE_CATEGORIES: QuickCategory[] = [
-  { id: 1, name: 'Pasaje', icon: 'transport' },
-  { id: 2, name: 'Comida', icon: 'food' },
-  { id: 3, name: 'Puesto', icon: 'store' },
-  { id: 4, name: 'Otros', icon: 'other' },
+  { id: 'expense-transport', name: 'Pasaje', icon: 'transport' },
+  { id: 'expense-food', name: 'Comida', icon: 'food' },
+  { id: 'expense-store', name: 'Puesto', icon: 'store' },
+  { id: 'expense-other', name: 'Otros', icon: 'other' },
 ];

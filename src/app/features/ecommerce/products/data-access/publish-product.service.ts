@@ -7,6 +7,7 @@ import {
   PublishProductListResponse,
   PublishProductPayload,
 } from '../models/publish-product.model';
+import { toProductWritePayload } from '../../../inventories/products/data-access/product.adapter';
 import { adaptPublishProduct, adaptPublishProductList } from './publish-product.adapter';
 
 function extractErrorMessage(err: unknown): string {
@@ -49,24 +50,30 @@ export class PublishProductService {
     return this.http.get<unknown>(url).pipe(map(adaptPublishProductList));
   }
 
-  getOne(id: number): Observable<PublishProduct> {
+  getOne(id: string): Observable<PublishProduct> {
     return this.http.get<unknown>(`${this.base}/${id}`).pipe(map(adaptPublishProduct));
   }
 
   create(
     data: PublishProductPayload,
-  ): Observable<{ message: string; productId: number }> {
+  ): Observable<{ message: string; productId: string }> {
     return this.http
-      .post<{ message: string; productId: number }>(this.base, data)
+      .post<{ message: string; productId: string }>(
+        this.base,
+        toProductWritePayload(data, { forCreate: true }),
+      )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
   update(
-    id: number,
+    id: string,
     data: PublishProductPayload,
-  ): Observable<{ message: string; productId: number }> {
+  ): Observable<{ message: string; productId: string }> {
     return this.http
-      .patch<{ message: string; productId: number }>(`${this.base}/${id}`, data)
+      .patch<{ message: string; productId: string }>(
+        `${this.base}/${id}`,
+        toProductWritePayload(data),
+      )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 }

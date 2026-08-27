@@ -135,6 +135,10 @@ function adaptSummary(raw: unknown): SalesReportSummary {
   };
 }
 
+function readId(value: unknown): string {
+  return value != null ? String(value) : '';
+}
+
 function adaptDailyTransactions(raw: unknown): SalesDailyTransaction[] {
   if (!Array.isArray(raw)) {
     return [];
@@ -145,7 +149,7 @@ function adaptDailyTransactions(raw: unknown): SalesDailyTransaction[] {
     const source = readString(row['source'], 'sale');
 
     return {
-      id: readNumber(row['id']),
+      id: readId(row['id']),
       source: source === 'income' ? 'income' : 'sale',
       code: readString(row['code']),
       time: readString(row['time']),
@@ -159,7 +163,7 @@ function adaptDailyTransactions(raw: unknown): SalesDailyTransaction[] {
   });
 }
 
-export function adaptDailySalesReport(raw: unknown, warehouseId = 0): DailySalesReport {
+export function adaptDailySalesReport(raw: unknown, warehouseId = ''): DailySalesReport {
   const data = (raw as { data?: unknown })?.data ?? raw;
   const row = (data ?? {}) as Record<string, unknown>;
   const paymentBreakdown = adaptPaymentBreakdown(row['payment_breakdown']);
@@ -195,7 +199,7 @@ export function adaptDailySalesReport(raw: unknown, warehouseId = 0): DailySales
     date: readString(row['date']),
     dateIso: readString(row['date_iso'] ?? row['dateIso']),
     warehouseId,
-    warehouseName: warehouseId > 0 ? `Tienda #${warehouseId}` : 'Todas',
+    warehouseName: warehouseId ? `Almacén ${warehouseId}` : 'Todos',
     rows,
     totals: {
       quantity: summary.transactionCount,
@@ -210,7 +214,7 @@ export function adaptDailySalesReport(raw: unknown, warehouseId = 0): DailySales
   };
 }
 
-export function adaptMonthlySalesReport(raw: unknown, warehouseId = 0): MonthlySalesReport {
+export function adaptMonthlySalesReport(raw: unknown, warehouseId = ''): MonthlySalesReport {
   const data = (raw as { data?: unknown })?.data ?? raw;
   const row = (data ?? {}) as Record<string, unknown>;
   const paymentBreakdown = adaptPaymentBreakdown(row['payment_breakdown']);
@@ -255,7 +259,7 @@ export function adaptMonthlySalesReport(raw: unknown, warehouseId = 0): MonthlyS
     monthLabel: readString(row['month_label'] ?? row['monthLabel']),
     monthIso,
     warehouseId,
-    warehouseName: warehouseId > 0 ? `Tienda #${warehouseId}` : 'Todas',
+    warehouseName: warehouseId ? `Almacén ${warehouseId}` : 'Todos',
     rows,
     totals: {
       quantity: summary.transactionCount,
@@ -275,7 +279,7 @@ export function adaptMonthlySalesReport(raw: unknown, warehouseId = 0): MonthlyS
   };
 }
 
-export function adaptPeriodSalesReport(raw: unknown, warehouseId = 0): PeriodSalesReport {
+export function adaptPeriodSalesReport(raw: unknown, warehouseId = ''): PeriodSalesReport {
   const data = (raw as { data?: unknown })?.data ?? raw;
   const row = (data ?? {}) as Record<string, unknown>;
   const paymentBreakdown = adaptPaymentBreakdown(row['payment_breakdown']);

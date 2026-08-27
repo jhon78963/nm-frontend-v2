@@ -45,7 +45,7 @@ export class ProductHistoryComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
 
-  protected readonly productId = signal<number | null>(null);
+  protected readonly productId = signal<string | null>(null);
   protected readonly loading = signal(true);
   protected readonly loadError = signal(false);
   protected readonly events = signal<ProductHistoryEvent[]>([]);
@@ -131,8 +131,8 @@ export class ProductHistoryComponent implements OnInit {
       .subscribe((params) => {
         const idRaw = params.get('id');
         if (idRaw) {
-          this.productId.set(Number(idRaw));
-          this.loadHistory(Number(idRaw));
+          this.productId.set(idRaw);
+          this.loadHistory(idRaw);
         }
       });
   }
@@ -244,7 +244,7 @@ export class ProductHistoryComponent implements OnInit {
     return String(value).toUpperCase() === 'ELIMINADO';
   }
 
-  private loadHistory(id: number): void {
+  private loadHistory(id: string): void {
     this.loading.set(true);
     this.loadError.set(false);
 

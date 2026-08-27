@@ -53,7 +53,7 @@ export class TenantFormComponent implements OnInit {
   private readonly tenantService = inject(TenantService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly tenantId = input<number | null>(null);
+  readonly tenantId = input<string | null>(null);
 
   readonly saved = output<string>();
   readonly closed = output<void>();

@@ -49,7 +49,7 @@ export class CustomerService {
     return this.http.get<unknown>(url).pipe(map(adaptCustomerList));
   }
 
-  getOne(id: number): Observable<Customer> {
+  getOne(id: string): Observable<Customer> {
     return this.http.get<unknown>(`${this.base}/${id}`).pipe(map(adaptCustomer));
   }
 
@@ -59,13 +59,13 @@ export class CustomerService {
     );
   }
 
-  update(id: number, data: CustomerPayload): Observable<{ message: string }> {
+  update(id: string, data: CustomerPayload): Observable<{ message: string }> {
     return this.http.patch<{ message: string }>(`${this.base}/${id}`, data).pipe(
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );
   }
 
-  delete(id: number): Observable<{ message: string }> {
+  delete(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.base}/${id}`).pipe(
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );

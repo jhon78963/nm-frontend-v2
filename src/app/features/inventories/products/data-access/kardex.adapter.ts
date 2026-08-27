@@ -32,7 +32,7 @@ function adaptKardexMovement(raw: unknown): KardexMovement {
   const r = raw as Record<string, unknown>;
 
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     occurredAt: readString(r['occurred_at']),
     direction: r['direction'] === 'OUT' ? 'OUT' : 'IN',
     movementTypeLabel: readString(r['movement_type_label']),

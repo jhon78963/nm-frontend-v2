@@ -14,12 +14,32 @@ function readNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function formatTimeValue(value: unknown): string | null {
+  if (value == null || value === '') {
+    return null;
+  }
+
+  const raw = String(value);
+  if (raw.includes('T')) {
+    const parsed = new Date(raw);
+    if (!Number.isNaN(parsed.getTime())) {
+      return `${String(parsed.getHours()).padStart(2, '0')}:${String(parsed.getMinutes()).padStart(2, '0')}`;
+    }
+  }
+
+  return raw.length > 5 ? raw.slice(0, 5) : raw;
+}
+
 function adaptAttendanceRecord(raw: unknown): AttendanceRecord {
   const r = raw as Record<string, unknown>;
   return {
     status: readString(r['status'], 'PUNTUAL') as AttendanceStatus,
-    checkInTime: (r['checkInTime'] ?? r['check_in_time']) as string | null,
-    checkOutTime: (r['checkOutTime'] ?? r['check_out_time']) as string | null,
+    checkInTime: formatTimeValue(
+      r['checkInTime'] ?? r['check_in_time'] ?? r['checkIn'] ?? r['check_in'],
+    ),
+    checkOutTime: formatTimeValue(
+      r['checkOutTime'] ?? r['check_out_time'] ?? r['checkOut'] ?? r['check_out'],
+    ),
     delayMinutes: readNumber(r['delayMinutes'] ?? r['delay_minutes']),
     notes: (r['notes'] ?? r['note']) as string | null,
   };
@@ -43,7 +63,7 @@ export function adaptDailySummary(raw: unknown): DailyAttendanceRow[] {
     const row = item as Record<string, unknown>;
     const attendanceRaw = row['attendance'];
     return {
-      teamId: readNumber(row['teamId'] ?? row['team_id']),
+      teamId: String(row['teamId'] ?? row['team_id'] ?? ''),
       name: readString(row['name']),
       surname: readString(row['surname']),
       date: readString(row['date']),

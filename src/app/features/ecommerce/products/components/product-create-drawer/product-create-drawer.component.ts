@@ -72,7 +72,7 @@ export class ProductCreateDrawerComponent implements OnInit {
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly created = output<number>();
+  readonly created = output<string>();
   readonly closed = output<void>();
 
   protected readonly loadingCatalogs = signal(true);
@@ -113,19 +113,19 @@ export class ProductCreateDrawerComponent implements OnInit {
     }),
   );
 
-  protected readonly genderOptions = computed<SelectOption<number>[]>(() =>
+  protected readonly genderOptions = computed<SelectOption<string>[]>(() =>
     this.genders().map((g) => ({ label: g.description, value: g.id })),
   );
 
-  protected readonly warehouseOptions = computed<SelectOption<number>[]>(() =>
+  protected readonly warehouseOptions = computed<SelectOption<string>[]>(() =>
     this.warehouses().map((w) => ({ label: w.name, value: w.id })),
   );
 
-  protected readonly sizeOptions = computed<SelectOption<number>[]>(() =>
+  protected readonly sizeOptions = computed<SelectOption<string>[]>(() =>
     this.catalogSizes().map((s) => ({ label: s.description, value: s.id })),
   );
 
-  protected readonly colorOptions = computed<SelectOption<number>[]>(() =>
+  protected readonly colorOptions = computed<SelectOption<string>[]>(() =>
     this.catalogColors().map((c) => ({ label: c.description, value: c.id })),
   );
 
@@ -239,8 +239,7 @@ export class ProductCreateDrawerComponent implements OnInit {
     this.publishCatalogService.getWarehouses().subscribe({
       next: (warehouses) => {
         this.warehouses.set(warehouses);
-        const defaultWarehouse =
-          warehouses.find((w) => w.id === 1) ?? warehouses[0] ?? null;
+        const defaultWarehouse = warehouses[0] ?? null;
         if (defaultWarehouse) {
           this.formModel.update((m) => ({
             ...m,
@@ -279,7 +278,7 @@ export class ProductCreateDrawerComponent implements OnInit {
   }
 
   private attachVariant(
-    productId: number,
+    productId: string,
     variant: PublishVariantFormModel,
     productBarcode: string,
   ) {

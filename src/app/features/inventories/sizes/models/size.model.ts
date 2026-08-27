@@ -1,17 +1,17 @@
 export interface Size {
-  id: number;
+  id: string;
   description: string;
   sizeTypeLabel: string;
 }
 
 export interface SizeDetail {
-  id: number;
+  id: string;
   description: string;
   sizeTypeLabel: string;
 }
 
 export interface SizeType {
-  id: number;
+  id: string;
   description: string;
 }
 
@@ -22,17 +22,17 @@ export interface SizeListResponse {
 
 export interface SizePayload {
   description: string;
-  sizeTypeId: number;
+  sizeTypeId: string;
 }
 
 export interface SizeFormModel {
   description: string;
-  sizeTypeId: number | null;
+  sizeTypeId: string | null;
 }
 
 export interface SizeFilterState {
   limit: number;
   page: number;
   search: string;
-  sizeTypeIds: number[];
+  sizeTypeIds: string[];
 }

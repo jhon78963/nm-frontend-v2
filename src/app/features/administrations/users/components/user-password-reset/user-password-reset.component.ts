@@ -37,7 +37,7 @@ export class UserPasswordResetComponent {
   private readonly userService = inject(UserService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly userId = input.required<number>();
+  readonly userId = input.required<string>();
   readonly username = input('');
 
   readonly saved = output<string>();

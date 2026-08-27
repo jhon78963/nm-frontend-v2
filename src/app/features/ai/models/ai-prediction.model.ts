@@ -1,7 +1,7 @@
 export type AiInsightTab = 'price' | 'demand';
 
 export interface AiProductOption {
-  id: number;
+  id: string;
   name: string;
   gender: string;
   stock: number;
@@ -11,7 +11,7 @@ export interface AiProductOption {
 
 /** Contexto resuelto por el backend desde la base de datos. */
 export interface AiProductContext {
-  productId: number;
+  productId: string;
   productName: string;
   currentCost: number;
   category: string;
@@ -28,7 +28,7 @@ export interface AiProductContext {
 }
 
 export interface PriceOptimizationResult {
-  productId: number;
+  productId: string;
   suggestedPrice: number;
   minimumPrice: number;
   expectedMarginIncrease: number;
@@ -37,7 +37,7 @@ export interface PriceOptimizationResult {
 }
 
 export interface DemandPredictionResult {
-  productId: number;
+  productId: string;
   projectedSales: number;
   suggestedPurchaseQuantity: number;
 }

@@ -38,7 +38,7 @@ export class RoleFormComponent implements OnInit {
   private readonly roleService = inject(RoleService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly roleId = input<number | null>(null);
+  readonly roleId = input<string | null>(null);
 
   readonly saved = output<string>();
   readonly closed = output<void>();

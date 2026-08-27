@@ -39,7 +39,7 @@ export class SizeService {
     limit: number;
     page: number;
     search?: string;
-    sizeTypeIds?: number[];
+    sizeTypeIds?: string[];
   }): Observable<SizeListResponse> {
     let url = `${this.base}?limit=${params.limit}&page=${params.page}`;
 
@@ -53,7 +53,7 @@ export class SizeService {
     return this.http.get<unknown>(url).pipe(map(adaptSizeList));
   }
 
-  getOne(id: number): Observable<SizeDetail> {
+  getOne(id: string): Observable<SizeDetail> {
     return this.http
       .get<unknown>(`${this.base}/${id}`)
       .pipe(map(adaptSizeDetail));
@@ -65,13 +65,13 @@ export class SizeService {
     );
   }
 
-  update(id: number, data: SizePayload): Observable<{ message: string }> {
+  update(id: string, data: SizePayload): Observable<{ message: string }> {
     return this.http.patch<{ message: string }>(`${this.base}/${id}`, data).pipe(
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );
   }
 
-  delete(id: number): Observable<{ message: string }> {
+  delete(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.base}/${id}`).pipe(
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );

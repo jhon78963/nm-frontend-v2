@@ -40,7 +40,7 @@ export class ColorFormComponent implements OnInit {
   private readonly colorService = inject(ColorService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly colorId = input<number | null>(null);
+  readonly colorId = input<string | null>(null);
 
   readonly saved = output<string>();
   readonly closed = output<void>();

@@ -44,7 +44,7 @@ import { PurchaseRow } from '../../models/purchase.model';
 const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.purchases;
 
 interface PurchaseFilterState extends SearchPageFilterState {
-  warehouseId: number | null;
+  warehouseId: string | null;
   status: string | null;
 }
 
@@ -55,7 +55,7 @@ function isPurchaseFilterState(value: unknown): value is PurchaseFilterState {
 
   const state = value as PurchaseFilterState;
   const warehouseOk =
-    state.warehouseId === null || typeof state.warehouseId === 'number';
+    state.warehouseId === null || typeof state.warehouseId === 'string';
   const statusOk = state.status === null || typeof state.status === 'string';
   return warehouseOk && statusOk;
 }
@@ -93,17 +93,17 @@ export class PurchasesListComponent implements OnInit {
   protected readonly page = signal(1);
   protected readonly limit = signal(10);
 
-  protected readonly cancelConfirmId = signal<number | null>(null);
+  protected readonly cancelConfirmId = signal<string | null>(null);
   protected readonly cancelling = signal(false);
 
   protected readonly filterForm = new FormGroup({
     search: new FormControl('', { nonNullable: true }),
-    warehouseId: new FormControl<number | ''>('', { nonNullable: true }),
+    warehouseId: new FormControl<string | ''>('', { nonNullable: true }),
     status: new FormControl<string | ''>('', { nonNullable: true }),
   });
 
   protected readonly currentSearch = signal('');
-  protected readonly currentWarehouseId = signal<number | null>(null);
+  protected readonly currentWarehouseId = signal<string | null>(null);
   protected readonly currentStatus = signal<string | null>(null);
 
   protected readonly statusOptions: SelectOption<string>[] = [
@@ -111,7 +111,7 @@ export class PurchasesListComponent implements OnInit {
     { label: 'Anuladas', value: 'CANCELLED' },
   ];
 
-  protected readonly warehouseOptions = computed<SelectOption<number>[]>(() =>
+  protected readonly warehouseOptions = computed<SelectOption<string>[]>(() =>
     this.warehouses().map((w) => ({ label: w.name, value: w.id })),
   );
 
@@ -187,9 +187,7 @@ export class PurchasesListComponent implements OnInit {
     this.filterForm.controls.warehouseId.valueChanges
       .pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
       .subscribe((value) => {
-        this.currentWarehouseId.set(
-          value === '' || value === null ? null : Number(value),
-        );
+        this.currentWarehouseId.set(value === '' || value === null ? null : value);
         this.page.set(1);
         this.persistFilters();
         this.loadPurchases();
@@ -261,7 +259,7 @@ export class PurchasesListComponent implements OnInit {
     this.filterForm.controls.search.setValue('');
   }
 
-  protected openCancelConfirm(id: number): void {
+  protected openCancelConfirm(id: string): void {
     this.cancelConfirmId.set(id);
   }
 
@@ -294,7 +292,7 @@ export class PurchasesListComponent implements OnInit {
       });
   }
 
-  protected viewDetail(id: number): void {
+  protected viewDetail(id: string): void {
     void this.router.navigate(['/inventories/purchases', id]);
   }
 

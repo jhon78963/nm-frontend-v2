@@ -54,11 +54,11 @@ export class TenantService {
     return this.http.get<unknown>(url).pipe(map(adaptTenantList));
   }
 
-  getOne(id: number): Observable<Tenant> {
+  getOne(id: string): Observable<Tenant> {
     return this.http.get<unknown>(`${this.base}/${id}`).pipe(map(adaptTenant));
   }
 
-  getSettings(tenantId: number): Observable<TenantSetting> {
+  getSettings(tenantId: string): Observable<TenantSetting> {
     return this.http
       .get<unknown>(`${this.base}/${tenantId}/settings`)
       .pipe(map(adaptTenantSetting));
@@ -71,7 +71,7 @@ export class TenantService {
     );
   }
 
-  update(id: number, data: Partial<TenantPayload>): Observable<Tenant> {
+  update(id: string, data: Partial<TenantPayload>): Observable<Tenant> {
     return this.http.patch<unknown>(`${this.base}/${id}`, data).pipe(
       map(adaptTenant),
       catchError((err) => throwError(() => extractErrorMessage(err))),
@@ -79,7 +79,7 @@ export class TenantService {
   }
 
   saveSettings(
-    tenantId: number,
+    tenantId: string,
     data: TenantSettingPayload,
   ): Observable<TenantSetting> {
     return this.http
@@ -90,7 +90,7 @@ export class TenantService {
       );
   }
 
-  delete(id: number): Observable<{ message: string }> {
+  delete(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.base}/${id}`).pipe(
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );

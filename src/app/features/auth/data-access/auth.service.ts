@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { inject, Service, signal } from '@angular/core';
 import {
   catchError,
@@ -15,9 +15,13 @@ import {
   userHasAnyPermission,
   userHasPermission,
 } from '../../../core/auth/permission.util';
-import { CsrfTokenService } from '../../../core/auth/csrf-token.service';
+import { TokenStorageService } from '../../../core/auth/token-storage.service';
 import { ActiveWarehouseService } from '../../../core/warehouse/active-warehouse.service';
-import { adaptAuthUser } from './auth.adapter';
+import {
+  adaptAuthUser,
+  LoginApiResponse,
+  RefreshApiResponse,
+} from './auth.adapter';
 import {
   AuthUser,
   ChangePasswordRequest,
@@ -32,7 +36,7 @@ export class AuthService {
   private static readonly PERSISTENT_STORAGE_KEYS: readonly string[] = [];
 
   private readonly http = inject(HttpClient);
-  private readonly csrfTokenService = inject(CsrfTokenService);
+  private readonly tokenStorage = inject(TokenStorageService);
   private readonly activeWarehouseService = inject(ActiveWarehouseService);
 
   readonly currentUser = signal<AuthUser | null>(null);
@@ -47,76 +51,43 @@ export class AuthService {
     return userHasAnyPermission(this.currentUser(), permissions);
   }
 
-  fetchCsrfHandshake(): Observable<string> {
-    return this.http
-      .get(`${environment.baseWebUrl}/sanctum/csrf-cookie`, {
-        withCredentials: true,
-        responseType: 'text',
-      })
-      .pipe(
-        switchMap(() =>
-          this.http.get<{ csrf_token?: string; message?: string }>(
-            `${environment.apiUrl}/auth/csrf-token`,
-            { withCredentials: true },
-          ),
-        ),
-        map((response) => {
-          if (!response?.csrf_token) {
-            throw new Error(
-              response?.message ??
-                'No se pudo obtener el token CSRF. Verifique sesión y reinicie el backend.',
-            );
-          }
-
-          return response.csrf_token;
-        }),
-      );
-  }
-
   login(credentials: LoginRequest): Observable<AuthUser> {
-    return this.csrfTokenService.ensureToken().pipe(
-      switchMap(() =>
-        this.http.post<AuthUser | { data: AuthUser }>(
-          `${environment.apiUrl}/auth/login`,
-          credentials,
-        ),
-      ),
-      map((response) => adaptAuthUser(response)),
-      tap((user) => this.setUserData(user)),
-      catchError((err) => throwError(() => this.extractErrorMessage(err))),
-    );
+    return this.http
+      .post<LoginApiResponse>(`${environment.apiUrl}/auth/login`, credentials)
+      .pipe(
+        tap(({ access_token, refresh_token }) => {
+          this.tokenStorage.setTokens(access_token, refresh_token);
+        }),
+        switchMap(({ user }) => {
+          if (user) {
+            return of(user);
+          }
+          return this.getMe();
+        }),
+        tap((user) => this.setUserData(user)),
+        catchError((err) => throwError(() => this.extractErrorMessage(err))),
+      );
   }
 
   getMe(): Observable<AuthUser> {
     return this.http
-      .get<AuthUser | { data: AuthUser }>(`${environment.apiUrl}/auth/me`, {
-        withCredentials: true,
-      })
+      .get<AuthUser | { data: AuthUser }>(`${environment.apiUrl}/auth/me`)
       .pipe(map((response) => adaptAuthUser(response)));
   }
 
-  changePassword(payload: ChangePasswordRequest): Observable<AuthUser> {
-    const csrf$ = this.csrfTokenService.getToken()
-      ? of(this.csrfTokenService.getToken()!)
-      : this.fetchCsrfHandshake().pipe(
-          tap((token) => this.csrfTokenService.setToken(token)),
-        );
-
-    return csrf$.pipe(
-      switchMap(() =>
-        this.http.post<AuthUser | { data: AuthUser }>(
-          `${environment.apiUrl}/auth/change-password`,
-          payload,
-        ),
-      ),
-      map((response) => adaptAuthUser(response)),
-      tap((user) => this.setUserData(user)),
-      catchError((err) => throwError(() => this.extractErrorMessage(err))),
-    );
+  changePassword(payload: ChangePasswordRequest): Observable<void> {
+    return this.http
+      .patch<void>(`${environment.apiUrl}/auth/change-password`, payload)
+      .pipe(
+        catchError((err) => throwError(() => this.extractErrorMessage(err))),
+      );
   }
 
   hasLocalSession(): boolean {
-    return localStorage.getItem(AuthService.SESSION_FLAG_KEY) !== null;
+    return (
+      localStorage.getItem(AuthService.SESSION_FLAG_KEY) !== null &&
+      this.tokenStorage.hasTokens()
+    );
   }
 
   ensureSessionLoaded(): Observable<AuthUser | null> {
@@ -150,16 +121,40 @@ export class AuthService {
       .pipe(catchError((err) => throwError(() => this.extractErrorMessage(err))));
   }
 
-  logout(): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${environment.apiUrl}/auth/logout`, {});
+  logout(): Observable<void> {
+    return this.http
+      .post<void>(`${environment.apiUrl}/auth/logout`, {})
+      .pipe(catchError(() => of(undefined)));
   }
 
-  refreshSession(): Observable<void> {
+  /**
+   * Envía el refresh_token como Bearer (JwtRefreshGuard lo extrae del header).
+   * Retorna el nuevo access_token para que el tokenInterceptor lo inyecte
+   * en la petición original que causó el 401.
+   */
+  refreshSession(): Observable<string> {
+    const refreshToken = this.tokenStorage.getRefreshToken();
+    if (!refreshToken) {
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    const headers = new HttpHeaders({ Authorization: `Bearer ${refreshToken}` });
+
     return this.http
-      .post<{ message: string }>(`${environment.apiUrl}/auth/refresh`, {}, {
-        withCredentials: true,
-      })
-      .pipe(map(() => undefined));
+      .post<RefreshApiResponse>(
+        `${environment.apiUrl}/auth/refresh`,
+        {},
+        { headers },
+      )
+      .pipe(
+        tap(({ access_token, refresh_token }) => {
+          this.tokenStorage.updateAccessToken(access_token);
+          if (refresh_token) {
+            this.tokenStorage.setTokens(access_token, refresh_token);
+          }
+        }),
+        map(({ access_token }) => access_token),
+      );
   }
 
   private restoreSession(): Observable<AuthUser | null> {
@@ -192,7 +187,6 @@ export class AuthService {
 
   signOut(): Observable<void> {
     return this.logout().pipe(
-      catchError(() => of(undefined)),
       map(() => undefined),
       tap(() => this.clearLocalSession()),
     );
@@ -210,7 +204,7 @@ export class AuthService {
   clearLocalSession(): void {
     this.currentUser.set(null);
     this.sessionLoadRequest$ = undefined;
-    this.csrfTokenService.clear();
+    this.tokenStorage.clearTokens();
     this.activeWarehouseService.clearWarehouse();
 
     const preserved = this.preservePersistentStorage();
@@ -276,11 +270,11 @@ export class AuthService {
       return backendMessage.join(' ');
     }
 
+    if (http?.status === 0) {
+      return 'No se pudo conectar con el servidor. Verifica que el backend esté activo en http://localhost:3000';
+    }
     if (http?.status === 401) {
       return 'Credenciales inválidas. Verifica tu usuario y contraseña.';
-    }
-    if (http?.status === 419) {
-      return 'La sesión de seguridad expiró. Recarga la página e intenta de nuevo.';
     }
     if (http?.status === 429) {
       return 'Demasiados intentos. Espera un minuto e inténtalo de nuevo.';

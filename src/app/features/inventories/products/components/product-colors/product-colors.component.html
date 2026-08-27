@@ -4,8 +4,8 @@
     <div>
       <h2 class="text-xl font-semibold text-gray-900">Gestión de Colores</h2>
       <p class="mt-1 max-w-2xl text-sm text-gray-500">
-        Asigna variantes de color por talla. La suma del stock de variantes debe
-        coincidir con el stock maestro de la talla antes de guardar.
+        Asigna variantes de color por talla. Al guardar, el stock maestro de la
+        talla se actualiza a la suma de las variantes.
       </p>
     </div>
 
@@ -23,8 +23,8 @@
         icon="save"
         [disabled]="!canSaveAll()"
         [loading]="saving()"
-        [attr.title]="!canSaveAll() && dirtyColorCount() > 0 && !isStockBalanced()
-          ? 'Cuadra el stock maestro para guardar en lote, o usa el ✓ por fila'
+        [attr.title]="!canSaveAll() && dirtyColorCount() > 0
+          ? 'Selecciona variantes o edita el stock para guardar'
           : null"
         (clicked)="saveAllSelectedColors()">
         Guardar
@@ -152,7 +152,7 @@
                 </p>
               }
 
-              @if (remainingStock() !== 0 && hasPendingWork()) {
+              @if (remainingStock() !== 0) {
                 <div
                   class="mt-3 rounded-lg px-3 py-2 text-center text-xs font-medium"
                   [class.bg-amber-50]="remainingStock() > 0"
@@ -163,6 +163,11 @@
                     Faltan {{ remainingStock() }} uds. por asignar.
                   } @else {
                     Sobran {{ remainingStock() * -1 }} uds. respecto al maestro.
+                  }
+                  @if (canSaveAll()) {
+                    <span class="mt-1 block font-normal">
+                      Guardar actualizará el maestro a {{ totalAssignedStock() }} uds.
+                    </span>
                   }
                 </div>
               } @else if (isStockBalanced() && !hasPendingWork()) {
@@ -201,8 +206,8 @@
           <p class="mt-4 text-xs leading-relaxed text-gray-500">
             El orden del catálogo se mantiene fijo al editar. Los cambios pendientes
             se conservan si guardas fila por fila con el ícono ✓.
-            <strong class="font-medium text-gray-700">Guardar</strong> global solo
-            se habilita cuando el stock cuadra.
+            <strong class="font-medium text-gray-700">Guardar</strong> aplica las
+            variantes y sincroniza el stock maestro de la talla.
           </p>
         </section>
       }
@@ -358,9 +363,9 @@
                 }
               </p>
               <p class="mt-2 text-amber-800">
-                El botón <strong>Guardar</strong> global permanece bloqueado hasta
-                cuadrar el total. Mientras tanto, usa el ✓ de cada fila: los demás
-                cambios pendientes ({{ dirtyColorCount() }}) se mantienen en pantalla.
+                Usa <strong>Guardar</strong> para aplicar las variantes y actualizar
+                el stock maestro a <strong>{{ totalAssignedStock() }}</strong> uds.
+                También puedes usar el ✓ de cada fila.
               </p>
             </div>
           </div>

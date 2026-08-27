@@ -7,17 +7,18 @@ export const ACTIVE_WAREHOUSE_STORAGE_KEY = 'active_warehouse_id';
 @Injectable({ providedIn: 'root' })
 export class ActiveWarehouseService {
   /**
-   * Se sincroniza desde auth/me. localStorage solo para selección de admin.
+   * UUID del almacén activo. Se sincroniza desde /auth/me.
+   * Los admins pueden sobreescribirlo desde localStorage.
    */
-  readonly activeWarehouseId = signal<number | null>(null);
+  readonly activeWarehouseId = signal<string | null>(null);
 
-  getActiveWarehouseId(): number | null {
+  getActiveWarehouseId(): string | null {
     return this.activeWarehouseId();
   }
 
   syncFromAuthUser(user: AuthUser): void {
-    const serverWarehouseId: number | null =
-      typeof user.warehouseId === 'number' && user.warehouseId > 0
+    const serverWarehouseId: string | null =
+      typeof user.warehouseId === 'string' && user.warehouseId.length > 0
         ? user.warehouseId
         : null;
 
@@ -32,7 +33,7 @@ export class ActiveWarehouseService {
     }
   }
 
-  setActiveWarehouseId(id: number | null): void {
+  setActiveWarehouseId(id: string | null): void {
     this.activeWarehouseId.set(id);
     this.persistToStorage(id);
   }
@@ -42,19 +43,14 @@ export class ActiveWarehouseService {
     localStorage.removeItem(ACTIVE_WAREHOUSE_STORAGE_KEY);
   }
 
-  private readFromStorage(): number | null {
+  private readFromStorage(): string | null {
     const raw = localStorage.getItem(ACTIVE_WAREHOUSE_STORAGE_KEY);
-    if (raw == null || raw.trim() === '') {
-      return null;
-    }
-
-    const id = Number(raw);
-    return Number.isFinite(id) && id > 0 ? id : null;
+    return raw && raw.trim().length > 0 ? raw.trim() : null;
   }
 
-  private persistToStorage(id: number | null): void {
-    if (id != null && id > 0) {
-      localStorage.setItem(ACTIVE_WAREHOUSE_STORAGE_KEY, String(id));
+  private persistToStorage(id: string | null): void {
+    if (id != null && id.trim().length > 0) {
+      localStorage.setItem(ACTIVE_WAREHOUSE_STORAGE_KEY, id);
     } else {
       localStorage.removeItem(ACTIVE_WAREHOUSE_STORAGE_KEY);
     }

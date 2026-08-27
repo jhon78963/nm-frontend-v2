@@ -12,7 +12,7 @@ export type SaleStatus = 'ACTIVE' | 'CANCELED' | string;
 export type PaymentMethod = 'CASH' | 'YAPE' | 'CARD';
 
 export interface Sale {
-  id: number;
+  id: string;
   code: string;
   creationTime: string;
   total: number;
@@ -40,14 +40,14 @@ export interface SaleFilterState {
 }
 
 export interface SaleItem {
-  id?: number | null;
+  id?: string | null;
   productName: string;
   descriptionFull: string;
   quantity: number;
   unitPrice: number;
   subtotal: number;
-  productSizeId?: number | null;
-  colorId?: number | null;
+  productSizeId?: string | null;
+  colorId?: string | null;
   isNew?: boolean;
 }
 
@@ -63,24 +63,24 @@ export interface SaleDetail extends Sale {
 }
 
 export interface SaleUpdatePayload {
-  id: number;
+  id: string;
   code: string;
   total: number;
   status: SaleStatus;
   creationTime: string;
   items: Array<{
-    id?: number;
+    id?: string;
     quantity: number;
     unit_price: number;
-    product_size_id?: number;
-    color_id?: number;
+    product_size_id?: string;
+    color_id?: string;
   }>;
   payments: Array<{ method: string; amount: number }>;
 }
 
 export interface ProductVariantSelection {
-  productSizeId: number;
-  colorId: number;
+  productSizeId: string;
+  colorId: string;
   name: string;
   sizeName: string;
   colorName: string;
@@ -90,8 +90,8 @@ export interface ProductVariantSelection {
 }
 
 export interface ExchangeItem {
-  saleItemId: number;
-  productId: number;
+  saleItemId: string;
+  productId: string;
   productName: string;
   size: string;
   color: string;
@@ -101,9 +101,9 @@ export interface ExchangeItem {
 }
 
 export interface ExchangeNewItem {
-  variantId: number;
-  productSizeId: number;
-  colorId: number;
+  variantId: string;
+  productSizeId: string;
+  colorId: string;
   productName: string;
   size: string;
   color: string;
@@ -123,27 +123,27 @@ export interface ExchangePreview {
 }
 
 export interface ExchangePayload {
-  saleId: number;
-  returnItems: { saleItemId: number; quantity: number }[];
-  newItems: { variantId: number; quantity: number }[];
+  saleId: string;
+  returnItems: { saleItemId: string; quantity: number }[];
+  newItems: { variantId: string; quantity: number }[];
   paymentMethod: 'cash' | 'yape' | 'card' | null;
   amountPaid: number;
 }
 
 export interface ExchangeResponse {
-  exchangeId: number;
-  newSaleId: number | null;
+  exchangeId: string;
+  newSaleId: string | null;
   refundAmount: number;
   message: string;
 }
 
 export interface ExchangeBackendPayload {
-  returned_detail_id: number;
+  returned_detail_id: string;
   difference_amount: number;
   payment_method: string | null;
   new_item: {
-    product_size_id: number;
-    color_id: number;
+    product_size_id: string;
+    color_id: string;
     final_price: number;
   };
 }

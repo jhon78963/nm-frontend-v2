@@ -47,8 +47,8 @@ import { UserPasswordResetComponent } from '../user-password-reset/user-password
 const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.users;
 
 interface UserFilterState extends SearchPageFilterState {
-  tenantId: number | null;
-  warehouseId: number | null;
+  tenantId: string | null;
+  warehouseId: string | null;
 }
 
 function isUserFilterState(value: unknown): value is UserFilterState {
@@ -57,9 +57,9 @@ function isUserFilterState(value: unknown): value is UserFilterState {
   }
 
   const state = value as UserFilterState;
-  const tenantOk = state.tenantId === null || typeof state.tenantId === 'number';
+  const tenantOk = state.tenantId === null || typeof state.tenantId === 'string';
   const warehouseOk =
-    state.warehouseId === null || typeof state.warehouseId === 'number';
+    state.warehouseId === null || typeof state.warehouseId === 'string';
   return tenantOk && warehouseOk;
 }
 
@@ -100,23 +100,23 @@ export class UsersListComponent implements OnInit {
   protected readonly limit = signal(10);
 
   protected readonly formDialogOpen = signal(false);
-  protected readonly editingUserId = signal<number | null>(null);
+  protected readonly editingUserId = signal<string | null>(null);
 
   protected readonly passwordResetOpen = signal(false);
   protected readonly passwordResetUser = signal<User | null>(null);
 
-  protected readonly disableConfirmId = signal<number | null>(null);
+  protected readonly disableConfirmId = signal<string | null>(null);
   protected readonly disabling = signal(false);
 
   protected readonly filterForm = new FormGroup({
     search: new FormControl('', { nonNullable: true }),
-    tenantId: new FormControl<number | ''>('', { nonNullable: true }),
-    warehouseId: new FormControl<number | ''>('', { nonNullable: true }),
+    tenantId: new FormControl('', { nonNullable: true }),
+    warehouseId: new FormControl('', { nonNullable: true }),
   });
 
   protected readonly currentSearch = signal('');
-  protected readonly currentTenantId = signal<number | null>(null);
-  protected readonly currentWarehouseId = signal<number | null>(null);
+  protected readonly currentTenantId = signal<string | null>(null);
+  protected readonly currentWarehouseId = signal<string | null>(null);
 
   protected readonly canFilterByTenant = computed(() =>
     this.authService.hasPermission('tenant.getAll'),
@@ -126,11 +126,11 @@ export class UsersListComponent implements OnInit {
     this.authService.hasPermission('warehouse.getAll'),
   );
 
-  protected readonly tenantOptions = computed<SelectOption<number>[]>(() =>
+  protected readonly tenantOptions = computed<SelectOption<string>[]>(() =>
     this.tenants().map((tenant) => ({ label: tenant.name, value: tenant.id })),
   );
 
-  protected readonly warehouseOptions = computed<SelectOption<number>[]>(() => {
+  protected readonly warehouseOptions = computed<SelectOption<string>[]>(() => {
     const tenantId = this.currentTenantId();
     const warehouses =
       tenantId === null
@@ -297,7 +297,7 @@ export class UsersListComponent implements OnInit {
     this.formDialogOpen.set(true);
   }
 
-  protected openEdit(id: number): void {
+  protected openEdit(id: string): void {
     this.editingUserId.set(id);
     this.formDialogOpen.set(true);
   }
@@ -307,7 +307,7 @@ export class UsersListComponent implements OnInit {
     this.passwordResetOpen.set(true);
   }
 
-  protected openDisableConfirm(id: number): void {
+  protected openDisableConfirm(id: string): void {
     this.disableConfirmId.set(id);
   }
 
@@ -501,11 +501,7 @@ export class UsersListComponent implements OnInit {
     });
   }
 
-  private toOptionalId(value: number | '' | null): number | null {
-    if (value === '' || value === null) {
-      return null;
-    }
-    const id = typeof value === 'number' ? value : Number(value);
-    return Number.isFinite(id) && id > 0 ? id : null;
+  private toOptionalId(value: string | null): string | null {
+    return value || null;
   }
 }

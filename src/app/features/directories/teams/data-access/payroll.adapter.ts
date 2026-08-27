@@ -123,7 +123,7 @@ function adaptMovements(raw: unknown): PayrollData['movementsMonth'] {
 function adaptPaymentItem(raw: unknown): PayrollPaymentItem {
   const r = raw as Record<string, unknown>;
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     type: readString(r['type'], 'PAYMENT') as PayrollPaymentItem['type'],
     typeLabel: readString(r['typeLabel'] ?? r['type_label'], 'Movimiento'),
     amount: readNumber(r['amount']),
@@ -138,7 +138,7 @@ function adaptPaymentItem(raw: unknown): PayrollPaymentItem {
       r['accounting_period_label']) as string | null,
     description: (r['description']) as string | null,
     syncedToAdmin: Boolean(r['syncedToAdmin'] ?? r['synced_to_admin']),
-    cashMovementId: (r['cashMovementId'] ?? r['cash_movement_id']) as number | null,
+    cashMovementId: (r['cashMovementId'] ?? r['cash_movement_id']) as string | null,
     paymentMethod: (r['paymentMethod'] ?? r['payment_method']) as string | null,
     voucherPath: (r['voucherPath'] ?? r['voucher_path']) as string | null,
     voucherPaths: (r['voucherPaths'] ?? r['voucher_paths'] ?? []) as string[],
@@ -157,7 +157,7 @@ function adaptPayrollData(raw: unknown): PayrollData {
 
   return {
     team: {
-      id: readNumber(team['id']),
+      id: String(team['id'] ?? ''),
       name: readString(team['name']),
       surname: readString(team['surname']),
       dni: readString(team['dni']),
@@ -246,10 +246,11 @@ function adaptPayrollData(raw: unknown): PayrollData {
 }
 
 export function adaptPayrollResponse(raw: unknown): PayrollApiResponse {
-  const r = raw as { success?: boolean; data?: unknown };
+  const r = raw as { success?: boolean; data?: unknown; team?: unknown };
+  const payload = r.data ?? (r.team ? r : undefined);
   return {
     success: Boolean(r.success ?? true),
-    data: adaptPayrollData(r.data),
+    data: adaptPayrollData(payload ?? {}),
   };
 }
 

@@ -40,7 +40,7 @@ export function adaptAccumulatedExpense(raw: Record<string, unknown>): Accumulat
   const method = adaptPaymentMethod(raw['method'] ?? raw['payment_method']);
 
   return {
-    id: toNumber(raw['id']),
+    id: String(raw['id'] ?? ''),
     description: String(raw['description'] ?? ''),
     amount: toNumber(raw['amount']),
     date: String(raw['date'] ?? ''),
@@ -132,7 +132,7 @@ export function adaptMonthEndTransferRecord(
   raw: Record<string, unknown>,
 ): MonthEndTransferRecord {
   return {
-    id: toNumber(raw['id']),
+    id: String(raw['id'] ?? ''),
     transferMonth: String(raw['transferMonth'] ?? raw['transfer_month'] ?? ''),
     monthLabel: String(raw['monthLabel'] ?? raw['month_label'] ?? ''),
     cashAmount: toNumber(raw['cashAmount'] ?? raw['cash_amount']),

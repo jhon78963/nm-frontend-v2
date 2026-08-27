@@ -21,14 +21,14 @@ export class ProductFormWrapperComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  protected readonly productId = signal<number | null>(null);
+  protected readonly productId = signal<string | null>(null);
 
   ngOnInit(): void {
     const id = this.route.parent?.snapshot.paramMap.get('id');
-    this.productId.set(id ? Number(id) : null);
+    this.productId.set(id ?? null);
   }
 
-  protected onSaved(data: { message: string; productId: number }): void {
+  protected onSaved(data: { message: string; productId: string }): void {
     this.router.navigate([`/inventories/products/${data.productId}/sizes`]);
   }
 

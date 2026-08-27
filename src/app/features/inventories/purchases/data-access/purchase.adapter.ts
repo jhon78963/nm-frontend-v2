@@ -24,6 +24,16 @@ function readOptionalNumber(value: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+function readId(value: unknown, fallback = ''): string {
+  return value == null ? fallback : String(value);
+}
+
+function readOptionalId(value: unknown): string | null {
+  if (value == null) return null;
+  const s = String(value).trim();
+  return s === '' ? null : s;
+}
+
 function readString(value: unknown, fallback = ''): string {
   return value == null ? fallback : String(value);
 }
@@ -43,12 +53,12 @@ function readBool(value: unknown): boolean {
 export function adaptPurchaseRow(raw: unknown): PurchaseRow {
   const r = raw as Record<string, unknown>;
   return {
-    id: readNumber(r['id']),
+    id: readId(r['id']),
     supplierName: readString(r['supplierName'] ?? r['supplier_name']),
-    vendorId: readOptionalNumber(r['vendorId'] ?? r['vendor_id']),
+    vendorId: readOptionalId(r['vendorId'] ?? r['vendor_id']),
     documentNote: readOptionalString(r['documentNote'] ?? r['document_note']),
     registeredAt: readOptionalString(r['registeredAt'] ?? r['registered_at']),
-    warehouseId: readNumber(r['warehouseId'] ?? r['warehouse_id'], 1),
+    warehouseId: readId(r['warehouseId'] ?? r['warehouse_id']),
     warehouseName: readOptionalString(r['warehouseName'] ?? r['warehouse_name']) ?? undefined,
     currency: readString(r['currency'], 'PEN'),
     status: readString(r['status'], 'ACTIVE') as PurchaseStatus,
@@ -61,8 +71,8 @@ export function adaptPurchaseRow(raw: unknown): PurchaseRow {
 function adaptColorDelta(raw: unknown): PurchaseLineColorDeltaRow {
   const r = raw as Record<string, unknown>;
   return {
-    id: readNumber(r['id']),
-    colorId: readNumber(r['colorId'] ?? r['color_id']),
+    id: readId(r['id']),
+    colorId: readId(r['colorId'] ?? r['color_id']),
     colorDescription: readOptionalString(r['colorDescription'] ?? r['color_description']) ?? undefined,
     quantity: readNumber(r['quantity'], 1),
   };
@@ -72,14 +82,14 @@ export function adaptPurchaseLineRow(raw: unknown): PurchaseLineRow {
   const r = raw as Record<string, unknown>;
   const deltasRaw = r['colorDeltas'] ?? r['color_deltas'];
   return {
-    id: readNumber(r['id']),
+    id: readId(r['id']),
     lineId: readOptionalString(r['lineId'] ?? r['line_id']),
-    productId: readNumber(r['productId'] ?? r['product_id']),
+    productId: readId(r['productId'] ?? r['product_id']),
     productName: readOptionalString(r['productName'] ?? r['product_name']) ?? undefined,
-    sizeId: readNumber(r['sizeId'] ?? r['size_id']),
+    sizeId: readId(r['sizeId'] ?? r['size_id']),
     sizeDescription: readOptionalString(r['sizeDescription'] ?? r['size_description']) ?? undefined,
-    sizeTypeId: readOptionalNumber(r['sizeTypeId'] ?? r['size_type_id']) ?? undefined,
-    productSizeId: readNumber(r['productSizeId'] ?? r['product_size_id']),
+    sizeTypeId: readOptionalId(r['sizeTypeId'] ?? r['size_type_id']) ?? undefined,
+    productSizeId: readId(r['productSizeId'] ?? r['product_size_id']),
     barcode: readOptionalString(r['barcode']),
     purchasePrice: readOptionalNumber(r['purchasePrice'] ?? r['purchase_price']),
     salePrice: readOptionalNumber(r['salePrice'] ?? r['sale_price']),
@@ -100,7 +110,7 @@ function adaptLinkedPayment(raw: unknown): PurchaseLinkedPayment | null {
   const r = raw as Record<string, unknown>;
   const pathsRaw = r['voucherPaths'] ?? r['voucher_paths'];
   return {
-    cashMovementId: readNumber(r['cashMovementId'] ?? r['cash_movement_id']),
+    cashMovementId: readId(r['cashMovementId'] ?? r['cash_movement_id']),
     amount: readNumber(r['amount']),
     paymentMethod: readString(r['paymentMethod'] ?? r['payment_method']),
     description: readString(r['description']),
@@ -126,16 +136,25 @@ export function adaptPurchaseDetail(raw: unknown): PurchaseDetail {
 }
 
 export function adaptPurchaseList(raw: unknown): PurchaseListResponse {
+  if (Array.isArray(raw)) {
+    return {
+      data: (raw as unknown[]).map(adaptPurchaseRow),
+      paginate: { total: raw.length, pages: 1 },
+    };
+  }
+
   const r = raw as {
     data?: unknown[];
     paginate?: { total?: number; pages?: number };
+    meta?: { total?: number; lastPage?: number };
   };
+
+  const total = r.paginate?.total ?? r.meta?.total ?? 0;
+  const pages = r.paginate?.pages ?? r.meta?.lastPage ?? 1;
+
   return {
     data: (r.data ?? []).map(adaptPurchaseRow),
-    paginate: {
-      total: r.paginate?.total ?? 0,
-      pages: r.paginate?.pages ?? 0,
-    },
+    paginate: { total, pages },
   };
 }
 
@@ -145,17 +164,16 @@ export function adaptPurchaseRegisterBulkResponse(
   const r = raw as Record<string, unknown>;
   return {
     message: readString(r['message'], 'Compra registrada.'),
-    purchaseId: readNumber(r['purchaseId'] ?? r['purchase_id']),
+    purchaseId: readId(r['purchaseId'] ?? r['purchase_id']),
   };
 }
 
 export function adaptProductSizeOption(raw: unknown): ProductSizeOption {
   const row = raw as Record<string, unknown>;
   return {
-    id: readNumber(row['id']),
+    id: readId(row['id']),
     description: readString(row['description']),
-    productSizeId:
-      readOptionalNumber(row['productSizeId'] ?? row['product_size_id']) ?? undefined,
+    productSizeId: readOptionalId(row['productSizeId'] ?? row['product_size_id']) ?? undefined,
     stock: readOptionalNumber(row['stock']) ?? undefined,
     barcode: readOptionalString(row['barcode'] ?? row['bar_code']),
     purchasePrice: readOptionalNumber(row['purchasePrice'] ?? row['purchase_price']),
@@ -167,12 +185,12 @@ export function adaptProductSizeOption(raw: unknown): ProductSizeOption {
 export function adaptProductColorOption(raw: unknown): ProductColorOption {
   const row = raw as Record<string, unknown>;
   return {
-    id: readNumber(row['id']),
+    id: readId(row['id']),
     description: readString(row['description']),
     hash: readOptionalString(row['hash']),
     isExists: readBool(row['isExists'] ?? row['is_exists']),
     stock: readOptionalNumber(row['stock']),
-    productSizeId: readOptionalNumber(row['productSizeId'] ?? row['product_size_id']),
+    productSizeId: readOptionalId(row['productSizeId'] ?? row['product_size_id']),
   };
 }
 

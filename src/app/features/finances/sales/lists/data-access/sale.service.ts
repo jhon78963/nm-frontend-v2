@@ -42,7 +42,7 @@ export class SaleService {
   private readonly http = inject(HttpClient);
   private readonly filterStorage = inject(TableFilterStorageService);
   private readonly base = `${environment.apiUrl}/sales`;
-  private readonly ticketBase = `${environment.apiUrl}/pos/sales`;
+  private readonly ticketBase = `${environment.apiUrl}/tickets`;
 
   getFilterState(): SaleFilterState | null {
     return this.filterStorage.load(FILTER_STORAGE_KEY, isSearchPageFilterState);
@@ -67,7 +67,7 @@ export class SaleService {
       search: params.search?.trim() ?? '',
     });
 
-    let url = `${this.base}?limit=${params.limit}&page=${params.page}`;
+    let url = `${this.base}?perPage=${params.limit}&page=${params.page}`;
     const search = params.search?.trim();
     if (search) {
       url += `&search=${encodeURIComponent(search)}`;
@@ -76,25 +76,25 @@ export class SaleService {
     return this.http.get<unknown>(url).pipe(map(adaptSaleList));
   }
 
-  getOne(id: number): Observable<SaleDetail> {
+  getOne(id: string): Observable<SaleDetail> {
     return this.http.get<unknown>(`${this.base}/${id}`).pipe(map(adaptSaleDetail));
   }
 
-  update(id: number, payload: SaleUpdatePayload): Observable<void> {
+  update(id: string, payload: SaleUpdatePayload): Observable<void> {
     return this.http.patch<void>(`${this.base}/${id}`, payload).pipe(
       switchMap(() => this.reloadWithSavedFilters()),
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );
   }
 
-  cancel(id: number): Observable<void> {
+  cancel(id: string): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`).pipe(
       switchMap(() => this.reloadWithSavedFilters()),
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );
   }
 
-  async openTicketPreview(saleId: number): Promise<void> {
+  async openTicketPreview(saleId: string): Promise<void> {
     const tab = window.open('', '_blank');
     if (!tab) {
       throw new Error(
@@ -110,7 +110,7 @@ export class SaleService {
 
     try {
       const html = await firstValueFrom(
-        this.http.get(`${this.ticketBase}/${saleId}/ticket`, {
+        this.http.get(`${this.ticketBase}/${saleId}`, {
           responseType: 'text',
         }),
       );

@@ -28,7 +28,7 @@ const DEFAULT_WAREHOUSE_NAME = 'Novedades Maritex';
 export class PosService {
   private readonly http = inject(HttpClient);
   private readonly authService = inject(AuthService);
-  private readonly base = `${environment.apiUrl}/pos`;
+  private readonly base = `${environment.apiUrl}`;
 
   // ── State ─────────────────────────────────────────────────────────────────
 
@@ -42,7 +42,7 @@ export class PosService {
   readonly toastMessage = signal<string | null>(null);
   readonly isLoading = signal(false);
   readonly documentType = signal<DocumentType>('TICKET_INTERNO');
-  readonly lastSaleIdForReprint = signal<number | null>(null);
+  readonly lastSaleIdForReprint = signal<string | null>(null);
   readonly receiptPreviewOpen = signal(false);
   readonly pendingReceiptData = signal<ReceiptData | null>(null);
   readonly pendingReceiptHtml = signal<string | null>(null);
@@ -66,8 +66,8 @@ export class PosService {
     this.isLoading.set(true);
     try {
       return await firstValueFrom(
-        this.http.get<Product>(`${this.base}/products`, {
-          params: new HttpParams().set('sku', sku),
+        this.http.get<Product>(`${this.base}/products/pos-search`, {
+          params: new HttpParams().set('q', sku),
         }),
       );
     } catch (error) {
@@ -101,8 +101,8 @@ export class PosService {
     this.isLoading.set(true);
     try {
       const customer = await firstValueFrom(
-        this.http.get<Customer>(`${this.base}/customers`, {
-          params: new HttpParams().set('dni', dni),
+        this.http.get<Customer>(`${this.base}/customers/pos-search`, {
+          params: new HttpParams().set('q', dni),
         }),
       );
       this.currentCustomer.set(customer);
@@ -135,48 +135,49 @@ export class PosService {
       payments,
     };
 
+    const user = this.authService.currentUser();
+    const warehouseId = user?.warehouseId ?? '';
+
+    const docTypeRaw = this.documentType();
+    const documentType =
+      docTypeRaw === 'TICKET_INTERNO' ? 'TICKET' : docTypeRaw;
+
     const payload = {
-      document_type: this.documentType(),
-      serie: this.serie() || undefined,
-      customer: { id: this.currentCustomer()?.id },
-      total: this.grandTotal(),
-      payments,
+      warehouseId,
+      documentType,
+      customerId: this.currentCustomer()?.id ?? undefined,
+      payments: payments.map((p) => ({
+        method: p.method,
+        amount: p.amount,
+      })),
       items: this.cart().map((item) => ({
-        name: item.name,
+        productSizeId: item.color.product_size_id,
+        colorId: item.color.color_id || undefined,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
-        total: item.total,
-        size: item.size,
-        color: {
-          product_size_id: item.color.product_size_id,
-          color_id: item.color.color_id,
-          colorName: item.color.colorName,
-          hex: item.color.hex,
-          inventory: item.color.inventory,
-        },
       })),
     };
 
     try {
       const response = await firstValueFrom(
-        this.http.post<CheckoutResponse>(`${this.base}/checkout`, payload),
+        this.http.post<{ sale: { id: string; code: string; totalAmount: number }; ticketUrl?: string }>(
+          `${this.base}/checkout`,
+          payload,
+        ),
       );
 
-      if (response?.success) {
-        const saleId = response.sale_id;
-        this.lastSaleIdForReprint.set(saleId ?? null);
-        this.clearCart();
-        this.showToast(`Venta #${saleId} registrada`, 4_000);
+      const saleId = response?.sale?.id ?? null;
+      this.lastSaleIdForReprint.set(saleId);
+      this.clearCart();
+      this.showToast(`Venta #${response?.sale?.code ?? saleId} registrada`, 4_000);
 
-        if (saleId != null) {
-          await this.handleSuccessfulCheckout(saleId, response, checkoutSnapshot);
-        }
-      } else {
-        const raw = response?.message ?? response?.error;
-        const msg = Array.isArray(raw) ? raw[0] : raw;
-        this.showToast(
-          typeof msg === 'string' && msg.trim() ? msg : 'La venta no pudo procesarse',
-        );
+      if (saleId != null) {
+        const legacyResponse: CheckoutResponse = {
+          success: true,
+          sale_id: saleId,
+          ticket_url: response.ticketUrl,
+        };
+        await this.handleSuccessfulCheckout(saleId, legacyResponse, checkoutSnapshot);
       }
     } catch (error: unknown) {
       if (error instanceof HttpErrorResponse) {
@@ -207,11 +208,11 @@ export class PosService {
     this.showToast('Ítem actualizado');
   }
 
-  removeItem(cartId: number): void {
+  removeItem(cartId: string): void {
     this.cart.update((items) => items.filter((i) => i.cartId !== cartId));
   }
 
-  updateQuantity(cartId: number, delta: number): void {
+  updateQuantity(cartId: string, delta: number): void {
     this.cart.update((items) =>
       items.map((item) => {
         if (item.cartId !== cartId) return item;
@@ -300,7 +301,7 @@ export class PosService {
     }
   }
 
-  async printTicket(saleId: number, options?: { userGesture?: boolean }): Promise<void> {
+  async printTicket(saleId: string, options?: { userGesture?: boolean }): Promise<void> {
     try {
       const html = await this.fetchTicketHtml(saleId);
       if (options?.userGesture && this.isMobileBrowser()) {
@@ -314,7 +315,7 @@ export class PosService {
   }
 
   private async handleSuccessfulCheckout(
-    saleId: number,
+    saleId: string,
     response: CheckoutResponse,
     snapshot: {
       cart: CartItem[];
@@ -367,7 +368,7 @@ export class PosService {
     return fullName || user.username;
   }
 
-  private buildFallbackReceiptData(saleId: number): ReceiptData {
+  private buildFallbackReceiptData(saleId: string): ReceiptData {
     const now = new Date();
     const pad = (value: number) => String(value).padStart(2, '0');
 
@@ -391,9 +392,9 @@ export class PosService {
     };
   }
 
-  private fetchTicketHtml(saleId: number): Promise<string> {
+  private fetchTicketHtml(saleId: string): Promise<string> {
     return firstValueFrom(
-      this.http.get(`${this.base}/sales/${saleId}/ticket`, { responseType: 'text' }),
+      this.http.get(`${this.base}/tickets/${saleId}`, { responseType: 'text' }),
     );
   }
 

@@ -61,7 +61,7 @@ export class ProductEcommerceStepComponent implements OnInit {
   private readonly wooCommerceService = inject(WooCommerceService);
   private readonly productColorsService = inject(ProductColorsService);
 
-  protected readonly productId = signal(0);
+  protected readonly productId = signal('');
   protected readonly product = signal<PublishProduct | null>(null);
   protected readonly ecommerceState = signal<EcommerceStepState | null>(null);
   protected readonly variants = signal<EcommerceVariantRow[]>([]);
@@ -112,8 +112,8 @@ export class ProductEcommerceStepComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    const id = Number(this.route.parent?.snapshot.paramMap.get('id'));
-    this.productId.set(Number.isFinite(id) ? id : 0);
+    const id = this.route.parent?.snapshot.paramMap.get('id') ?? '';
+    this.productId.set(id);
     this.load();
   }
 

@@ -26,7 +26,7 @@ export function adaptAiProductOption(raw: unknown): AiProductOption {
   const record = raw as Record<string, unknown>;
 
   return {
-    id: readNumber(record['id']),
+    id: String(record['id'] ?? ''),
     name: readString(record['name']),
     gender: readString(record['gender']),
     stock: readNumber(record['stock']),
@@ -54,7 +54,7 @@ export function adaptAiProductContext(raw: unknown): AiProductContext {
   const record = raw as Record<string, unknown>;
 
   return {
-    productId: readNumber(record['productId'] ?? record['product_id']),
+    productId: String(record['productId'] ?? record['product_id'] ?? ''),
     productName: readString(record['productName'] ?? record['product_name']),
     currentCost: readNumber(record['currentCost'] ?? record['current_cost']),
     category: readString(record['category']),
@@ -75,7 +75,7 @@ export function adaptPriceOptimizationResult(raw: unknown): PriceOptimizationRes
   const record = raw as Record<string, unknown>;
 
   return {
-    productId: readNumber(record['product_id'] ?? record['productId']),
+    productId: String(record['product_id'] ?? record['productId'] ?? ''),
     suggestedPrice: readNumber(record['suggested_price'] ?? record['suggestedPrice']),
     minimumPrice: readNumber(record['minimum_price'] ?? record['minimumPrice']),
     expectedMarginIncrease: readNumber(
@@ -94,7 +94,7 @@ export function adaptDemandPredictionResult(raw: unknown): DemandPredictionResul
   const record = raw as Record<string, unknown>;
 
   return {
-    productId: readNumber(record['product_id'] ?? record['productId']),
+    productId: String(record['product_id'] ?? record['productId'] ?? ''),
     projectedSales: readNumber(record['projected_sales'] ?? record['projectedSales']),
     suggestedPurchaseQuantity: readNumber(
       record['suggested_purchase_quantity'] ?? record['suggestedPurchaseQuantity'],

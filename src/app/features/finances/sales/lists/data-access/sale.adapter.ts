@@ -87,7 +87,7 @@ export function adaptSale(raw: unknown): Sale {
   const r = raw as Record<string, unknown>;
 
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     code: readString(r['code']),
     creationTime: readString(r['creationTime'] ?? r['creation_time'] ?? r['date']),
     total: readNumber(r['total']),
@@ -114,17 +114,25 @@ export function adaptSale(raw: unknown): Sale {
 }
 
 export function adaptSaleList(raw: unknown): SaleListResponse {
+  if (Array.isArray(raw)) {
+    return {
+      data: (raw as unknown[]).map(adaptSale),
+      paginate: { total: raw.length, pages: 1 },
+    };
+  }
+
   const r = raw as {
-    data: unknown[];
-    paginate: { total: number; pages: number };
+    data?: unknown[];
+    paginate?: { total?: number; pages?: number };
+    meta?: { total?: number; lastPage?: number };
   };
 
+  const total = readNumber(r.paginate?.total ?? r.meta?.total);
+  const pages = readNumber(r.paginate?.pages ?? r.meta?.lastPage, 1);
+
   return {
-    data: r.data.map(adaptSale),
-    paginate: {
-      total: readNumber(r.paginate?.total),
-      pages: readNumber(r.paginate?.pages, 1),
-    },
+    data: (r.data ?? []).map(adaptSale),
+    paginate: { total, pages },
   };
 }
 
@@ -135,7 +143,7 @@ function adaptSaleItem(raw: unknown): SaleItem {
   const subtotal = readNumber(r['subtotal'], quantity * unitPrice);
 
   return {
-    id: r['id'] != null ? readNumber(r['id']) : null,
+    id: r['id'] != null ? String(r['id']) : null,
     productName: readString(r['product_name'] ?? r['productName']),
     descriptionFull: readString(r['description_full'] ?? r['descriptionFull']),
     quantity,
@@ -143,11 +151,11 @@ function adaptSaleItem(raw: unknown): SaleItem {
     subtotal,
     productSizeId:
       r['product_size_id'] != null || r['productSizeId'] != null
-        ? readNumber(r['product_size_id'] ?? r['productSizeId'])
+        ? String(r['product_size_id'] ?? r['productSizeId'])
         : null,
     colorId:
       r['color_id'] != null || r['colorId'] != null
-        ? readNumber(r['color_id'] ?? r['colorId'])
+        ? String(r['color_id'] ?? r['colorId'])
         : null,
     isNew: false,
   };

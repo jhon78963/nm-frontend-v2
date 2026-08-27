@@ -37,7 +37,7 @@ import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
 import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
 import {
-  isNumberArray,
+  isStringArray,
   isSearchPageFilterState,
   SearchPageFilterState,
 } from '../../../../../core/table-filters/table-filter-state.util';
@@ -48,7 +48,7 @@ import { Product, Gender } from '../../models/product.model';
 const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.products;
 
 interface ProductFilterState extends SearchPageFilterState {
-  genderIds: number[];
+  genderIds: string[];
 }
 
 function isProductFilterState(value: unknown): value is ProductFilterState {
@@ -56,7 +56,7 @@ function isProductFilterState(value: unknown): value is ProductFilterState {
     return false;
   }
 
-  return isNumberArray((value as ProductFilterState).genderIds);
+  return isStringArray((value as ProductFilterState).genderIds);
 }
 
 @Component({
@@ -93,11 +93,11 @@ export class ProductsListComponent implements OnInit {
   protected readonly page = signal(1);
   protected readonly limit = signal(10);
 
-  protected readonly deleteConfirmId = signal<number | null>(null);
+  protected readonly deleteConfirmId = signal<string | null>(null);
   protected readonly deleting = signal(false);
 
   protected readonly genders = signal<Gender[]>([]);
-  protected readonly selectedGenderIds = signal<number[]>([]);
+  protected readonly selectedGenderIds = signal<string[]>([]);
 
   protected readonly isExporting = signal(false);
   protected readonly isImporting = signal(false);
@@ -270,7 +270,7 @@ export class ProductsListComponent implements OnInit {
     });
   }
 
-  protected openDeleteConfirm(id: number): void {
+  protected openDeleteConfirm(id: string): void {
     this.deleteConfirmId.set(id);
   }
 
@@ -319,14 +319,14 @@ export class ProductsListComponent implements OnInit {
     this.loadProducts();
   }
 
-  protected handleGenderSelection(ids: number[]): void {
+  protected handleGenderSelection(ids: string[]): void {
     this.selectedGenderIds.set(ids);
     this.page.set(1);
     this.persistFilters();
     this.loadProducts();
   }
 
-  protected toggleGender(id: number): void {
+  protected toggleGender(id: string): void {
     const current = this.selectedGenderIds();
     const next = current.includes(id)
       ? current.filter((genderId) => genderId !== id)
@@ -334,7 +334,7 @@ export class ProductsListComponent implements OnInit {
     this.handleGenderSelection(next);
   }
 
-  protected isGenderSelected(id: number): boolean {
+  protected isGenderSelected(id: string): boolean {
     return this.selectedGenderIds().includes(id);
   }
 

@@ -19,7 +19,7 @@ export class ProductMediaService {
   private readonly base = `${environment.apiUrl}/products`;
 
   uploadImage(
-    productId: number,
+    productId: string,
     file: File,
   ): Observable<HttpResponse<ProductMediaUploadResponse>> {
     const formData = new FormData();
@@ -41,8 +41,8 @@ export class ProductMediaService {
   }
 
   deleteImage(
-    productId: number,
-    mediaId: number,
+    productId: string,
+    mediaId: string,
   ): Observable<HttpResponse<ProductMediaDeleteResponse>> {
     return this.http
       .delete<unknown>(`${this.base}/${productId}/media/${mediaId}`, {
@@ -59,7 +59,7 @@ export class ProductMediaService {
       );
   }
 
-  getPreviewBlob(productId: number, mediaId: number): Observable<Blob> {
+  getPreviewBlob(productId: string, mediaId: string): Observable<Blob> {
     return this.http.get(`${this.base}/${productId}/media/${mediaId}/preview`, {
       responseType: 'blob',
     });
@@ -72,7 +72,7 @@ export class WooCommerceService {
   private readonly base = `${environment.apiUrl}/products`;
 
   syncProduct(
-    productId: number,
+    productId: string,
   ): Observable<HttpResponse<WooCommerceSyncResponse>> {
     return this.http
       .post<unknown>(`${this.base}/${productId}/woocommerce/sync`, {}, {

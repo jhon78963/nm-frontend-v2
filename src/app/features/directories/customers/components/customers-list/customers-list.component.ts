@@ -72,9 +72,9 @@ export class CustomersListComponent implements OnInit {
   protected readonly limit = signal(10);
 
   protected readonly formDialogOpen = signal(false);
-  protected readonly editingCustomerId = signal<number | null>(null);
+  protected readonly editingCustomerId = signal<string | null>(null);
 
-  protected readonly deleteConfirmId = signal<number | null>(null);
+  protected readonly deleteConfirmId = signal<string | null>(null);
   protected readonly deleting = signal(false);
 
   protected readonly filterForm = new FormGroup({
@@ -187,12 +187,12 @@ export class CustomersListComponent implements OnInit {
     this.formDialogOpen.set(true);
   }
 
-  protected openEdit(id: number): void {
+  protected openEdit(id: string): void {
     this.editingCustomerId.set(id);
     this.formDialogOpen.set(true);
   }
 
-  protected openDeleteConfirm(id: number): void {
+  protected openDeleteConfirm(id: string): void {
     this.deleteConfirmId.set(id);
   }
 

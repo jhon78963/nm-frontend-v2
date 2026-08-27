@@ -34,7 +34,7 @@ function adaptWooCommerceSync(raw: unknown): WooCommerceSyncResult {
 export function adaptPublishMediaItem(raw: unknown): PublishMediaItem {
   const r = raw as Record<string, unknown>;
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     filePath: readString(r['filePath']),
     publicUrl: r['publicUrl'] ? readString(r['publicUrl']) : null,
     fileName: r['fileName'] ? readString(r['fileName']) : null,
@@ -45,7 +45,7 @@ export function adaptMediaUploadResponse(raw: unknown): ProductMediaUploadRespon
   const r = raw as Record<string, unknown>;
   return {
     message: readString(r['message']),
-    productId: readNumber(r['productId']),
+    productId: String(r['productId'] ?? ''),
     media: adaptPublishMediaItem(r['media']),
     wooCommerceSync: adaptWooCommerceSync(r['wooCommerceSync']),
   };
@@ -55,8 +55,8 @@ export function adaptMediaDeleteResponse(raw: unknown): ProductMediaDeleteRespon
   const r = raw as Record<string, unknown>;
   return {
     message: readString(r['message']),
-    productId: readNumber(r['productId']),
-    deletedMediaId: readNumber(r['deletedMediaId']),
+    productId: String(r['productId'] ?? ''),
+    deletedMediaId: String(r['deletedMediaId'] ?? ''),
     wooCommerceSync: adaptWooCommerceSync(r['wooCommerceSync']),
   };
 }
@@ -66,7 +66,7 @@ export function adaptWooCommerceSyncResponse(raw: unknown): WooCommerceSyncRespo
   return {
     message: readString(r['message']),
     wooCommerceSync: adaptWooCommerceSync(r['wooCommerceSync']),
-    wooProductId: r['wooProductId'] != null ? readNumber(r['wooProductId']) : null,
+    wooProductId: r['wooProductId'] != null ? String(r['wooProductId']) : null,
     lastSyncedAt: r['lastSyncedAt'] ? readString(r['lastSyncedAt']) : null,
   };
 }

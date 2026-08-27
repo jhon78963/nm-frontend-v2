@@ -1,7 +1,7 @@
 export interface Warehouse {
-  id: number;
+  id: string;
   name: string;
-  tenantId: number | null;
+  tenantId: string | null;
 }
 
 export interface WarehouseListResponse {
@@ -11,15 +11,15 @@ export interface WarehouseListResponse {
 
 export interface WarehousePayload {
   name: string;
-  tenantId: number;
+  tenantId: string;
 }
 
 export interface WarehouseFormModel {
   name: string;
-  tenantId: number | null;
+  tenantId: string | null;
 }
 
 export interface TenantLookupOption {
-  id: number;
+  id: string;
   name: string;
 }

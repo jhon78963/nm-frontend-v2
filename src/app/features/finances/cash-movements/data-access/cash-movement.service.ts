@@ -16,14 +16,13 @@ const ALL_PAYMENT_FILTERS: PaymentMethod[] = ['CASH', 'YAPE', 'CARD'];
 @Service()
 export class CashMovementService {
   private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apiUrl}/cash-flow`;
+  private readonly base = `${environment.apiUrl}/cashflow`;
 
   private readonly reportState = signal<CashDailyReport>(EMPTY_CASH_DAILY_REPORT);
   readonly report = this.reportState.asReadonly();
 
   loadDailyReport(date: string): Observable<CashDailyReport> {
-    const filterParams = ALL_PAYMENT_FILTERS.map((f) => `filters[]=${f}`).join('&');
-    const url = `${this.base}/daily?date=${date}&${filterParams}`;
+    const url = `${this.base}/daily?date=${date}`;
 
     return this.http.get<unknown>(url).pipe(
       map((response) => adaptCashDailyReport(response)),
@@ -35,28 +34,27 @@ export class CashMovementService {
     payload: MovementPayload,
     viewDate: string,
   ): Observable<CashDailyReport> {
-    const formData = this.buildFormData(payload);
+    const body = this.buildJsonPayload(payload);
 
-    return this.http.post<unknown>(this.base, formData).pipe(
+    return this.http.post<unknown>(this.base, body).pipe(
       switchMap(() => this.loadDailyReport(viewDate)),
     );
   }
 
   updateMovement(
-    id: number,
+    id: string,
     payload: MovementPayload,
     viewDate: string,
   ): Observable<CashDailyReport> {
-    const formData = this.buildFormData(payload);
-    formData.append('_method', 'PUT');
+    const body = this.buildJsonPayload(payload);
 
-    return this.http.post<unknown>(`${this.base}/${id}`, formData).pipe(
+    return this.http.patch<unknown>(`${this.base}/${id}`, body).pipe(
       switchMap(() => this.loadDailyReport(viewDate)),
     );
   }
 
   deleteMovement(
-    id: number,
+    id: string,
     viewDate: string,
   ): Observable<CashDailyReport> {
     return this.http.delete<unknown>(`${this.base}/${id}`).pipe(
@@ -72,14 +70,15 @@ export class CashMovementService {
     return formatIsoDate(new Date());
   }
 
-  private buildFormData(payload: MovementPayload): FormData {
-    const formData = new FormData();
-    formData.append('type', payload.type);
-    formData.append('category', payload.category satisfies MovementCategory);
-    formData.append('amount', payload.amount.toString());
-    formData.append('description', payload.description);
-    formData.append('date', payload.date);
-    formData.append('payment_method', payload.payment_method);
-    return formData;
+  private buildJsonPayload(payload: MovementPayload): Record<string, unknown> {
+    return {
+      type: payload.type,
+      category: payload.category satisfies MovementCategory,
+      amount: payload.amount,
+      description: payload.description,
+      date: payload.date,
+      paymentMethod: payload.payment_method,
+      accountingMonth: payload.date.slice(0, 7),
+    };
   }
 }

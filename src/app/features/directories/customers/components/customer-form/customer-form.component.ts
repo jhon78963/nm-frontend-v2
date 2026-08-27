@@ -39,7 +39,7 @@ export class CustomerFormComponent implements OnInit {
   private readonly customerService = inject(CustomerService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly customerId = input<number | null>(null);
+  readonly customerId = input<string | null>(null);
 
   readonly saved = output<string>();
   readonly closed = output<void>();

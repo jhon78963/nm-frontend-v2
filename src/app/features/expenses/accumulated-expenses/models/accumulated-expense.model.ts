@@ -1,7 +1,7 @@
 export type AccumulatedPaymentMethod = 'CASH' | 'YAPE' | 'CARD' | 'TRANSFER';
 
 export interface AccumulatedExpense {
-  id: number;
+  id: string;
   description: string;
   amount: number;
   date: string;

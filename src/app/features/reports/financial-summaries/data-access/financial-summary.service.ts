@@ -15,8 +15,8 @@ import {
 @Service()
 export class FinancialSummaryService {
   private readonly http = inject(HttpClient);
-  private readonly summaryBase = `${environment.apiUrl}/financial/summary`;
-  private readonly cashFlowBase = `${environment.apiUrl}/cash-flow`;
+  private readonly summaryBase = `${environment.apiUrl}/financial-summary`;
+  private readonly cashFlowBase = `${environment.apiUrl}/cashflow`;
 
   private readonly summaryState = signal<FinancialSummary>(EMPTY_FINANCIAL_SUMMARY);
   readonly summary = this.summaryState.asReadonly();
@@ -29,9 +29,9 @@ export class FinancialSummaryService {
   }
 
   registerQuickMovement(input: QuickMovementInput): Observable<FinancialSummary> {
-    const formData = buildQuickMovementFormData(input);
+    const body = buildQuickMovementFormData(input);
 
-    return this.http.post<unknown>(this.cashFlowBase, formData).pipe(
+    return this.http.post<unknown>(this.cashFlowBase, body).pipe(
       switchMap(() => this.loadSummary()),
     );
   }

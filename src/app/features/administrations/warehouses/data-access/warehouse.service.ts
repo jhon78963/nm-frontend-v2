@@ -39,21 +39,21 @@ export class WarehouseService {
     limit: number;
     page: number;
     search?: string;
-    tenantId?: number | null;
+    tenantId?: string | null;
   }): Observable<WarehouseListResponse> {
     let url = `${this.base}?limit=${params.limit}&page=${params.page}`;
 
     if (params.search?.trim()) {
       url += `&search=${encodeURIComponent(params.search.trim())}`;
     }
-    if (params.tenantId != null && params.tenantId > 0) {
+    if (params.tenantId) {
       url += `&tenant_id=${params.tenantId}`;
     }
 
     return this.http.get<unknown>(url).pipe(map(adaptWarehouseList));
   }
 
-  getOne(id: number): Observable<Warehouse> {
+  getOne(id: string): Observable<Warehouse> {
     return this.http.get<unknown>(`${this.base}/${id}`).pipe(map(adaptWarehouse));
   }
 
@@ -63,13 +63,13 @@ export class WarehouseService {
     );
   }
 
-  update(id: number, data: Partial<WarehousePayload>): Observable<{ message: string }> {
+  update(id: string, data: Partial<WarehousePayload>): Observable<{ message: string }> {
     return this.http.patch<{ message: string }>(`${this.base}/${id}`, data).pipe(
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );
   }
 
-  delete(id: number): Observable<{ message: string }> {
+  delete(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.base}/${id}`).pipe(
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );

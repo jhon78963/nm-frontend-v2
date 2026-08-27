@@ -77,7 +77,7 @@ export class SalesPeriodReportComponent implements OnInit {
     from: firstDayOfMonthIsoDate(),
     to: todayIsoDate(),
   });
-  protected readonly selectedWarehouseId = signal<number | null>(null);
+  protected readonly selectedWarehouseId = signal<string | null>(null);
   protected readonly report = signal<PeriodSalesReport | null>(null);
   protected readonly expandedRows = signal<Set<string>>(new Set());
   protected readonly loadingRows = signal<Set<string>>(new Set());

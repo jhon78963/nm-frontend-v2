@@ -55,7 +55,7 @@ export class SaleExchangeComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
 
-  readonly saleId = input.required<number>();
+  readonly saleId = input.required<string>();
   readonly close = output<void>();
   readonly exchangeCompleted = output<ExchangeResponse>();
 
@@ -63,7 +63,7 @@ export class SaleExchangeComponent implements OnInit {
   protected readonly saleCode = signal('');
   protected readonly saleCustomer = signal('');
   protected readonly originalItems = signal<ExchangeItem[]>([]);
-  protected readonly returnSelection = signal<Map<number, number>>(new Map());
+  protected readonly returnSelection = signal<Map<string, number>>(new Map());
   protected readonly newItems = signal<ExchangeNewItem[]>([]);
   protected readonly preview = signal<ExchangePreview | null>(null);
   protected readonly isLoading = signal(true);
@@ -156,7 +156,7 @@ export class SaleExchangeComponent implements OnInit {
 
   protected toggleReturnItem(item: ExchangeItem, checked: boolean): void {
     this.returnSelection.update((current) => {
-      const next = new Map<number, number>();
+      const next = new Map<string, number>();
       if (checked) {
         next.set(item.saleItemId, item.quantity);
       }
@@ -212,13 +212,13 @@ export class SaleExchangeComponent implements OnInit {
     ]);
   }
 
-  protected removeNewItem(variantId: number): void {
+  protected removeNewItem(variantId: string): void {
     this.newItems.update((items) =>
       items.filter((item) => item.variantId !== variantId),
     );
   }
 
-  protected updateNewItemQuantity(variantId: number, rawValue: string | number): void {
+  protected updateNewItemQuantity(variantId: string, rawValue: string | number): void {
     const parsed = Number(rawValue);
     const quantity = Number.isFinite(parsed) ? Math.max(1, Math.trunc(parsed)) : 1;
 
@@ -235,7 +235,7 @@ export class SaleExchangeComponent implements OnInit {
     );
   }
 
-  protected updateNewItemPrice(variantId: number, value: number | null): void {
+  protected updateNewItemPrice(variantId: string, value: number | null): void {
     const unitPrice = value ?? 0;
 
     this.newItems.update((items) =>
@@ -401,7 +401,7 @@ export class SaleExchangeComponent implements OnInit {
       return;
     }
 
-    const warehouseId = this.authService.currentUser()?.warehouseId ?? 0;
+    const warehouseId = this.authService.currentUser()?.warehouseId ?? '';
     this.isSearching.set(true);
 
     this.exchangeService

@@ -38,10 +38,10 @@ function extractErrorMessage(err: unknown): string {
 
 function appendWarehouseParams(
   params: HttpParams,
-  warehouseId: number | undefined,
+  warehouseId: string | undefined,
 ): HttpParams {
-  if (warehouseId && warehouseId > 0) {
-    return params.set('warehouse_id', String(warehouseId));
+  if (warehouseId && warehouseId.trim().length > 0) {
+    return params.set('warehouse_id', warehouseId);
   }
 
   return params;
@@ -57,7 +57,7 @@ export class SalesReportService {
     params = appendWarehouseParams(params, filters.warehouseId);
 
     return this.http.get<unknown>(`${this.base}/daily`, { params }).pipe(
-      map((raw) => adaptDailySalesReport(raw, filters.warehouseId ?? 0)),
+      map((raw) => adaptDailySalesReport(raw, filters.warehouseId ?? '')),
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );
   }
@@ -72,7 +72,7 @@ export class SalesReportService {
     params = appendWarehouseParams(params, filters.warehouseId);
 
     return this.http.get<unknown>(`${this.base}/monthly`, { params }).pipe(
-      map((raw) => adaptMonthlySalesReport(raw, filters.warehouseId ?? 0)),
+      map((raw) => adaptMonthlySalesReport(raw, filters.warehouseId ?? '')),
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );
   }
@@ -86,7 +86,7 @@ export class SalesReportService {
     return this.http
       .get<unknown>(`${environment.apiUrl}/reports/sales/daily-period`, { params })
       .pipe(
-        map((raw) => adaptPeriodSalesReport(raw, filters.warehouseId ?? 0)),
+        map((raw) => adaptPeriodSalesReport(raw, filters.warehouseId ?? '')),
         catchError((err) => throwError(() => extractErrorMessage(err))),
       );
   }
@@ -121,7 +121,7 @@ export class SalesReportService {
   private exportPdf(
     url: string,
     value: string | undefined,
-    warehouseId: number | undefined,
+    warehouseId: string | undefined,
     paramName: 'date' | 'month' = 'date',
   ): Observable<Blob> {
     let params = new HttpParams();

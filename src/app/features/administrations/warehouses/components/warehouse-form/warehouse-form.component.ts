@@ -39,7 +39,7 @@ export class WarehouseFormComponent implements OnInit {
   private readonly lookupService = inject(WarehouseLookupService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly warehouseId = input<number | null>(null);
+  readonly warehouseId = input<string | null>(null);
 
   readonly saved = output<string>();
   readonly closed = output<void>();
@@ -48,7 +48,7 @@ export class WarehouseFormComponent implements OnInit {
   protected readonly saving = signal(false);
   protected readonly loadError = signal('');
 
-  protected readonly tenantOptions = signal<SelectOption<number>[]>([]);
+  protected readonly tenantOptions = signal<SelectOption<string>[]>([]);
 
   protected readonly formModel = signal<WarehouseFormModel>({ ...EMPTY_FORM });
 

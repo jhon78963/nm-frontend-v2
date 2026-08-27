@@ -64,7 +64,7 @@ export class TeamPayrollComponent implements OnInit {
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly teamId = signal(0);
+  protected readonly teamId = signal('');
   protected readonly team = signal<Team | null>(null);
   protected readonly viewMonth = signal(new Date().getMonth());
   protected readonly viewYear = signal(new Date().getFullYear());
@@ -72,8 +72,9 @@ export class TeamPayrollComponent implements OnInit {
   protected readonly loading = signal(true);
   protected readonly data = signal<PayrollData | null>(null);
   protected readonly savingPayment = signal(false);
-  protected readonly deletingPaymentId = signal<number | null>(null);
+  protected readonly deletingPaymentId = signal<string | null>(null);
   protected readonly deleteConfirmItem = signal<PayrollPaymentItem | null>(null);
+  protected readonly editingPayment = signal<PayrollPaymentItem | null>(null);
   protected readonly voucherFiles = signal<File[]>([]);
 
   protected readonly periodOptions = [
@@ -132,12 +133,14 @@ export class TeamPayrollComponent implements OnInit {
     () => this.data()?.paymentItems ?? [],
   );
 
+  protected readonly isEditingPayment = computed(() => this.editingPayment() !== null);
+
   protected readonly tableColumns: TableDataColumn<PayrollPaymentItem>[] = [
     { key: 'date', label: 'Fecha' },
     { key: 'type', label: 'Tipo', mobilePrimary: true },
     { key: 'period', label: 'Quincena' },
     { key: 'amount', label: 'Monto', align: 'right' },
-    { key: 'actions', label: '', align: 'right', className: 'w-16' },
+    { key: 'actions', label: '', align: 'right', className: 'w-24' },
   ];
 
   protected readonly emptyState: TableDataEmptyState = {
@@ -149,8 +152,8 @@ export class TeamPayrollComponent implements OnInit {
     this.route.paramMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((params) => {
-        const id = Number(params.get('teamId'));
-        if (!id || Number.isNaN(id)) {
+        const id = params.get('teamId');
+        if (!id) {
           this.toastService.show('error', 'No se indicó un colaborador válido.');
           void this.router.navigate(['/directories/teams']);
           return;
@@ -223,17 +226,53 @@ export class TeamPayrollComponent implements OnInit {
   }
 
   protected submitPayment(): void {
+    if (this.savingPayment()) {
+      return;
+    }
+    this.savingPayment.set(true);
+
     this.paymentForm.markAllAsTouched();
     const amount = this.paymentForm.controls.amount.value;
     if (!amount || amount <= 0) {
+      this.savingPayment.set(false);
       this.toastService.show('error', 'Indica un monto válido.');
       return;
     }
 
     const form = this.paymentForm.getRawValue();
     const date = new Date(`${form.date}T12:00:00`);
+    const editing = this.editingPayment();
 
-    this.savingPayment.set(true);
+    if (editing) {
+      this.payrollService
+        .updatePayment(editing.id, {
+          type: form.type,
+          amount,
+          date: formatDateTimeForApi(date),
+          description: form.description,
+          paymentMethod: form.paymentMethod,
+          payrollPeriod: form.payrollPeriod,
+          accountingMonth: form.accountingMonth,
+        })
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            this.savingPayment.set(false);
+            this.toastService.show('success', 'Movimiento actualizado.');
+            this.cancelEditPayment();
+            this.loadPayroll();
+          },
+          error: (err: unknown) => {
+            this.savingPayment.set(false);
+            this.toastService.show(
+              'error',
+              typeof err === 'string' ? err : 'No se pudo actualizar el movimiento.',
+            );
+          },
+        });
+      return;
+    }
+
     this.payrollService
       .registerPayment({
         teamId: this.teamId(),
@@ -270,6 +309,28 @@ export class TeamPayrollComponent implements OnInit {
       });
   }
 
+  protected openEditPayment(item: PayrollPaymentItem): void {
+    this.editingPayment.set(item);
+    this.paymentForm.reset({
+      type: item.type,
+      amount: item.amount,
+      date: item.date.slice(0, 10),
+      accountingMonth: item.accountingMonth ?? toAccountingMonth(
+        new Date(this.viewYear(), this.viewMonth(), 1),
+      ),
+      payrollPeriod: item.payrollPeriod,
+      description: item.description ?? '',
+      paymentMethod: item.paymentMethod ?? 'CASH',
+      syncCashMovement: false,
+    });
+    this.voucherFiles.set([]);
+  }
+
+  protected cancelEditPayment(): void {
+    this.editingPayment.set(null);
+    this.resetPaymentForm();
+  }
+
   protected openDeleteConfirm(item: PayrollPaymentItem): void {
     this.deleteConfirmItem.set(item);
   }
@@ -290,6 +351,9 @@ export class TeamPayrollComponent implements OnInit {
         next: () => {
           this.deletingPaymentId.set(null);
           this.deleteConfirmItem.set(null);
+          if (this.editingPayment()?.id === item.id) {
+            this.cancelEditPayment();
+          }
           this.toastService.show('success', 'Movimiento eliminado.');
           this.loadPayroll();
         },
@@ -344,6 +408,7 @@ export class TeamPayrollComponent implements OnInit {
 
   private resetPaymentForm(): void {
     const period = this.period();
+    this.editingPayment.set(null);
     this.paymentForm.reset({
       type: 'PAYMENT',
       amount: null,

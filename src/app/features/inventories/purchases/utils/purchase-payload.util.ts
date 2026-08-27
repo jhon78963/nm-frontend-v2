@@ -36,10 +36,10 @@ function lineColorToJson(
 export function buildPurchaseBulkPayload(
   header: {
     supplierName: string;
-    vendorId?: number | null;
+    vendorId?: string | null;
     documentNote: string | null;
     registeredAt: Date | string;
-    warehouseId: number;
+    warehouseId: string;
   },
   lines: PurchaseLineFormValue[],
 ): PurchaseBulkPayload {
@@ -61,7 +61,7 @@ export function buildPurchaseBulkPayload(
         tempId: line.productTempId,
         mode: 'create',
         name: line.productName,
-        genderId: line.productGenderId ?? 1,
+        genderId: line.productGenderId ?? '',
         description: null,
         barcode: null,
       });
@@ -123,10 +123,7 @@ export function buildPurchaseBulkPayload(
     0,
   );
 
-  const vid =
-    header.vendorId != null && Number(header.vendorId) > 0
-      ? Number(header.vendorId)
-      : null;
+  const vid = header.vendorId?.trim() || null;
 
   return {
     purchase: {
@@ -154,7 +151,7 @@ export function buildPurchaseAppendLinesPayload(
       supplierName: '',
       documentNote: null,
       registeredAt: new Date(),
-      warehouseId: 1,
+        warehouseId: '',
     },
     lines,
   );

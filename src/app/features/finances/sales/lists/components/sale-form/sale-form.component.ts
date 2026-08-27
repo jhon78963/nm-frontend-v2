@@ -75,7 +75,7 @@ export class SaleFormComponent implements OnInit {
   private readonly saleService = inject(SaleService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly saleId = input.required<number | null>();
+  readonly saleId = input.required<string | null>();
   readonly readOnly = input(false);
 
   readonly saved = output<string>();

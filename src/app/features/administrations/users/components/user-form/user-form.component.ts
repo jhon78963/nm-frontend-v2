@@ -47,7 +47,7 @@ export class UserFormComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly userId = input<number | null>(null);
+  readonly userId = input<string | null>(null);
 
   readonly saved = output<string>();
   readonly closed = output<void>();
@@ -57,8 +57,8 @@ export class UserFormComponent implements OnInit {
   protected readonly loadError = signal('');
   protected readonly passwordHint = PASSWORD_HINT;
 
-  protected readonly tenantOptions = signal<SelectOption<number>[]>([]);
-  protected readonly warehouseOptions = signal<SelectOption<number>[]>([]);
+  protected readonly tenantOptions = signal<SelectOption<string>[]>([]);
+  protected readonly warehouseOptions = signal<SelectOption<string>[]>([]);
   protected readonly roleOptions = signal<SelectOption<string>[]>([]);
 
   protected readonly formModel = signal<UserFormModel>({
@@ -306,7 +306,7 @@ export class UserFormComponent implements OnInit {
     this.closed.emit();
   }
 
-  private loadWarehouses(tenantId: number): void {
+  private loadWarehouses(tenantId: string): void {
     this.lookupService
       .getWarehouses(tenantId)
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -331,7 +331,7 @@ export class UserFormComponent implements OnInit {
   }
 
   private applyDefaultTenantForActor(
-    tenants: { id: number; name: string }[],
+    tenants: { id: string; name: string }[],
   ): void {
     if (this.userId() !== null || tenants.length !== 1) {
       return;

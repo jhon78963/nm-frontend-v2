@@ -56,13 +56,13 @@ export class ProductGalleryComponent implements OnDestroy {
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly productId = input.required<number>();
+  readonly productId = input.required<string>();
   readonly mediaCountChange = output<number>();
 
   protected readonly mediaItems = signal<PublishMediaItem[]>([]);
   protected readonly isLoading = signal(false);
-  protected readonly deletingMediaId = signal<number | null>(null);
-  protected readonly displayUrls = signal<Map<number, string>>(new Map());
+  protected readonly deletingMediaId = signal<string | null>(null);
+  protected readonly displayUrls = signal<Map<string, string>>(new Map());
 
   protected readonly maxFileSizeMb = 5;
   protected readonly maxFiles = 10;
@@ -186,7 +186,7 @@ export class ProductGalleryComponent implements OnDestroy {
     });
   }
 
-  protected displayUrl(mediaId: number): string | null {
+  protected displayUrl(mediaId: string): string | null {
     return this.displayUrls().get(mediaId) ?? null;
   }
 
@@ -335,7 +335,7 @@ export class ProductGalleryComponent implements OnDestroy {
     this.toastService.show('success', 'Cola de imágenes limpiada.');
   }
 
-  protected deleteImage(mediaId: number): void {
+  protected deleteImage(mediaId: string): void {
     if (this.deletingMediaId() !== null) return;
 
     this.deletingMediaId.set(mediaId);
@@ -368,7 +368,7 @@ export class ProductGalleryComponent implements OnDestroy {
       });
   }
 
-  protected isDeletingItem(mediaId: number): boolean {
+  protected isDeletingItem(mediaId: string): boolean {
     return this.deletingMediaId() === mediaId;
   }
 
@@ -387,7 +387,7 @@ export class ProductGalleryComponent implements OnDestroy {
   protected bindDropzoneStatusUploading = (file: File): boolean =>
     this.trackedFiles().get(this.ensureFileKey(file))?.status === 'uploading';
 
-  private loadGallery(productId: number): void {
+  private loadGallery(productId: string): void {
     if (!productId) return;
 
     this.isLoading.set(true);
@@ -704,7 +704,7 @@ export class ProductGalleryComponent implements OnDestroy {
       });
   }
 
-  private applyLocalPreview(mediaId: number, key: string): void {
+  private applyLocalPreview(mediaId: string, key: string): void {
     const localUrl = this.localPreviewByKey().get(key);
     if (!localUrl) return;
 
@@ -735,7 +735,7 @@ export class ProductGalleryComponent implements OnDestroy {
     this.localPreviewByKey.set(new Map());
   }
 
-  private setDisplayUrl(mediaId: number, blob: Blob): void {
+  private setDisplayUrl(mediaId: string, blob: Blob): void {
     const typedBlob =
       blob.type && blob.type.startsWith('image/')
         ? blob
@@ -747,7 +747,7 @@ export class ProductGalleryComponent implements OnDestroy {
     this.displayUrls.set(urls);
   }
 
-  private revokeDisplayUrl(mediaId: number): void {
+  private revokeDisplayUrl(mediaId: string): void {
     const urls = new Map(this.displayUrls());
     const url = urls.get(mediaId);
     if (url) {

@@ -73,9 +73,9 @@ export class ColorsListComponent implements OnInit {
   protected readonly limit = signal(10);
 
   protected readonly formDialogOpen = signal(false);
-  protected readonly editingColorId = signal<number | null>(null);
+  protected readonly editingColorId = signal<string | null>(null);
 
-  protected readonly deleteConfirmId = signal<number | null>(null);
+  protected readonly deleteConfirmId = signal<string | null>(null);
   protected readonly deleting = signal(false);
 
   protected readonly filterForm = new FormGroup({
@@ -191,12 +191,12 @@ export class ColorsListComponent implements OnInit {
     this.formDialogOpen.set(true);
   }
 
-  protected openEdit(id: number): void {
+  protected openEdit(id: string): void {
     this.editingColorId.set(id);
     this.formDialogOpen.set(true);
   }
 
-  protected openDeleteConfirm(id: number): void {
+  protected openDeleteConfirm(id: string): void {
     this.deleteConfirmId.set(id);
   }
 

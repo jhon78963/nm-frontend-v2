@@ -182,9 +182,9 @@ export function mergeDraftPreservingEdits(
   previous: ReconciliationDraft,
   fresh: ReconciliationDraft,
   colorReplace?: {
-    productSizeId: number;
-    fromColorId: number;
-    toColorId: number;
+    productSizeId: string;
+    fromColorId: string;
+    toColorId: string;
   },
 ): ReconciliationDraft {
   const prevBySizeId = new Map(previous.sizes.map((size) => [size.id, size]));

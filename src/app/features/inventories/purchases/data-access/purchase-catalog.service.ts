@@ -27,7 +27,7 @@ export interface PurchaseRegisterDraftSnapshot {
   lineDraft: Record<string, unknown>;
   lines: Record<string, unknown>[];
   useExistingProduct: boolean;
-  selectedProductId: number | null;
+  selectedProductId: string | null;
   activeNewProductTempId: string | null;
   isEditingLine: boolean;
   paymentMethod: string;
@@ -51,7 +51,7 @@ export function isPurchaseRegisterDraftSnapshot(
     draft['lineDraft'] !== null &&
     Array.isArray(draft['lines']) &&
     typeof draft['useExistingProduct'] === 'boolean' &&
-    (draft['selectedProductId'] === null || typeof draft['selectedProductId'] === 'number') &&
+    (draft['selectedProductId'] === null || typeof draft['selectedProductId'] === 'string') &&
     (draft['activeNewProductTempId'] === null ||
       typeof draft['activeNewProductTempId'] === 'string') &&
     typeof draft['isEditingLine'] === 'boolean' &&
@@ -101,30 +101,30 @@ export class PurchaseCatalogService {
 
   searchProducts(term: string, limit = 15, page = 1): Observable<Product[]> {
     const q = encodeURIComponent(term.trim());
-    const url = `${this.api}/products?limit=${limit}&page=${page}&search=${q}`;
+    const url = `${this.api}/products?perPage=${limit}&page=${page}&search=${q}`;
     return this.http.get<unknown>(url).pipe(
       map((raw) => adaptProductList(raw).data),
     );
   }
 
-  getProduct(id: number): Observable<Product> {
+  getProduct(id: string): Observable<Product> {
     return this.http
       .get<unknown>(`${this.api}/products/${id}`)
       .pipe(map(adaptProduct));
   }
 
-  getProductSizes(productId: number): Observable<ProductSizeOption[]> {
+  getProductSizes(productId: string): Observable<ProductSizeOption[]> {
     return this.http
-      .get<unknown>(`${this.api}/colors/sizes?productId=${productId}`)
+      .get<unknown>(`${this.api}/sizes?productId=${productId}`)
       .pipe(
         map((raw) => unwrapArrayPayload(raw).map(adaptProductSizeOption)),
       );
   }
 
-  getColors(productId: number, sizeId: number): Observable<ProductColorOption[]> {
+  getColors(productId: string, sizeId: string): Observable<ProductColorOption[]> {
     return this.http
       .get<unknown>(
-        `${this.api}/colors/selected?productId=${productId}&sizeId=${sizeId}`,
+        `${this.api}/colors?productId=${productId}&sizeId=${sizeId}`,
       )
       .pipe(
         map((raw) => unwrapArrayPayload(raw).map(adaptProductColorOption)),
@@ -132,13 +132,13 @@ export class PurchaseCatalogService {
   }
 
   getSizeTypes(): Observable<SizeTypeOption[]> {
-    return this.http.get<unknown>(`${this.api}/size-types`).pipe(
+    return this.http.get<unknown>(`${this.api}/sizes/size-types`).pipe(
       map((raw) =>
         Array.isArray(raw)
           ? raw.map((row) => {
               const r = row as Record<string, unknown>;
               return {
-                id: Number(r['id']) || 0,
+                id: String(r['id'] ?? ''),
                 description: String(r['description'] ?? ''),
               };
             })
@@ -147,15 +147,15 @@ export class PurchaseCatalogService {
     );
   }
 
-  getSizesBySizeType(sizeTypeId: number, limit = 100): Observable<SizeDetail[]> {
+  getSizesBySizeType(sizeTypeId: string, limit = 100): Observable<SizeDetail[]> {
     return this.http
       .get<unknown>(
-        `${this.api}/sizes?limit=${limit}&page=1&sizeTypeId=${sizeTypeId}`,
+        `${this.api}/sizes?sizeTypeId=${sizeTypeId}`,
       )
       .pipe(map((raw) => adaptSizeList(raw).data));
   }
 
-  getSizeOne(id: number): Observable<SizeDetail> {
+  getSizeOne(id: string): Observable<SizeDetail> {
     return this.http
       .get<unknown>(`${this.api}/sizes/${id}`)
       .pipe(map(adaptSizeDetail));
@@ -168,31 +168,12 @@ export class PurchaseCatalogService {
       .pipe(map((raw) => adaptVendorList(raw).data));
   }
 
-  getColorsCatalogAll(pageSize = 80): Observable<ProductColorOption[]> {
-    const url = (page: number) => `${this.api}/colors?limit=${pageSize}&page=${page}`;
-
+  getColorsCatalogAll(_pageSize = 80): Observable<ProductColorOption[]> {
     return this.http
-      .get<unknown>(url(1))
+      .get<unknown>(`${this.api}/colors`)
       .pipe(
-        switchMap((first) => {
-          const r = first as {
-            data?: unknown[];
-            paginate?: { total?: number; pages?: number };
-          };
-          const rows = r.data ?? [];
-          const total = Number(r.paginate?.total);
-          const explicitPages = Number(r.paginate?.pages);
-          let pages =
-            Number.isFinite(explicitPages) && explicitPages > 0
-              ? explicitPages
-              : 0;
-          if (pages < 1 && Number.isFinite(total) && total > 0 && pageSize > 0) {
-            pages = Math.ceil(total / pageSize);
-          }
-          if (pages < 1) {
-            pages = 1;
-          }
-          pages = Math.min(pages, 80);
+        map((raw) => {
+          const rows = Array.isArray(raw) ? raw : ((raw as { data?: unknown[] }).data ?? []);
 
           const normalizeCatalog = (data: unknown[]): ProductColorOption[] =>
             data.map((row) => {
@@ -200,36 +181,16 @@ export class PurchaseCatalogService {
               return { ...adapted, isExists: false, stock: null, productSizeId: null };
             });
 
-          if (pages <= 1) {
-            return of(normalizeCatalog(rows));
+          const merged = normalizeCatalog(rows);
+          const byId = new Map<string, ProductColorOption>();
+          for (const c of merged) {
+            if (c.id) {
+              byId.set(c.id, c);
+            }
           }
-
-          const restCalls: Observable<{ data?: unknown[] }>[] = [];
-          for (let p = 2; p <= pages; p++) {
-            restCalls.push(
-              this.http.get<{ data?: unknown[] }>(url(p)),
-            );
-          }
-
-          return forkJoin(restCalls).pipe(
-            map((restResponses) => {
-              const merged = [
-                ...normalizeCatalog(rows),
-                ...restResponses.flatMap((resp) =>
-                  normalizeCatalog(resp.data ?? []),
-                ),
-              ];
-              const byId = new Map<number, ProductColorOption>();
-              for (const c of merged) {
-                if (c.id > 0) {
-                  byId.set(c.id, c);
-                }
-              }
-              return Array.from(byId.values()).sort((a, b) =>
-                a.description.localeCompare(b.description, 'es', {
-                  sensitivity: 'base',
-                }),
-              );
+          return Array.from(byId.values()).sort((a, b) =>
+            a.description.localeCompare(b.description, 'es', {
+              sensitivity: 'base',
             }),
           );
         }),

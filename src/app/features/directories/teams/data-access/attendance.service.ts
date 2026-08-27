@@ -38,30 +38,33 @@ export class AttendanceService {
   private readonly base = `${environment.apiUrl}/attendance`;
 
   getByMonth(
-    teamId: number,
+    teamId: string,
     month: number,
     year: number,
   ): Observable<AttendanceMonthResponse> {
+    const monthStr = `${year}-${String(month).padStart(2, '0')}`;
     return this.http
-      .get<unknown>(`${this.base}/${teamId}?month=${month}&year=${year}`)
+      .get<unknown>(
+        `${this.base}/monthly?month=${monthStr}&teamId=${encodeURIComponent(teamId)}`,
+      )
       .pipe(map(adaptAttendanceMonth));
   }
 
   getDailySummary(dateYmd: string): Observable<DailyAttendanceRow[]> {
     return this.http
-      .get<unknown>(`${this.base}/daily-summary?date=${encodeURIComponent(dateYmd)}`)
+      .get<unknown>(`${this.base}/daily?date=${encodeURIComponent(dateYmd)}`)
       .pipe(map(adaptDailySummary));
   }
 
   store(payload: AttendancePayload): Observable<AttendanceRecord> {
     return this.http
       .post<unknown>(this.base, {
-        team_id: payload.teamId,
+        teamId: payload.teamId,
         date: payload.date,
         status: payload.status,
-        check_in_time: payload.checkInTime,
-        check_out_time: payload.checkOutTime,
-        delay_minutes: payload.delayMinutes,
+        checkIn: payload.checkInTime,
+        checkOut: payload.checkOutTime,
+        delayMinutes: payload.delayMinutes,
         notes: payload.notes,
       })
       .pipe(

@@ -12,7 +12,7 @@ export interface MonthEndTransferPreview {
 }
 
 export interface MonthEndTransferRecord {
-  id: number;
+  id: string;
   transferMonth: string;
   monthLabel: string;
   cashAmount: number;

@@ -128,8 +128,8 @@ export class ActionLogsListComponent implements OnInit {
   protected readonly loading = signal(false);
   protected readonly page = signal(1);
   protected readonly limit = signal(20);
-  protected readonly expandedLogId = signal<number | null>(null);
-  protected readonly warehouseNames = signal<Map<number, string>>(new Map());
+  protected readonly expandedLogId = signal<string | null>(null);
+  protected readonly warehouseNames = signal<Map<string, string>>(new Map());
   protected readonly userOptions = signal<User[]>([]);
   protected readonly activeDatePreset = signal<ActionLogDatePreset | null>(null);
   protected readonly dateRangeError = signal<string | null>(null);
@@ -148,7 +148,7 @@ export class ActionLogsListComponent implements OnInit {
 
   protected readonly currentSearch = signal('');
   protected readonly currentActionFilter = signal('');
-  protected readonly currentUserId = signal<number | null>(null);
+  protected readonly currentUserId = signal<string | null>(null);
   protected readonly currentStartDate = signal('');
   protected readonly currentEndDate = signal('');
 
@@ -273,8 +273,7 @@ export class ActionLogsListComponent implements OnInit {
     this.filtersForm.controls.userId.valueChanges
       .pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
       .subscribe((value) => {
-        const parsed = value ? Number(value) : null;
-        this.currentUserId.set(parsed && parsed > 0 ? parsed : null);
+        this.currentUserId.set(value || null);
         this.resetPageAndLoad();
       });
 
@@ -411,7 +410,7 @@ export class ActionLogsListComponent implements OnInit {
     );
   }
 
-  protected isExpanded(logId: number): boolean {
+  protected isExpanded(logId: string): boolean {
     return this.expandedLogId() === logId;
   }
 
@@ -445,7 +444,7 @@ export class ActionLogsListComponent implements OnInit {
     return name.slice(0, 2).toUpperCase();
   }
 
-  protected warehouseLabel(warehouseId: number | null): string {
+  protected warehouseLabel(warehouseId: string | null): string {
     if (warehouseId == null) return '—';
     return this.warehouseNames().get(warehouseId) ?? `Tienda #${warehouseId}`;
   }
@@ -472,11 +471,11 @@ export class ActionLogsListComponent implements OnInit {
   }
 
   private applyLoadedContext(result: {
-    warehouses: { data: { id: number; name: string }[] };
+    warehouses: { data: { id: string; name: string }[] };
     logs: { data: ActionLog[]; paginate: { total: number; pages: number } };
     users: UserListResponse | null;
   }): void {
-    const names = new Map<number, string>();
+    const names = new Map<string, string>();
     for (const warehouse of result.warehouses.data) {
       names.set(warehouse.id, warehouse.name);
     }
@@ -524,7 +523,7 @@ export class ActionLogsListComponent implements OnInit {
     actionGroup?: string;
     startDate?: string;
     endDate?: string;
-    userId?: number | null;
+    userId?: string | null;
   } {
     const actionParts = encodeActionFilter(this.currentActionFilter());
 
@@ -549,9 +548,7 @@ export class ActionLogsListComponent implements OnInit {
     this.page.set(saved.page);
     this.currentSearch.set(saved.search);
     this.currentActionFilter.set(saved.actionFilter);
-    this.currentUserId.set(
-      saved.userId && Number(saved.userId) > 0 ? Number(saved.userId) : null,
-    );
+    this.currentUserId.set(saved.userId || null);
     this.currentStartDate.set(saved.startDate);
     this.currentEndDate.set(saved.endDate);
     this.activeDatePreset.set(saved.activeDatePreset);

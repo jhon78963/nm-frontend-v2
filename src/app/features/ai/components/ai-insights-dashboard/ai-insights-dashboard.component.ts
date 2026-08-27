@@ -234,7 +234,7 @@ export class AiInsightsDashboardComponent implements OnInit {
       });
   }
 
-  private loadProductContext(productId: number): void {
+  private loadProductContext(productId: string): void {
     this.contextLoading.set(true);
     this.contextError.set(null);
     this.productContext.set(null);

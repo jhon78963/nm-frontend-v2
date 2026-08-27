@@ -34,11 +34,11 @@ import {
 type ColorFilterStatus = 'all' | 'active' | 'inactive';
 
 interface StoredSizeSelection {
-  id: number;
-  productSizeId?: number;
+  id: string;
+  productSizeId?: string;
   description?: string;
   stock?: number;
-  productId: number;
+  productId: string;
 }
 
 interface ConfirmState {
@@ -78,9 +78,9 @@ export class ProductColorsComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
 
-  private catalogSelectedSizeId: number | null = null;
+  private catalogSelectedSizeId: string | null = null;
 
-  protected readonly productId = signal<number | null>(null);
+  protected readonly productId = signal<string | null>(null);
   protected readonly loadingSizes = signal(true);
   protected readonly saving = signal(false);
   protected readonly sizes = signal<ProductColorSizeOption[]>([]);
@@ -89,7 +89,7 @@ export class ProductColorsComponent implements OnInit {
   protected readonly selectedSize = signal<ProductColorSizeOption | null>(null);
   protected readonly sizeSearch = signal('');
   protected readonly filterStatus = signal<ColorFilterStatus>('all');
-  protected readonly highlightedColorId = signal<number | null>(null);
+  protected readonly highlightedColorId = signal<string | null>(null);
   protected readonly colorJumpSearch = signal('');
   protected readonly colorJumpOpen = signal(false);
   protected readonly confirmOpen = signal(false);
@@ -102,8 +102,8 @@ export class ProductColorsComponent implements OnInit {
 
   private readonly panelStockSourceEpoch = signal(0);
   private readonly colorRevisionEpoch = signal(0);
-  private readonly selectedColorIds = signal<Set<number>>(new Set());
-  private readonly initialColorSnapshots = new Map<number, ColorFieldSnapshot>();
+  private readonly selectedColorIds = signal<Set<string>>(new Set());
+  private readonly initialColorSnapshots = new Map<string, ColorFieldSnapshot>();
   private readonly colorJumpInputRef = viewChild<ElementRef<HTMLElement>>('colorJumpInput');
 
   protected readonly filteredSizeOptions = computed(() => {
@@ -117,7 +117,7 @@ export class ProductColorsComponent implements OnInit {
     );
   });
 
-  protected readonly sizeSelectOptions = computed<SelectOption<number>[]>(() =>
+  protected readonly sizeSelectOptions = computed<SelectOption<string>[]>(() =>
     this.filteredSizeOptions().map((size) => ({
       label:
         size.stock != null
@@ -163,7 +163,7 @@ export class ProductColorsComponent implements OnInit {
       return 0;
     }
 
-    const row = this.sizes().find((item) => Number(item.id) === Number(id));
+    const row = this.sizes().find((item) => item.id === id);
     if (
       row != null &&
       row.stock !== undefined &&
@@ -249,14 +249,15 @@ export class ProductColorsComponent implements OnInit {
   );
 
   protected readonly showBalanceWarning = computed(
-    () => !this.catalogColorsPending() && !this.isStockBalanced() && this.hasPendingWork(),
+    () => !this.catalogColorsPending() && !this.isStockBalanced() && this.canSaveAll(),
   );
 
   protected readonly showReadyToSaveBanner = computed(
     () =>
       !this.catalogColorsPending() &&
       this.isStockBalanced() &&
-      this.dirtyColorCount() > 0,
+      this.dirtyColorCount() > 0 &&
+      this.canSaveAll(),
   );
 
   protected readonly colorJumpSuggestions = computed(() => {
@@ -290,16 +291,19 @@ export class ProductColorsComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    const id = this.route.parent?.snapshot.paramMap.get('id');
-    this.productId.set(id ? Number(id) : null);
+    this.route.parent?.paramMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const id = params.get('id');
+        this.productId.set(id ?? null);
 
-    const productId = this.productId();
-    if (productId) {
-      this.loadSizes();
-      this.restoreSelectedSize(productId);
-    } else {
-      this.loadingSizes.set(false);
-    }
+        if (id) {
+          this.loadSizes();
+          this.restoreSelectedSize(id);
+        } else {
+          this.loadingSizes.set(false);
+        }
+      });
   }
 
   protected onSizeSearchInput(value: string): void {
@@ -307,14 +311,14 @@ export class ProductColorsComponent implements OnInit {
     this.loadSizes(value);
   }
 
-  protected onSizeSelect(sizeId: number | null): void {
+  protected onSizeSelect(sizeId: string | null): void {
     if (sizeId == null) {
       this.clearSizeSelection();
       return;
     }
 
-    const sid = Number(sizeId);
-    const size = this.sizes().find((item) => Number(item.id) === sid);
+    const sid = sizeId;
+    const size = this.sizes().find((item) => item.id === sid);
     if (!size) {
       return;
     }
@@ -475,14 +479,14 @@ export class ProductColorsComponent implements OnInit {
   }
 
   protected saveAllSelectedColors(): void {
-    const targets = this.selectedColors().filter((color) => !!color.productSizeId);
+    const targets = this.resolveSaveTargets();
 
     if (!targets.length) {
       this.toastService.show(
         'error',
-        targets.length === 0 && this.selectedColors().length > 0
+        this.selectedColors().length > 0
           ? 'No hay vínculo producto–talla; guarde primero la talla en inventario.'
-          : 'No hay variantes seleccionadas para guardar.',
+          : 'No hay variantes para guardar.',
       );
       return;
     }
@@ -490,7 +494,7 @@ export class ProductColorsComponent implements OnInit {
     this.saving.set(true);
     const requests = targets.map((color) => {
       const stockPayload = Math.max(0, Math.trunc(Number(color.stock)));
-      const psId = color.productSizeId as number;
+      const psId = color.productSizeId as string;
 
       if (color.isExists) {
         return this.colorsService
@@ -537,7 +541,7 @@ export class ProductColorsComponent implements OnInit {
   }
 
   protected saveColorVariant(color: ProductColorVariantRow): void {
-    const psId = color.productSizeId;
+    const psId = color.productSizeId ?? this.selectedSize()?.productSizeId;
     if (!psId) {
       this.toastService.show(
         'error',
@@ -600,13 +604,37 @@ export class ProductColorsComponent implements OnInit {
   }
 
   protected canSaveAll(): boolean {
-    return (
-      !!this.selectedSize() &&
-      this.selectedColorIds().size > 0 &&
-      this.isStockBalanced() &&
-      !this.catalogColorsPending() &&
-      !this.saving()
-    );
+    if (!this.selectedSize() || this.catalogColorsPending() || this.saving()) {
+      return false;
+    }
+
+    return this.resolveSaveTargets().length > 0;
+  }
+
+  private resolveSaveTargets(): ProductColorVariantRow[] {
+    const fallbackPsId = this.selectedSize()?.productSizeId;
+
+    const withProductSizeId = (color: ProductColorVariantRow) => ({
+      ...color,
+      productSizeId: color.productSizeId ?? fallbackPsId,
+    });
+
+    const selected = this.selectedColors()
+      .map(withProductSizeId)
+      .filter((color) => !!color.productSizeId);
+
+    if (selected.length > 0) {
+      return selected;
+    }
+
+    if (!this.isStockBalanced()) {
+      return this.linkedColors()
+        .filter((color) => (Number(color.stock) || 0) > 0)
+        .map(withProductSizeId)
+        .filter((color) => !!color.productSizeId);
+    }
+
+    return [];
   }
 
   protected canRemoveAll(): boolean {
@@ -662,7 +690,7 @@ export class ProductColorsComponent implements OnInit {
     return stock === snapshot.stock && !!color.isExists === snapshot.isExists;
   }
 
-  private markColorSelected(colorId: number): void {
+  private markColorSelected(colorId: string): void {
     this.selectedColorIds.update((ids) => {
       const next = new Set(ids);
       next.add(colorId);
@@ -670,7 +698,7 @@ export class ProductColorsComponent implements OnInit {
     });
   }
 
-  private unmarkColorSelected(colorId: number): void {
+  private unmarkColorSelected(colorId: string): void {
     this.selectedColorIds.update((ids) => {
       if (!ids.has(colorId)) {
         return ids;
@@ -716,13 +744,13 @@ export class ProductColorsComponent implements OnInit {
       });
   }
 
-  private loadColors(sizeId: number): void {
+  private loadColors(sizeId: string): void {
     const productId = this.productId();
     if (!productId) {
       return;
     }
 
-    const sid = Number(sizeId);
+    const sid = sizeId;
     this.catalogColorsPending.set(true);
     this.colors.set([]);
 
@@ -733,13 +761,19 @@ export class ProductColorsComponent implements OnInit {
         next: (rows) => {
           if (
             sid !== this.catalogSelectedSizeId ||
-            Number(this.selectedSize()?.id) !== sid
+            this.selectedSize()?.id !== sid
           ) {
             return;
           }
 
-          this.colors.set(rows);
-          this.syncColorSnapshots(rows);
+          const productSizeId = this.selectedSize()?.productSizeId;
+          this.colors.set(
+            rows.map((row) => ({
+              ...row,
+              productSizeId: row.productSizeId ?? productSizeId,
+            })),
+          );
+          this.syncColorSnapshots(this.colors());
           this.catalogColorsPending.set(false);
           this.syncSizesProductSizeMeta(sid);
         },
@@ -819,7 +853,7 @@ export class ProductColorsComponent implements OnInit {
   }
 
   private patchColorRow(
-    colorId: number,
+    colorId: string,
     patch: Partial<ProductColorVariantRow>,
   ): void {
     this.colors.update((rows) =>
@@ -834,18 +868,18 @@ export class ProductColorsComponent implements OnInit {
   private refreshMasterStockFromServer(): void {
     const sizeId = this.selectedSize()?.id;
     if (sizeId != null) {
-      this.syncSizesProductSizeMeta(Number(sizeId));
+      this.syncSizesProductSizeMeta(sizeId);
     }
   }
 
   private reloadCurrentColors(): void {
     const size = this.selectedSize();
     if (size?.id != null) {
-      this.loadColors(Number(size.id));
+      this.loadColors(size.id);
     }
   }
 
-  private restoreSelectedSize(productId: number): void {
+  private restoreSelectedSize(productId: string): void {
     const raw = localStorage.getItem(SELECTED_SIZE_KEY);
     if (!raw) {
       return;
@@ -859,11 +893,10 @@ export class ProductColorsComponent implements OnInit {
       return;
     }
 
-    if (parsed && Number(parsed.productId) === productId && parsed.id) {
+    if (parsed && parsed.productId === productId && parsed.id) {
       const selected: ProductColorSizeOption = {
-        id: Number(parsed.id),
-        productSizeId:
-          parsed.productSizeId != null ? Number(parsed.productSizeId) : undefined,
+        id: parsed.id,
+        productSizeId: parsed.productSizeId ?? undefined,
         description: parsed.description ?? '',
         stock: Number(parsed.stock) || 0,
       };
@@ -882,7 +915,7 @@ export class ProductColorsComponent implements OnInit {
       return;
     }
 
-    const row = this.sizes().find((size) => Number(size.id) === Number(current.id));
+    const row = this.sizes().find((size) => size.id === current.id);
     if (!row) {
       return;
     }
@@ -893,17 +926,17 @@ export class ProductColorsComponent implements OnInit {
     this.bumpPanelStockSourceEpoch();
   }
 
-  private syncSizesProductSizeMeta(sizeId: number): void {
+  private syncSizesProductSizeMeta(sizeId: string): void {
     const productId = this.productId();
     if (!productId) {
       return;
     }
 
-    const sid = Number(sizeId);
+    const sid = sizeId;
     if (
       this.catalogSelectedSizeId !== sid ||
       !this.selectedSize() ||
-      Number(this.selectedSize()?.id) !== sid
+      this.selectedSize()?.id !== sid
     ) {
       return;
     }
@@ -915,13 +948,13 @@ export class ProductColorsComponent implements OnInit {
         next: (sizesList) => {
           if (
             sid !== this.catalogSelectedSizeId ||
-            Number(this.selectedSize()?.id) !== sid
+            this.selectedSize()?.id !== sid
           ) {
             return;
           }
 
           this.sizes.set(sizesList);
-          const row = sizesList.find((size) => Number(size.id) === sid);
+          const row = sizesList.find((size) => size.id === sid);
           if (!row) {
             this.pinSelectedSizeToOptions();
             return;
@@ -996,7 +1029,7 @@ export class ProductColorsComponent implements OnInit {
     const toRemove = colors.filter((color) => color.productSizeId != null);
     const requests = toRemove.map((color) =>
       this.colorsService
-        .remove(color.productSizeId as number, color.id)
+        .remove(color.productSizeId as string, color.id)
         .pipe(catchError(() => of(null))),
     );
 

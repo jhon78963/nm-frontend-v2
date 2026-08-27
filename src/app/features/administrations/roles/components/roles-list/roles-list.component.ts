@@ -74,9 +74,9 @@ export class RolesListComponent implements OnInit {
   protected readonly limit = signal(10);
 
   protected readonly formDialogOpen = signal(false);
-  protected readonly editingRoleId = signal<number | null>(null);
+  protected readonly editingRoleId = signal<string | null>(null);
 
-  protected readonly deleteConfirmId = signal<number | null>(null);
+  protected readonly deleteConfirmId = signal<string | null>(null);
   protected readonly deleting = signal(false);
 
   protected readonly searchForm = new FormGroup({
@@ -192,16 +192,16 @@ export class RolesListComponent implements OnInit {
     this.formDialogOpen.set(true);
   }
 
-  protected openEdit(id: number): void {
+  protected openEdit(id: string): void {
     this.editingRoleId.set(id);
     this.formDialogOpen.set(true);
   }
 
-  protected openSync(id: number): void {
+  protected openSync(id: string): void {
     void this.router.navigate(['/administrations/roles', id, 'sync']);
   }
 
-  protected openDeleteConfirm(id: number): void {
+  protected openDeleteConfirm(id: string): void {
     this.deleteConfirmId.set(id);
   }
 

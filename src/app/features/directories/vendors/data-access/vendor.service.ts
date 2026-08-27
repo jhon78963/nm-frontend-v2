@@ -49,7 +49,7 @@ export class VendorService {
     return this.http.get<unknown>(url).pipe(map(adaptVendorList));
   }
 
-  getOne(id: number): Observable<Vendor> {
+  getOne(id: string): Observable<Vendor> {
     return this.http.get<unknown>(`${this.base}/${id}`).pipe(map(adaptVendor));
   }
 
@@ -59,13 +59,13 @@ export class VendorService {
     );
   }
 
-  update(id: number, data: VendorPayload): Observable<{ message: string }> {
+  update(id: string, data: VendorPayload): Observable<{ message: string }> {
     return this.http.patch<{ message: string }>(`${this.base}/${id}`, data).pipe(
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );
   }
 
-  delete(id: number): Observable<{ message: string }> {
+  delete(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.base}/${id}`).pipe(
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );

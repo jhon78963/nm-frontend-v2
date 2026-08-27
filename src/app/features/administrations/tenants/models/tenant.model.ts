@@ -21,7 +21,7 @@ export interface TenantSetting {
 }
 
 export interface Tenant {
-  id: number;
+  id: string;
   name: string;
   isActive: boolean;
   setting?: TenantSetting | null;

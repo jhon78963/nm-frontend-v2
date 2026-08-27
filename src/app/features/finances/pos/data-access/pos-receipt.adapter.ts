@@ -8,7 +8,7 @@ import {
 } from '../models/pos.model';
 
 export interface CheckoutReceiptContext {
-  saleId: number;
+  saleId: string;
   invoiceNumber?: string;
   documentType: DocumentType;
   cart: CartItem[];

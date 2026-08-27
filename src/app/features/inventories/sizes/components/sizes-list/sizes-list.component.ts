@@ -35,7 +35,7 @@ import { SizeFormComponent } from '../size-form/size-form.component';
 import { TABLE_FILTER_KEYS } from '../../../../../core/table-filters/table-filter-keys';
 import { TableFilterStorageService } from '../../../../../core/table-filters/table-filter-storage.service';
 import {
-  isNumberArray,
+  isStringArray,
   isSearchPageFilterState,
 } from '../../../../../core/table-filters/table-filter-state.util';
 
@@ -46,7 +46,7 @@ function isSizeFilterState(value: unknown): value is SizeFilterState {
     return false;
   }
 
-  return isNumberArray((value as SizeFilterState).sizeTypeIds);
+  return isStringArray((value as SizeFilterState).sizeTypeIds);
 }
 
 const SIZE_TYPE_BADGE_CLASSES = [
@@ -91,12 +91,12 @@ export class SizesListComponent implements OnInit {
   protected readonly limit = signal(10);
 
   protected readonly formDialogOpen = signal(false);
-  protected readonly editingSizeId = signal<number | null>(null);
+  protected readonly editingSizeId = signal<string | null>(null);
 
-  protected readonly deleteConfirmId = signal<number | null>(null);
+  protected readonly deleteConfirmId = signal<string | null>(null);
   protected readonly deleting = signal(false);
 
-  protected readonly selectedSizeTypeIds = signal<number[]>([]);
+  protected readonly selectedSizeTypeIds = signal<string[]>([]);
 
   protected readonly filterForm = new FormGroup({
     search: new FormControl('', { nonNullable: true }),
@@ -105,7 +105,7 @@ export class SizesListComponent implements OnInit {
   protected readonly currentSearch = signal('');
 
   protected readonly sizeTypeLabelById = computed(() => {
-    const map = new Map<number, string>();
+    const map = new Map<string, string>();
     for (const type of this.sizeTypes()) {
       map.set(type.id, type.description);
     }
@@ -249,12 +249,12 @@ export class SizesListComponent implements OnInit {
     this.formDialogOpen.set(true);
   }
 
-  protected openEdit(id: number): void {
+  protected openEdit(id: string): void {
     this.editingSizeId.set(id);
     this.formDialogOpen.set(true);
   }
 
-  protected openDeleteConfirm(id: number): void {
+  protected openDeleteConfirm(id: string): void {
     this.deleteConfirmId.set(id);
   }
 
@@ -314,7 +314,7 @@ export class SizesListComponent implements OnInit {
     this.loadSizes();
   }
 
-  protected toggleSizeType(id: number): void {
+  protected toggleSizeType(id: string): void {
     const current = this.selectedSizeTypeIds();
     const next = current.includes(id)
       ? current.filter((item) => item !== id)
@@ -326,7 +326,7 @@ export class SizesListComponent implements OnInit {
     this.loadSizes();
   }
 
-  protected isSizeTypeSelected(id: number): boolean {
+  protected isSizeTypeSelected(id: string): boolean {
     return this.selectedSizeTypeIds().includes(id);
   }
 

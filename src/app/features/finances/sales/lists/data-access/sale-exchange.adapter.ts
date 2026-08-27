@@ -17,8 +17,8 @@ function readString(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value : fallback;
 }
 
-export function buildVariantId(productSizeId: number, colorId: number): number {
-  return productSizeId * 1_000_000 + colorId;
+export function buildVariantId(productSizeId: string, colorId: string): string {
+  return `${productSizeId}_${colorId}`;
 }
 
 function parseSizeColor(descriptionFull: string): { size: string; color: string } {
@@ -40,8 +40,8 @@ export function adaptSaleItemToExchangeItem(item: SaleItem): ExchangeItem {
   const subtotal = item.subtotal > 0 ? item.subtotal : unitPrice * quantity;
 
   return {
-    saleItemId: readNumber(item.id),
-    productId: readNumber(item.productSizeId),
+    saleItemId: item.id != null ? String(item.id) : '',
+    productId: item.productSizeId != null ? String(item.productSizeId) : '',
     productName: item.productName || item.descriptionFull,
     size,
     color,
@@ -107,7 +107,7 @@ export function flattenProductVariants(
 
 export function buildExchangePreview(
   originalItems: ExchangeItem[],
-  returnSelection: Map<number, number>,
+  returnSelection: Map<string, number>,
   newItems: ExchangeNewItem[],
 ): ExchangePreview {
   const selectedOriginal = originalItems
@@ -143,10 +143,10 @@ export function adaptExchangeResponse(raw: unknown, refundAmount = 0): ExchangeR
   const r = raw as Record<string, unknown>;
 
   return {
-    exchangeId: readNumber(r['exchange_id'] ?? r['exchangeId']),
+    exchangeId: String(r['exchange_id'] ?? r['exchangeId'] ?? ''),
     newSaleId:
       r['new_sale_id'] != null || r['newSaleId'] != null
-        ? readNumber(r['new_sale_id'] ?? r['newSaleId'])
+        ? String(r['new_sale_id'] ?? r['newSaleId'])
         : null,
     refundAmount,
     message: readString(r['message'], 'Cambio registrado correctamente'),

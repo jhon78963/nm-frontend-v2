@@ -31,7 +31,7 @@ export class ProductStepperComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
 
-  protected readonly productId = signal<number | null>(null);
+  protected readonly productId = signal<string | null>(null);
   protected readonly currentStepIndex = signal(0);
 
   protected readonly steps = computed<Step[]>(() => {
@@ -106,11 +106,11 @@ export class ProductStepperComponent implements OnInit {
 
   protected updateFromRoute(): void {
     const idParam = this.route.snapshot.paramMap.get('id');
-    this.productId.set(idParam ? Number(idParam) : null);
+    this.productId.set(idParam && idParam !== 'new' ? idParam : null);
 
     const url = this.router.url;
     const stepMatch = url.match(
-      /\/products\/(?:new|(\d+)\/(general|sizes|colors|ecommerce|kardex|history))/,
+      /\/products\/(?:new|([^/]+)\/(general|sizes|colors|ecommerce|kardex|history))/,
     );
 
     if (!stepMatch) {
@@ -143,10 +143,10 @@ export class ProductStepperComponent implements OnInit {
     }
   }
 
-  protected onProductSaved(data: { message: string; productId: number }): void {
+  protected onProductSaved(data: { message: string; productId: string }): void {
     this.toastService.show('success', data.message);
     this.productId.set(data.productId);
-    
+
     if (this.currentStepIndex() === 0) {
       this.router.navigate([`/inventories/products/${data.productId}/sizes`]);
     }

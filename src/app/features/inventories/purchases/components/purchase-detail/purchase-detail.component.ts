@@ -76,8 +76,8 @@ export class PurchaseDetailComponent implements OnInit {
   ]);
 
   ngOnInit(): void {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    if (!Number.isFinite(id) || id < 1) {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id) {
       void this.router.navigate(['/inventories/purchases']);
       return;
     }
@@ -85,7 +85,7 @@ export class PurchaseDetailComponent implements OnInit {
     this.loadPurchase(id);
   }
 
-  protected loadPurchase(id: number): void {
+  protected loadPurchase(id: string): void {
     this.loading.set(true);
     this.purchaseService
       .getOne(id)

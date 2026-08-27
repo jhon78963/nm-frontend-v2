@@ -56,7 +56,7 @@ export class TeamFormComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly teamId = input<number | null>(null);
+  readonly teamId = input<string | null>(null);
 
   readonly saved = output<string>();
   readonly closed = output<void>();
@@ -65,7 +65,7 @@ export class TeamFormComponent implements OnInit {
   protected readonly saving = signal(false);
   protected readonly loadError = signal('');
 
-  protected readonly warehouseOptions = signal<SelectOption<number>[]>([]);
+  protected readonly warehouseOptions = signal<SelectOption<string>[]>([]);
 
   protected readonly formModel = signal<TeamFormModel>({ ...EMPTY_FORM });
 

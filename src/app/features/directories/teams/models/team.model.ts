@@ -1,11 +1,11 @@
 export interface Team {
-  id: number;
+  id: string;
   dni: string;
   name: string;
   surname: string;
   salary: number | null;
-  warehouseId: number;
-  userId: number | null;
+  warehouseId: string;
+  userId: string | null;
   userEmail: string | null;
 }
 
@@ -19,7 +19,7 @@ export interface TeamPayload {
   name: string;
   surname: string;
   salary: number | null;
-  warehouseId: number;
+  warehouseId: string;
 }
 
 export interface TeamFormModel {
@@ -27,7 +27,7 @@ export interface TeamFormModel {
   name: string;
   surname: string;
   salary: number | null;
-  warehouseId: number | null;
+  warehouseId: string | null;
 }
 
 export interface TeamCreateResponse {
@@ -36,8 +36,8 @@ export interface TeamCreateResponse {
 }
 
 export interface WarehouseLookupOption {
-  id: number;
+  id: string;
   name: string;
-  tenantId?: number | null;
+  tenantId?: string | null;
   tenantName?: string | null;
 }

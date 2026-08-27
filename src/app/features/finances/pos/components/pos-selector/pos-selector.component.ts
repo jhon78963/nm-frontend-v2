@@ -226,7 +226,7 @@ export class PosSelectorComponent {
 
     const currentCart = this.posService.cart();
     const existingItems = currentCart.filter((i) => i.productId === state.product!.id);
-    const processedIds = new Set<number>();
+    const processedIds = new Set<string>();
 
     for (const selection of this.selections().values()) {
       const existing = existingItems.find(
@@ -247,7 +247,7 @@ export class PosSelectorComponent {
         processedIds.add(existing.cartId);
       } else {
         const newItem: CartItem = {
-          cartId: Date.now() + Math.random(),
+          cartId: String(Date.now()) + String(Math.random()),
           productId: state.product.id,
           sku: state.product.sku,
           name: state.product.name,

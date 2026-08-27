@@ -5,7 +5,7 @@ export type AdminExpenseCategory = 'ADMINISTRATIVE' | 'STORE';
 export type PayrollPeriod = 'q1' | 'q2' | null;
 
 export interface AdminExpense {
-  id: number;
+  id: string;
   description: string;
   amount: number;
   date: string;

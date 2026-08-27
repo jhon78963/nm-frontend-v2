@@ -59,7 +59,7 @@ function adaptTransactionFlow(value: unknown): TransactionFlow {
 function adaptRecentTransaction(raw: unknown): RecentTransaction {
   const r = (raw ?? {}) as Record<string, unknown>;
   return {
-    id: toNumber(r['id']),
+    id: r['id'] != null ? String(r['id']) : '',
     concept: toString(r['concept']),
     category: toString(r['category']),
     date: toString(r['date']),
@@ -97,15 +97,17 @@ function todayIsoDate(): string {
   return `${year}-${month}-${day}`;
 }
 
-export function buildQuickMovementFormData(input: QuickMovementInput): FormData {
-  const formData = new FormData();
-  formData.append('type', mapQuickType(input.type));
-  formData.append('category', 'STORE');
-  formData.append('amount', input.amount.toString());
-  formData.append('description', resolveCategoryLabel(input.category));
-  formData.append('date', todayIsoDate());
-  formData.append('payment_method', 'CASH');
-  return formData;
+export function buildQuickMovementFormData(input: QuickMovementInput): Record<string, unknown> {
+  const today = todayIsoDate();
+  return {
+    type: mapQuickType(input.type),
+    category: 'STORE',
+    amount: input.amount,
+    description: resolveCategoryLabel(input.category),
+    date: today,
+    paymentMethod: 'CASH',
+    accountingMonth: today.slice(0, 7),
+  };
 }
 
 export function formatPaymentMethod(method: string): string {

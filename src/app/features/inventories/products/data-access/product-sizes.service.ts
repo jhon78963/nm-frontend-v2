@@ -32,10 +32,10 @@ export class ProductSizesService {
   private readonly apiUrl = environment.apiUrl;
 
   getSizes(
-    productId: number,
-    sizeTypeIds?: number[],
+    productId: string,
+    sizeTypeIds?: string[],
   ): Observable<ProductSize[]> {
-    let url = `${this.apiUrl}/sizes/selected?productId=${productId}`;
+    let url = `${this.apiUrl}/sizes?productId=${productId}`;
 
     if (sizeTypeIds && sizeTypeIds.length > 0) {
       url += `&sizeTypeId=${sizeTypeIds.join(',')}`;
@@ -44,42 +44,47 @@ export class ProductSizesService {
     return this.http
       .get<unknown>(url)
       .pipe(
-        map((raw) =>
-          Array.isArray(raw) ? (raw as unknown[]).map(adaptProductSize) : [],
-        ),
+        map((raw) => {
+          const list = Array.isArray(raw)
+            ? raw
+            : Array.isArray((raw as { data?: unknown[] })?.data)
+              ? ((raw as { data: unknown[] }).data)
+              : [];
+          return (list as unknown[]).map(adaptProductSize);
+        }),
       );
   }
 
   add(
-    productId: number,
-    sizeId: number,
+    productId: string,
+    sizeId: string,
     data: ProductSizeFormData,
   ): Observable<{ message: string }> {
     return this.http
       .post<{ message: string }>(
-        `${this.apiUrl}/products/${productId}/size/${sizeId}`,
-        data,
+        `${this.apiUrl}/products/${productId}/sizes`,
+        { sizeId, ...data },
       )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
   update(
-    productId: number,
-    sizeId: number,
+    productId: string,
+    sizeId: string,
     data: ProductSizeFormData,
   ): Observable<{ message: string }> {
     return this.http
       .patch<{ message: string }>(
-        `${this.apiUrl}/products/${productId}/size/${sizeId}`,
+        `${this.apiUrl}/products/${productId}/sizes/${sizeId}`,
         data,
       )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
-  remove(productId: number, sizeId: number): Observable<{ message: string }> {
+  remove(productId: string, sizeId: string): Observable<{ message: string }> {
     return this.http
       .delete<{ message: string }>(
-        `${this.apiUrl}/products/${productId}/size/${sizeId}`,
+        `${this.apiUrl}/products/${productId}/sizes/${sizeId}`,
       )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }

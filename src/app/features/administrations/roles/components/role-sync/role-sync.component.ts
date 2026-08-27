@@ -45,7 +45,7 @@ export class RoleSyncComponent implements OnInit {
 
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
-  protected readonly roleId = signal(0);
+  protected readonly roleId = signal<string>('');
   protected readonly roleName = signal('');
 
   protected readonly permissionTree = signal<PermissionModule[]>([]);
@@ -61,10 +61,9 @@ export class RoleSyncComponent implements OnInit {
   protected readonly expandedModules = signal(new Set<string>());
 
   ngOnInit(): void {
-    const idParam = this.route.snapshot.paramMap.get('id');
-    const id = Number(idParam);
+    const id = this.route.snapshot.paramMap.get('id');
 
-    if (!idParam || Number.isNaN(id)) {
+    if (!id) {
       void this.router.navigate(['/administrations/roles']);
       return;
     }

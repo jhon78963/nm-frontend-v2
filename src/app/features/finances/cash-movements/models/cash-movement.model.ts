@@ -5,7 +5,7 @@ export type MovementType = 'INCOME' | 'EXPENSE';
 export type MovementCategory = 'STORE' | 'ADMINISTRATIVE' | 'ACCUMULATED';
 
 export interface CashMovementItem {
-  id: number;
+  id: string;
   time: string;
   description: string;
   method: string;

@@ -26,7 +26,7 @@ export class RoleService {
     return this.http.get<unknown>(url).pipe(map(adaptRoleList));
   }
 
-  getOne(id: number): Observable<Role> {
+  getOne(id: string): Observable<Role> {
     return this.http
       .get<unknown>(`${this.base}/${id}`)
       .pipe(map(adaptRole));
@@ -45,7 +45,7 @@ export class RoleService {
   }
 
   update(
-    id: number,
+    id: string,
     data: { name?: string; permissions?: string[] },
   ): Observable<Role> {
     return this.http
@@ -53,12 +53,12 @@ export class RoleService {
       .pipe(map(adaptRole));
   }
 
-  delete(id: number): Observable<{ message: string }> {
+  delete(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.base}/${id}`);
   }
 
   syncPermissions(
-    id: number,
+    id: string,
     permissions: string[],
   ): Observable<Role> {
     return this.http

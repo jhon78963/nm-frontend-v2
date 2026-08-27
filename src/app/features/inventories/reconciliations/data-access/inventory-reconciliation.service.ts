@@ -54,7 +54,7 @@ export class InventoryReconciliationService {
       );
   }
 
-  getProduct(productId: number): Observable<ReconciliationProduct> {
+  getProduct(productId: string): Observable<ReconciliationProduct> {
     return this.http
       .get<unknown>(`${this.base}/${productId}`)
       .pipe(
@@ -66,7 +66,7 @@ export class InventoryReconciliationService {
       );
   }
 
-  getPosSalesSince(productId: number): Observable<ReconciliationPosSalesSummary> {
+  getPosSalesSince(productId: string): Observable<ReconciliationPosSalesSummary> {
     return this.http
       .get<unknown>(`${this.base}/${productId}/pos-sales`)
       .pipe(
@@ -76,7 +76,7 @@ export class InventoryReconciliationService {
   }
 
   bulkUpdate(
-    productId: number,
+    productId: string,
     body: ReconciliationUpdatePayload,
   ): Observable<ReconciliationUpdateResponse> {
     return this.http
@@ -88,8 +88,8 @@ export class InventoryReconciliationService {
   }
 
   replaceVariantColor(
-    productId: number,
-    productSizeId: number,
+    productId: string,
+    productSizeId: string,
     body: ReplaceVariantColorBody,
   ): Observable<ReconciliationUpdateResponse> {
     return this.http
@@ -103,31 +103,13 @@ export class InventoryReconciliationService {
       );
   }
 
-  loadColorsCatalog(pageSize = 200): Observable<CatalogColorOption[]> {
+  loadColorsCatalog(_pageSize = 200): Observable<CatalogColorOption[]> {
     return this.http
-      .get<unknown>(`${environment.apiUrl}/colors?limit=${pageSize}&page=1`)
+      .get<unknown>(`${environment.apiUrl}/colors`)
       .pipe(
-        switchMap((first) => {
-          const firstRecord = first as { data?: unknown[]; paginate?: { pages?: number } };
-          const totalPages = Math.max(1, firstRecord.paginate?.pages ?? 1);
-          const firstPage = (firstRecord.data ?? []).map(adaptCatalogColor);
-
-          if (totalPages <= 1) {
-            return of(firstPage);
-          }
-
-          const pageRequests = Array.from({ length: totalPages - 1 }, (_, index) =>
-            this.http
-              .get<unknown>(`${environment.apiUrl}/colors?limit=${pageSize}&page=${index + 2}`)
-              .pipe(map((res) => {
-                const record = res as { data?: unknown[] };
-                return (record.data ?? []).map(adaptCatalogColor);
-              })),
-          );
-
-          return forkJoin(pageRequests).pipe(
-            map((rest) => [...firstPage, ...rest.flat()]),
-          );
+        map((raw) => {
+          const rows = Array.isArray(raw) ? raw : ((raw as { data?: unknown[] }).data ?? []);
+          return rows.map(adaptCatalogColor);
         }),
         catchError((err) => throwError(() => extractErrorMessage(err))),
       );
@@ -136,9 +118,12 @@ export class InventoryReconciliationService {
   searchSizeAutocomplete(search: string): Observable<AutocompleteOption[]> {
     const q = encodeURIComponent(search.trim());
     return this.http
-      .get<unknown>(`${environment.apiUrl}/sizes/autocomplete?search=${q}&limit=20`)
+      .get<unknown>(`${environment.apiUrl}/sizes?search=${q}`)
       .pipe(
-        map((raw) => (Array.isArray(raw) ? raw.map(adaptAutocompleteOption) : [])),
+        map((raw) => {
+          const rows = Array.isArray(raw) ? raw : ((raw as { data?: unknown[] }).data ?? []);
+          return rows.map(adaptAutocompleteOption);
+        }),
         catchError((err) => throwError(() => extractErrorMessage(err))),
       );
   }
@@ -146,19 +131,23 @@ export class InventoryReconciliationService {
   searchColorAutocomplete(search: string): Observable<AutocompleteOption[]> {
     const q = encodeURIComponent(search.trim());
     return this.http
-      .get<unknown>(`${environment.apiUrl}/colors/autocomplete?search=${q}&limit=20`)
+      .get<unknown>(`${environment.apiUrl}/colors?search=${q}`)
       .pipe(
-        map((raw) => (Array.isArray(raw) ? raw.map(adaptAutocompleteOption) : [])),
+        map((raw) => {
+          const rows = Array.isArray(raw) ? raw : ((raw as { data?: unknown[] }).data ?? []);
+          return rows.map(adaptAutocompleteOption);
+        }),
         catchError((err) => throwError(() => extractErrorMessage(err))),
       );
   }
 
   addSizeToProduct(
-    productId: number,
-    sizeId: number,
+    productId: string,
+    sizeId: string,
     data: Partial<ProductSizeFormData>,
   ): Observable<{ message: string }> {
     const payload = {
+      sizeId,
       barcode: data.barcode ?? '0',
       stock: data.stock ?? 0,
       purchasePrice: data.purchasePrice ?? 0,
@@ -167,24 +156,24 @@ export class InventoryReconciliationService {
     };
 
     return this.http
-      .post<{ message: string }>(`${environment.apiUrl}/products/${productId}/size/${sizeId}`, payload)
+      .post<{ message: string }>(`${environment.apiUrl}/products/${productId}/sizes`, payload)
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
   addColorToProductSize(
-    productSizeId: number,
-    colorId: number,
+    productSizeId: string,
+    colorId: string,
     data: ProductColorFormData = { stock: 0 },
   ): Observable<{ message: string }> {
     return this.http
       .post<{ message: string }>(
-        `${environment.apiUrl}/product-size/${productSizeId}/color/${colorId}`,
-        data,
+        `${environment.apiUrl}/product-sizes/${productSizeId}/colors`,
+        { colorId, ...data },
       )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
-  resolveOrCreateColorId(description: string): Observable<number> {
+  resolveOrCreateColorId(description: string): Observable<string> {
     const term = description.trim();
     return this.searchColorAutocomplete(term).pipe(
       switchMap((existing) => {
@@ -196,7 +185,7 @@ export class InventoryReconciliationService {
         }
 
         return this.http
-          .post<{ message: string }>(`${environment.apiUrl}/colors`, { description: term })
+          .post<unknown>(`${environment.apiUrl}/colors`, { description: term })
           .pipe(
             switchMap(() => this.searchColorAutocomplete(term)),
             map((list) => {
@@ -215,20 +204,20 @@ export class InventoryReconciliationService {
   }
 
   removeColorVariant(
-    productSizeId: number,
-    colorId: number,
+    productSizeId: string,
+    colorId: string,
   ): Observable<{ message: string }> {
     return this.http
       .delete<{ message: string }>(
-        `${environment.apiUrl}/product-size/${productSizeId}/color/${colorId}`,
+        `${environment.apiUrl}/product-sizes/${productSizeId}/colors/${colorId}`,
       )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
-  removeSize(productId: number, sizeId: number): Observable<{ message: string }> {
+  removeSize(productId: string, sizeId: string): Observable<{ message: string }> {
     return this.http
       .delete<{ message: string }>(
-        `${environment.apiUrl}/products/${productId}/size/${sizeId}`,
+        `${environment.apiUrl}/products/${productId}/sizes/${sizeId}`,
       )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }

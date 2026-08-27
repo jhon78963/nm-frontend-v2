@@ -94,7 +94,7 @@ export class SaleExchangeService {
 
   previewExchange(params: {
     originalItems: ExchangePreview['originalItems'];
-    returnSelection: Map<number, number>;
+    returnSelection: Map<string, number>;
     newItems: ExchangeNewItem[];
   }): Observable<ExchangePreview> {
     return of(
@@ -131,7 +131,7 @@ export class SaleExchangeService {
 
   searchVariantsForExchange(
     query: string,
-    _warehouseId: number,
+    _warehouseId: string,
   ): Observable<ExchangeNewItem[]> {
     const trimmed = query.trim();
     if (trimmed.length < 2) {

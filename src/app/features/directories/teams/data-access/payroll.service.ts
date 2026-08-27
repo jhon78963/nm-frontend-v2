@@ -35,25 +35,20 @@ export class PayrollService {
   private readonly base = `${environment.apiUrl}/payments`;
 
   getPayroll(
-    teamId: number,
+    teamId: string,
     month: number,
     year: number,
     period: PayrollPeriod,
   ): Observable<PayrollApiResponse> {
-    const q = new URLSearchParams({
-      team_id: String(teamId),
-      month: String(month),
-      year: String(year),
-      period,
-    });
-
     return this.http
-      .get<unknown>(`${this.base}/payroll?${q.toString()}`)
+      .get<unknown>(
+        `${this.base}/payroll?teamId=${encodeURIComponent(teamId)}&month=${month}&year=${year}&period=${encodeURIComponent(period)}`,
+      )
       .pipe(map(adaptPayrollResponse));
   }
 
   registerPayment(payload: {
-    teamId: number;
+    teamId: string;
     type: PaymentType;
     amount: number;
     date: string;
@@ -64,25 +59,23 @@ export class PayrollService {
     syncCashMovement: boolean;
     images: File[];
   }): Observable<{ message: string }> {
-    const formData = new FormData();
-    formData.append('team_id', String(payload.teamId));
-    formData.append('type', payload.type);
-    formData.append('amount', String(payload.amount));
-    formData.append('date', payload.date);
-    formData.append('payroll_period', payload.payrollPeriod);
-    formData.append('accounting_month', payload.accountingMonth);
-    formData.append('description', payload.description ?? '');
-    formData.append('payment_method', payload.paymentMethod);
-    formData.append('sync_cash_movement', payload.syncCashMovement ? '1' : '0');
-    payload.images.forEach((file) => formData.append('images[]', file));
+    const body: Record<string, unknown> = {
+      teamId: payload.teamId,
+      type: payload.type,
+      amount: payload.amount,
+      date: payload.date,
+      payrollPeriod: payload.payrollPeriod,
+      accountingMonth: payload.accountingMonth,
+      paymentMethod: payload.paymentMethod,
+    };
 
-    return this.http.post<{ message: string }>(this.base, formData).pipe(
+    return this.http.post<{ message: string }>(this.base, body).pipe(
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );
   }
 
   updatePayment(
-    id: number,
+    id: string,
     payload: {
       type: PaymentType;
       amount: number;
@@ -98,10 +91,9 @@ export class PayrollService {
         type: payload.type,
         amount: payload.amount,
         date: payload.date,
-        payroll_period: payload.payrollPeriod,
-        accounting_month: payload.accountingMonth,
-        payment_method: payload.paymentMethod,
-        description: payload.description,
+        payrollPeriod: payload.payrollPeriod,
+        accountingMonth: payload.accountingMonth,
+        paymentMethod: payload.paymentMethod,
       })
       .pipe(
         map(adaptPaymentItemResponse),
@@ -109,7 +101,7 @@ export class PayrollService {
       );
   }
 
-  deletePayment(id: number): Observable<{ message: string }> {
+  deletePayment(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.base}/${id}`).pipe(
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );

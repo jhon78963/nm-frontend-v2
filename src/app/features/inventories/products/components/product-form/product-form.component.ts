@@ -26,8 +26,8 @@ import { ProductFormModel, Gender, Warehouse } from '../../models/product.model'
 
 const EMPTY_FORM: ProductFormModel = {
   name: '',
-  genderId: 1,
-  warehouseId: 1,
+  genderId: '',
+  warehouseId: '',
 };
 
 @Component({
@@ -46,9 +46,9 @@ export class ProductFormComponent implements OnInit {
   private readonly productLookupService = inject(ProductLookupService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly productId = input<number | null>(null);
+  readonly productId = input<string | null>(null);
 
-  readonly saved = output<{ message: string; productId: number }>();
+  readonly saved = output<{ message: string; productId: string }>();
   readonly closed = output<void>();
 
   protected readonly loadingData = signal(true);
@@ -62,11 +62,11 @@ export class ProductFormComponent implements OnInit {
 
   protected readonly isEditing = computed(() => this.productId() !== null);
 
-  protected readonly genderOptions = computed<SelectOption<number>[]>(() =>
+  protected readonly genderOptions = computed<SelectOption<string>[]>(() =>
     this.genders().map((g) => ({ label: g.description, value: g.id })),
   );
 
-  protected readonly warehouseOptions = computed<SelectOption<number>[]>(() =>
+  protected readonly warehouseOptions = computed<SelectOption<string>[]>(() =>
     this.warehouses().map((w) => ({ label: w.name, value: w.id })),
   );
 

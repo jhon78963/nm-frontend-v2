@@ -1,12 +1,12 @@
 export interface ProductInventoryColor {
-  colorId: number;
+  colorId: string;
   color: string;
   stock: number;
 }
 
 export interface ProductInventorySize {
-  productSizeId: number;
-  sizeId: number;
+  productSizeId: string;
+  sizeId: string;
   size: string;
   barcode: string | null;
   purchasePrice: number | null;
@@ -27,7 +27,7 @@ export interface ProductInventoryAi {
 }
 
 export interface ProductInventoryItem {
-  id: number;
+  id: string;
   name: string;
   sizes: ProductInventorySize[];
   ai?: ProductInventoryAi;

@@ -1,18 +1,18 @@
 export interface PublishProductMediaItem {
-  id: number;
+  id: string;
   url: string;
   type: 'image' | 'video';
   isPrimary: boolean;
 }
 
 export interface PublishProduct {
-  id: number;
+  id: string;
   name: string;
   barcode: string;
   description: string;
   status: string;
-  genderId: number;
-  warehouseId: number;
+  genderId: string;
+  warehouseId: string;
   percentageDiscount: number;
   cashDiscount: number;
   isFeatured: boolean;
@@ -20,7 +20,7 @@ export interface PublishProduct {
   wooStatus: 'draft' | 'publish' | null;
   media: PublishProductMediaItem[];
   wooCommerce?: {
-    productId: number | null;
+    productId: string | null;
     lastSyncedAt: string | null;
   };
 }
@@ -34,13 +34,13 @@ export interface PublishProductListResponse {
 }
 
 export interface PublishProductPayload {
-  id?: number;
+  id?: string;
   name: string;
   barcode: string;
   description: string;
   status: string;
-  genderId: number;
-  warehouseId: number;
+  genderId: string;
+  warehouseId: string;
   percentageDiscount?: number;
   cashDiscount?: number;
   isFeatured?: boolean;
@@ -52,13 +52,13 @@ export interface PublishProductFormModel {
   name: string;
   barcode: string;
   description: string;
-  genderId: number | null;
-  warehouseId: number | null;
+  genderId: string | null;
+  warehouseId: string | null;
 }
 
 export interface PublishVariantFormModel {
-  sizeId: number | null;
-  colorId: number | null;
+  sizeId: string | null;
+  colorId: string | null;
   salePrice: number | null;
   minSalePrice: number | null;
   stock: number;
@@ -74,7 +74,7 @@ export interface PublishSettingsFormModel {
 
 export interface EcommerceStepState {
   isPublished: boolean;
-  wooProductId: number | null;
+  wooProductId: string | null;
   wooUrl: string | null;
   syncStatus: 'synced' | 'pending' | 'error' | 'never';
   lastSyncError: string | null;
@@ -88,17 +88,17 @@ export interface EcommercePublishFormModel {
 }
 
 export interface CatalogOption {
-  id: number;
+  id: string;
   description: string;
 }
 
 export interface WarehouseOption {
-  id: number;
+  id: string;
   name: string;
 }
 
 export interface GenderOption {
-  id: number;
+  id: string;
   description: string;
 }
 

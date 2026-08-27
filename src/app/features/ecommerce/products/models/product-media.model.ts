@@ -8,20 +8,20 @@ export interface WooCommerceSyncResult {
 
 export interface ProductMediaUploadResponse {
   message: string;
-  productId: number;
+  productId: string;
   media: PublishMediaItem;
   wooCommerceSync: WooCommerceSyncResult;
 }
 
 export interface ProductMediaDeleteResponse {
   message: string;
-  productId: number;
-  deletedMediaId: number;
+  productId: string;
+  deletedMediaId: string;
   wooCommerceSync: WooCommerceSyncResult;
 }
 
 export interface PublishMediaItem {
-  id: number;
+  id: string;
   filePath: string;
   publicUrl: string | null;
   fileName: string | null;
@@ -30,6 +30,6 @@ export interface PublishMediaItem {
 export interface WooCommerceSyncResponse {
   message: string;
   wooCommerceSync: WooCommerceSyncResult;
-  wooProductId: number | null;
+  wooProductId: string | null;
   lastSyncedAt: string | null;
 }

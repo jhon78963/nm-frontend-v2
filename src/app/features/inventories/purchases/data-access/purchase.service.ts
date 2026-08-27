@@ -54,15 +54,15 @@ export class PurchaseService {
     limit: number;
     page: number;
     search?: string;
-    warehouseId?: number | null;
+    warehouseId?: string | null;
     status?: string | null;
   }): Observable<PurchaseListResponse> {
-    let url = `${this.base}?limit=${params.limit}&page=${params.page}`;
+    let url = `${this.base}?perPage=${params.limit}&page=${params.page}`;
 
     if (params.search?.trim()) {
       url += `&search=${encodeURIComponent(params.search.trim())}`;
     }
-    if (params.warehouseId != null && params.warehouseId > 0) {
+    if (params.warehouseId) {
       url += `&warehouseId=${params.warehouseId}`;
     }
     if (params.status) {
@@ -72,7 +72,7 @@ export class PurchaseService {
     return this.http.get<unknown>(url).pipe(map(adaptPurchaseList));
   }
 
-  getOne(id: number): Observable<PurchaseDetail> {
+  getOne(id: string): Observable<PurchaseDetail> {
     return this.http
       .get<unknown>(`${this.base}/${id}`)
       .pipe(map(adaptPurchaseDetail));
@@ -80,21 +80,44 @@ export class PurchaseService {
 
   registerBulk(
     payload: PurchaseBulkPayload,
-    paymentMethod = 'CASH',
-    voucherFiles: File[] | null = null,
+    _paymentMethod = 'CASH',
+    _voucherFiles: File[] | null = null,
   ): Observable<PurchaseRegisterBulkResponse> {
-    const formData = new FormData();
-    formData.append('payload', JSON.stringify(payload));
-    formData.append('payment_method', paymentMethod);
-    (voucherFiles ?? []).forEach((f) => formData.append('images[]', f));
+    const body = this.buildRegisterDto(payload);
 
-    return this.http.post<unknown>(`${this.base}/bulk`, formData).pipe(
+    return this.http.post<unknown>(this.base, body).pipe(
       map(adaptPurchaseRegisterBulkResponse),
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );
   }
 
-  cancel(id: number, reason?: string | null): Observable<{ message: string }> {
+  private buildRegisterDto(payload: PurchaseBulkPayload): Record<string, unknown> {
+    const lines = payload.lines
+      .filter((l) => l.productRef.mode === 'id' && l.sizeRef.mode === 'id')
+      .map((l) => ({
+        productId: l.productRef.mode === 'id' ? l.productRef.productId : '',
+        sizeId: l.sizeRef.mode === 'id' ? l.sizeRef.sizeId : '',
+        productSizeId: l.productSizeId ?? undefined,
+        purchasePrice: l.purchasePrice,
+        salePrice: l.salePrice ?? undefined,
+        quantity: l.colors.reduce((sum, c) => sum + c.quantity, 0),
+        colorDeltas: l.colors
+          .filter((c) => c.colorId)
+          .map((c) => ({ colorId: c.colorId!, quantity: c.quantity })),
+      }));
+
+    return {
+      warehouseId: payload.purchase.warehouseId,
+      vendorId: payload.purchase.vendorId ?? undefined,
+      supplierName: payload.purchase.supplierName || undefined,
+      currency: payload.purchase.currency,
+      notes: payload.purchase.documentNote ?? undefined,
+      purchaseDate: payload.purchase.registeredAt || undefined,
+      lines,
+    };
+  }
+
+  cancel(id: string, reason?: string | null): Observable<{ message: string }> {
     return this.http
       .post<{ message: string }>(`${this.base}/${id}/cancel`, {
         reason: reason?.trim() || null,
@@ -103,7 +126,7 @@ export class PurchaseService {
   }
 
   patchHeader(
-    id: number,
+    id: string,
     body: PurchaseHeaderPatch,
   ): Observable<{ message: string }> {
     return this.http
@@ -112,7 +135,7 @@ export class PurchaseService {
   }
 
   addVouchers(
-    purchaseId: number,
+    purchaseId: string,
     files: File[],
   ): Observable<{ message: string }> {
     const formData = new FormData();
@@ -124,8 +147,8 @@ export class PurchaseService {
   }
 
   updateLine(
-    purchaseId: number,
-    lineId: number,
+    purchaseId: string,
+    lineId: string,
     body: PurchaseLinePatch,
   ): Observable<{ message: string }> {
     return this.http
@@ -134,8 +157,8 @@ export class PurchaseService {
   }
 
   deleteLine(
-    purchaseId: number,
-    lineId: number,
+    purchaseId: string,
+    lineId: string,
   ): Observable<{ message: string }> {
     return this.http
       .delete<{ message: string }>(`${this.base}/${purchaseId}/lines/${lineId}`)
@@ -143,7 +166,7 @@ export class PurchaseService {
   }
 
   appendLines(
-    purchaseId: number,
+    purchaseId: string,
     payload: Pick<PurchaseBulkPayload, 'catalogUpserts' | 'lines' | 'totals'>,
   ): Observable<{ message: string }> {
     return this.http

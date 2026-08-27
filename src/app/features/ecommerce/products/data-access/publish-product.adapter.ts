@@ -22,7 +22,7 @@ function readBoolean(value: unknown, fallback = false): boolean {
 function adaptMediaItem(raw: unknown): PublishProductMediaItem {
   const r = raw as Record<string, unknown>;
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     url: readString(r['url']),
     type: r['type'] === 'video' ? 'video' : 'image',
     isPrimary: readBoolean(r['isPrimary']),
@@ -38,10 +38,9 @@ export function adaptPublishProduct(raw: unknown): PublishProduct {
 
   const wooCommerce = r['wooCommerce']
     ? {
-        productId: readNumber(
-          (r['wooCommerce'] as Record<string, unknown>)['productId'],
-          null as unknown as number,
-        ) || null,
+        productId: (r['wooCommerce'] as Record<string, unknown>)['productId'] != null
+          ? String((r['wooCommerce'] as Record<string, unknown>)['productId'])
+          : null,
         lastSyncedAt:
           readString(
             (r['wooCommerce'] as Record<string, unknown>)['lastSyncedAt'],
@@ -51,13 +50,13 @@ export function adaptPublishProduct(raw: unknown): PublishProduct {
     : undefined;
 
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     name: readString(r['name']),
     barcode: readString(r['barcode']),
     description: readString(r['description']),
     status: readString(r['status']),
-    genderId: readNumber(r['genderId']),
-    warehouseId: readNumber(r['warehouseId']),
+    genderId: String(r['genderId'] ?? ''),
+    warehouseId: String(r['warehouseId'] ?? ''),
     percentageDiscount: readNumber(r['percentageDiscount']),
     cashDiscount: readNumber(r['cashDiscount']),
     isFeatured: readBoolean(r['isFeatured']),
@@ -86,26 +85,26 @@ export function adaptPublishProductList(raw: unknown): PublishProductListRespons
   };
 }
 
-export function adaptGenderOption(raw: unknown): { id: number; description: string } {
+export function adaptGenderOption(raw: unknown): { id: string; description: string } {
   const r = raw as Record<string, unknown>;
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     description: readString(r['description']),
   };
 }
 
-export function adaptWarehouseOption(raw: unknown): { id: number; name: string } {
+export function adaptWarehouseOption(raw: unknown): { id: string; name: string } {
   const r = raw as Record<string, unknown>;
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     name: readString(r['name']),
   };
 }
 
-export function adaptCatalogOption(raw: unknown): { id: number; description: string } {
+export function adaptCatalogOption(raw: unknown): { id: string; description: string } {
   const r = raw as Record<string, unknown>;
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     description: readString(r['description']),
   };
 }

@@ -129,34 +129,34 @@ export class PurchaseRegisterComponent implements OnInit {
   private persistDraftEnabled = false;
   private supplierNameLockedForVendorId: string | null = null;
   /** IDs de líneas persistidas al cargar la compra (para detectar eliminaciones). */
-  private originalLineIds: number[] = [];
+  private originalLineIds: string[] = [];
   /** Al re-editar una fila del detalle, conserva el ID de línea del backend. */
   private editingPersistedLineId: string | null = null;
 
-  protected readonly editingPurchaseId = signal<number | null>(null);
+  protected readonly editingPurchaseId = signal<string | null>(null);
   protected readonly isEditMode = signal(false);
   protected readonly loadingPurchase = signal(false);
 
   protected readonly header = this.fb.group({
     supplierName: ['', Validators.required],
-    vendorId: [null as number | null],
+    vendorId: [null as string | null],
     documentNote: [''],
     registeredAt: [this.todayIso(), Validators.required],
-    warehouseId: [1, [Validators.required, Validators.min(1)]],
+    warehouseId: ['', [Validators.required]],
   });
 
   protected readonly lineDraft = this.fb.group({
     newProductName: ['', [Validators.maxLength(50)]],
-    newProductGenderId: [null as number | null],
-    selectedSizeTypeId: [null as number | null],
+    newProductGenderId: [null as string | null],
+    selectedSizeTypeId: [null as string | null],
     sizeNewToggle: [false],
     newSizeDescription: ['', [Validators.maxLength(25)]],
     colorNewToggle: [false],
     useColorVariant: [true],
     newColorDescription: ['', [Validators.maxLength(25)]],
     newColorHash: ['', [Validators.maxLength(25)]],
-    selectedSizeId: [null as number | null],
-    selectedColorId: [null as number | null],
+    selectedSizeId: [null as string | null],
+    selectedColorId: [null as string | null],
     barcode: ['', [Validators.maxLength(32)]],
     purchasePrice: [0, [Validators.required, Validators.min(0)]],
     salePrice: [0, [Validators.min(0)]],
@@ -176,7 +176,7 @@ export class PurchaseRegisterComponent implements OnInit {
   protected readonly warehouses = signal<Warehouse[]>([]);
   protected readonly sizeTypes = signal<SizeTypeOption[]>([]);
   protected readonly catalogSizes = signal<SizeDetail[]>([]);
-  protected readonly productPivotBySizeId = signal(new Map<number, ProductSizeOption>());
+  protected readonly productPivotBySizeId = signal(new Map<string, ProductSizeOption>());
   protected readonly colorOptions = signal<ProductColorOption[]>([]);
   protected readonly useExistingProduct = signal(true);
   protected readonly selectedProduct = signal<Product | null>(null);
@@ -219,10 +219,10 @@ export class PurchaseRegisterComponent implements OnInit {
     { label: 'Producto nuevo', value: false },
   ];
 
-  protected readonly genderOptions = signal<SelectOption<number>[]>([]);
-  protected readonly warehouseOptions = signal<SelectOption<number>[]>([]);
-  protected readonly sizeTypeOptions = signal<SelectOption<number>[]>([]);
-  protected readonly catalogSizeOptions = signal<SelectOption<number>[]>([]);
+  protected readonly genderOptions = signal<SelectOption<string>[]>([]);
+  protected readonly warehouseOptions = signal<SelectOption<string>[]>([]);
+  protected readonly sizeTypeOptions = signal<SelectOption<string>[]>([]);
+  protected readonly catalogSizeOptions = signal<SelectOption<string>[]>([]);
 
   protected readonly draftColorTableColumns: TableDataColumn<FormGroup>[] = [
     { key: 'color', label: 'Color' },
@@ -247,8 +247,8 @@ export class PurchaseRegisterComponent implements OnInit {
   };
 
   ngOnInit(): void {
-    const purchaseId = Number(this.route.snapshot.paramMap.get('id'));
-    if (Number.isFinite(purchaseId) && purchaseId > 0) {
+    const purchaseId = this.route.snapshot.paramMap.get('id');
+    if (purchaseId) {
       this.editingPurchaseId.set(purchaseId);
       this.isEditMode.set(true);
     }
@@ -332,9 +332,9 @@ export class PurchaseRegisterComponent implements OnInit {
 
   protected selectVendor(vendor: unknown): void {
     const picked = vendor as Vendor;
-    const id = Number(picked.id);
+    const id = picked.id ? String(picked.id) : null;
     const nm = String(picked.name ?? '').trim();
-    if (Number.isFinite(id) && id > 0) {
+    if (id) {
       this.header.patchValue({ supplierName: nm, vendorId: id });
       this.supplierNameLockedForVendorId = nm;
     } else {
@@ -395,17 +395,17 @@ export class PurchaseRegisterComponent implements OnInit {
         switchMap(({ sizes, full }) => {
           this.selectedProduct.set(full);
           this.productResults.set([full]);
-          const pivot = new Map<number, ProductSizeOption>();
+          const pivot = new Map<string, ProductSizeOption>();
           for (const row of sizes ?? []) {
             pivot.set(row.id, row);
           }
           this.productPivotBySizeId.set(pivot);
 
           const types = full.sizeTypeId ?? [];
-          const firstType =
-            Array.isArray(types) && types.length > 0 ? Number(types[0]) : null;
+          const firstType: string | null =
+            Array.isArray(types) && types.length > 0 ? String(types[0]) : null;
 
-          if (firstType != null && Number.isFinite(firstType) && firstType > 0) {
+          if (firstType != null && firstType !== '') {
             this.lineDraft.patchValue(
               { selectedSizeTypeId: firstType },
               { emitEvent: false },
@@ -484,7 +484,7 @@ export class PurchaseRegisterComponent implements OnInit {
     );
   }
 
-  protected catalogSizeLabel(sizeId: number): string {
+  protected catalogSizeLabel(sizeId: string): string {
     const size = this.catalogSizes().find((s) => s.id === sizeId);
     const base = (size?.description ?? '').trim() || `Talla #${sizeId}`;
     if (!this.useExistingProduct() || !this.selectedProduct()?.id) {
@@ -495,7 +495,7 @@ export class PurchaseRegisterComponent implements OnInit {
     if (merged?.stock != null && Number.isFinite(Number(merged.stock))) {
       parts.push(`stock ${merged.stock}`);
     }
-    if (merged?.productSizeId != null && merged.productSizeId > 0) {
+    if (merged?.productSizeId != null && merged.productSizeId) {
       parts.push('en producto');
     } else {
       parts.push('sin fila en producto aún');
@@ -545,7 +545,7 @@ export class PurchaseRegisterComponent implements OnInit {
       return;
     }
     this.catalog
-      .getSizesBySizeType(Number(typeId))
+      .getSizesBySizeType(String(typeId))
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (rows) => {
@@ -563,9 +563,9 @@ export class PurchaseRegisterComponent implements OnInit {
     }
     const draft = this.lineDraft.getRawValue();
     if (!draft.sizeNewToggle) {
-      const merged = this.getMergedSizeOption(Number(sizeId));
+      const merged = this.getMergedSizeOption(sizeId);
       const hasRowInProduct =
-        merged != null && merged.productSizeId != null && merged.productSizeId > 0;
+        merged != null && merged.productSizeId != null && !!merged.productSizeId;
       if (hasRowInProduct) {
         this.applyPricesFromSelectedSize();
       }
@@ -706,7 +706,7 @@ export class PurchaseRegisterComponent implements OnInit {
     const forceNewColor = !!draft.colorNewToggle || !this.canPickExistingColors();
 
     let colorMode: 'existing' | 'new';
-    let colorId: number | null;
+    let colorId: string | null;
     let colorTempId: string | null;
     let colorHash: string | null;
     let displayLabel: string;
@@ -795,10 +795,10 @@ export class PurchaseRegisterComponent implements OnInit {
     }
 
     let productMode: 'existing' | 'new';
-    let productId: number | null;
+    let productId: string | null;
     let productTempId: string | null;
     let productName: string;
-    let productGenderId: number | null;
+    let productGenderId: string | null;
 
     if (useExisting) {
       productMode = 'existing';
@@ -819,12 +819,12 @@ export class PurchaseRegisterComponent implements OnInit {
     }
 
     let sizeMode: 'existing' | 'new';
-    let sizeId: number | null;
+    let sizeId: string | null;
     let sizeTempId: string | null;
     let sizeLabel: string;
-    let sizeTypeId: number | null;
-    let productSizeId: number | null;
-    const sizeTypeIdForLine = Number(draft.selectedSizeTypeId);
+    let sizeTypeId: string | null;
+    let productSizeId: string | null;
+    const sizeTypeIdForLine = draft.selectedSizeTypeId ?? null;
 
     if (draft.sizeNewToggle) {
       if (!draft.newSizeDescription?.trim()) {
@@ -861,7 +861,7 @@ export class PurchaseRegisterComponent implements OnInit {
     const variants = this.draftQueueRawRows();
     let colorRows: {
       displayLabel: string;
-      colorId: number | null;
+      colorId: string | null;
       colorTempId: string | null;
       colorHash: string | null;
       quantity: number;
@@ -1018,7 +1018,7 @@ export class PurchaseRegisterComponent implements OnInit {
         id: genTempId('dv'),
         displayLabel: String(c['displayLabel'] ?? ''),
         colorMode: c['colorId'] != null ? 'existing' : 'new',
-        colorId: (c['colorId'] as number | null) ?? null,
+        colorId: (c['colorId'] as string | null) ?? null,
         colorTempId: (c['colorTempId'] as string | null) ?? null,
         colorHash: (c['colorHash'] as string | null) ?? null,
         quantity: Number(c['quantity']) || 0,
@@ -1082,7 +1082,7 @@ export class PurchaseRegisterComponent implements OnInit {
     const nameTrim = String(this.header.value.supplierName ?? '').trim();
     const existingVid = this.header.value.vendorId;
     const ensureVendor$ =
-      existingVid != null && Number(existingVid) > 0
+      existingVid
         ? of(void 0)
         : this.catalog.resolveOrCreateVendor(nameTrim).pipe(
             tap((v) => {
@@ -1130,7 +1130,7 @@ export class PurchaseRegisterComponent implements OnInit {
           );
           this.resetAll();
           const pid = res?.purchaseId;
-          if (pid != null && Number(pid) > 0) {
+          if (pid) {
             void this.router.navigate(['/inventories/purchases', pid]);
           }
         },
@@ -1139,7 +1139,7 @@ export class PurchaseRegisterComponent implements OnInit {
 
   protected updatePurchase(): void {
     const purchaseId = this.editingPurchaseId();
-    if (!this.isEditMode() || purchaseId == null || purchaseId <= 0) {
+    if (!this.isEditMode() || !purchaseId) {
       return;
     }
 
@@ -1158,7 +1158,7 @@ export class PurchaseRegisterComponent implements OnInit {
     const nameTrim = String(this.header.value.supplierName ?? '').trim();
     const existingVid = this.header.value.vendorId;
     const ensureVendor$ =
-      existingVid != null && Number(existingVid) > 0
+      existingVid
         ? of(void 0)
         : this.catalog.resolveOrCreateVendor(nameTrim).pipe(
             tap((v) => {
@@ -1182,10 +1182,7 @@ export class PurchaseRegisterComponent implements OnInit {
             : null;
           return this.purchaseApi.patchHeader(purchaseId, {
             supplierName: String(raw.supplierName ?? '').trim(),
-            vendorId:
-              raw.vendorId != null && Number(raw.vendorId) > 0
-                ? Number(raw.vendorId)
-                : null,
+            vendorId: raw.vendorId || null,
             documentNote: raw.documentNote?.trim() || null,
             registeredAt,
           });
@@ -1206,8 +1203,7 @@ export class PurchaseRegisterComponent implements OnInit {
         next: () => {
           this.originalLineIds = this.lines.controls
             .map((group) => String(group.getRawValue().lineId ?? ''))
-            .filter((id) => this.isPersistedLineId(id))
-            .map((id) => Number(id));
+            .filter((id) => this.isPersistedLineId(id));
 
           this.toast.show('success', 'Compra actualizada correctamente.');
           void this.router.navigate(['/inventories/purchases', purchaseId]);
@@ -1246,7 +1242,7 @@ export class PurchaseRegisterComponent implements OnInit {
       body.colorDeltas = colors
         .filter((color) => color['colorId'] != null)
         .map((color) => ({
-          colorId: Number(color['colorId']),
+          colorId: String(color['colorId']),
           quantity: Math.max(1, Number(color['quantity']) || 1),
         }));
     } else {
@@ -1259,11 +1255,11 @@ export class PurchaseRegisterComponent implements OnInit {
     return body;
   }
 
-  private buildLineSyncPlan(purchaseId: number): {
+  private buildLineSyncPlan(purchaseId: string): {
     ok: true;
     ops: Observable<{ message: string }>[];
   } {
-    const currentPersistedIds = new Set<number>();
+    const currentPersistedIds = new Set<string>();
     const newLineIdSet = new Set<string>();
     const ops: Observable<{ message: string }>[] = [];
 
@@ -1272,12 +1268,11 @@ export class PurchaseRegisterComponent implements OnInit {
       const lineIdStr = String(raw['lineId'] ?? '');
 
       if (this.isPersistedLineId(lineIdStr)) {
-        const id = Number(lineIdStr);
-        currentPersistedIds.add(id);
+        currentPersistedIds.add(lineIdStr);
         ops.push(
           this.purchaseApi.updateLine(
             purchaseId,
-            id,
+            lineIdStr,
             this.buildLineMutationBody(raw),
           ),
         );
@@ -1319,7 +1314,7 @@ export class PurchaseRegisterComponent implements OnInit {
 
   protected goBackToDetail(): void {
     const pid = this.editingPurchaseId();
-    if (pid != null && pid > 0) {
+    if (pid) {
       void this.router.navigate(['/inventories/purchases', pid]);
     } else {
       void this.router.navigate(['/inventories/purchases']);
@@ -1344,7 +1339,7 @@ export class PurchaseRegisterComponent implements OnInit {
         vendorId: null,
         documentNote: '',
         registeredAt: this.todayIso(),
-        warehouseId: 1,
+        warehouseId: '',
       },
       { emitEvent: false },
     );
@@ -1480,7 +1475,7 @@ export class PurchaseRegisterComponent implements OnInit {
       });
   }
 
-  private getMergedSizeOption(sizeId: number | null): ProductSizeOption | null {
+  private getMergedSizeOption(sizeId: string | null): ProductSizeOption | null {
     if (sizeId == null) {
       return null;
     }
@@ -1571,10 +1566,10 @@ export class PurchaseRegisterComponent implements OnInit {
     });
   }
 
-  private findDraftColorQueueIndexByExistingColorId(colorId: number): number {
+  private findDraftColorQueueIndexByExistingColorId(colorId: string): number {
     return this.draftColorQueue.controls.findIndex((control) => {
       const value = (control as FormGroup).getRawValue() as Record<string, unknown>;
-      return value['colorMode'] === 'existing' && Number(value['colorId']) === colorId;
+      return value['colorMode'] === 'existing' && String(value['colorId'] ?? '') === colorId;
     });
   }
 
@@ -1609,11 +1604,11 @@ export class PurchaseRegisterComponent implements OnInit {
     this.requestPersistDraft();
   }
 
-  private normalizeNewProductKey(name: string, genderId: number | null): string {
+  private normalizeNewProductKey(name: string, genderId: string | null): string {
     return `${String(name).trim().toLowerCase()}|${genderId ?? ''}`;
   }
 
-  private resolveNewProductTempId(name: string, genderId: number | null): string {
+  private resolveNewProductTempId(name: string, genderId: string | null): string {
     const key = this.normalizeNewProductKey(name, genderId);
     for (const control of this.lines.controls) {
       const raw = control.getRawValue() as Record<string, unknown>;
@@ -1622,7 +1617,7 @@ export class PurchaseRegisterComponent implements OnInit {
       }
       const rowKey = this.normalizeNewProductKey(
         String(raw['productName'] ?? ''),
-        raw['productGenderId'] != null ? Number(raw['productGenderId']) : null,
+        raw['productGenderId'] != null ? String(raw['productGenderId']) : null,
       );
       if (rowKey === key && raw['productTempId']) {
         return String(raw['productTempId']);
@@ -1696,7 +1691,7 @@ export class PurchaseRegisterComponent implements OnInit {
     this.totalEstimated.set(Math.round(total * 100) / 100);
   }
 
-  private loadPurchaseForEdit(purchaseId: number): void {
+  private loadPurchaseForEdit(purchaseId: string): void {
     this.loadingPurchase.set(true);
     this.purchaseApi
       .getOne(purchaseId)
@@ -1734,13 +1729,13 @@ export class PurchaseRegisterComponent implements OnInit {
         registeredAt: purchase.registeredAt
           ? purchase.registeredAt.slice(0, 10)
           : this.todayIso(),
-        warehouseId: purchase.warehouseId || 1,
+        warehouseId: purchase.warehouseId || '',
       },
       { emitEvent: false },
     );
 
     this.supplierNameLockedForVendorId =
-      purchase.vendorId != null && purchase.vendorId > 0
+      purchase.vendorId != null && purchase.vendorId !== ''
         ? String(purchase.supplierName ?? '').trim()
         : null;
 
@@ -1819,7 +1814,7 @@ export class PurchaseRegisterComponent implements OnInit {
     if (mode === 'existing' && raw['productId'] != null) {
       this.useExistingProduct.set(true);
       this.productService
-        .getOne(Number(raw['productId']))
+        .getOne(String(raw['productId']))
         .pipe(
           switchMap((product) => {
             this.selectedProduct.set(product);
@@ -1832,7 +1827,7 @@ export class PurchaseRegisterComponent implements OnInit {
         )
         .subscribe({
           next: ({ product, sizes }) => {
-            const pivot = new Map<number, ProductSizeOption>();
+            const pivot = new Map<string, ProductSizeOption>();
             for (const row of sizes) {
               pivot.set(row.id, row);
             }
@@ -1851,7 +1846,7 @@ export class PurchaseRegisterComponent implements OnInit {
       this.lineDraft.patchValue(
         {
           newProductName: String(raw['productName'] ?? ''),
-          newProductGenderId: (raw['productGenderId'] as number | null) ?? null,
+          newProductGenderId: (raw['productGenderId'] as string | null) ?? null,
         },
         { emitEvent: false },
       );
@@ -1865,14 +1860,14 @@ export class PurchaseRegisterComponent implements OnInit {
     product?: Product | null,
   ): void {
     const sizeMode = raw['sizeMode'] as string;
-    const sizeId =
-      raw['sizeId'] != null && Number(raw['sizeId']) > 0 ? Number(raw['sizeId']) : null;
-    const sizeTypeFromRow =
-      raw['sizeTypeId'] != null && Number(raw['sizeTypeId']) > 0
-        ? Number(raw['sizeTypeId'])
+    const sizeId: string | null =
+      raw['sizeId'] != null && raw['sizeId'] !== '' ? String(raw['sizeId']) : null;
+    const sizeTypeFromRow: string | null =
+      raw['sizeTypeId'] != null && raw['sizeTypeId'] !== ''
+        ? String(raw['sizeTypeId'])
         : null;
 
-    const applySizeContext = (sizeTypeId: number | null): void => {
+    const applySizeContext = (sizeTypeId: string | null): void => {
       this.lineDraft.patchValue(
         {
           selectedSizeTypeId: sizeTypeId,
@@ -1922,13 +1917,13 @@ export class PurchaseRegisterComponent implements OnInit {
     applySizeContext(this.firstProductSizeTypeId(product));
   }
 
-  private firstProductSizeTypeId(product?: Product | null): number | null {
+  private firstProductSizeTypeId(product?: Product | null): string | null {
     const types = product?.sizeTypeId ?? [];
     if (!Array.isArray(types) || types.length === 0) {
       return null;
     }
-    const first = Number(types[0]);
-    return Number.isFinite(first) && first > 0 ? first : null;
+    const first = String(types[0]).trim();
+    return first !== '' ? first : null;
   }
 
   private buildBulkPayload(): { payload: PurchaseBulkPayload } | null {
@@ -1942,7 +1937,7 @@ export class PurchaseRegisterComponent implements OnInit {
         vendorId: this.header.value.vendorId ?? null,
         documentNote: this.header.value.documentNote || null,
         registeredAt: this.header.value.registeredAt ?? this.todayIso(),
-        warehouseId: Number(this.header.value.warehouseId) || 1,
+        warehouseId: this.header.value.warehouseId ?? '',
       },
       rawLines,
     );
@@ -1954,7 +1949,7 @@ export class PurchaseRegisterComponent implements OnInit {
       const value = group.getRawValue();
       const colors = (value.colors as Record<string, unknown>[]).map((c) => ({
         displayLabel: String(c['displayLabel'] ?? ''),
-        colorId: (c['colorId'] as number | null) ?? null,
+        colorId: (c['colorId'] as string | null) ?? null,
         colorTempId: (c['colorTempId'] as string | null) ?? null,
         colorHash: (c['colorHash'] as string | null) ?? null,
         quantity: Number(c['quantity']) || 0,
@@ -2116,8 +2111,7 @@ export class PurchaseRegisterComponent implements OnInit {
 
     const header = parsed.header ?? {};
     const vidRaw = header['vendorId'];
-    const vendorId =
-      vidRaw != null && vidRaw !== '' && Number(vidRaw) > 0 ? Number(vidRaw) : null;
+    const vendorId = vidRaw != null && vidRaw !== '' ? String(vidRaw) : null;
     const supName = String(header['supplierName'] ?? '').trim();
     this.header.patchValue(
       {
@@ -2127,7 +2121,7 @@ export class PurchaseRegisterComponent implements OnInit {
         registeredAt: header['registeredAt']
           ? String(header['registeredAt']).slice(0, 10)
           : this.todayIso(),
-        warehouseId: Number(header['warehouseId']) > 0 ? Number(header['warehouseId']) : 1,
+        warehouseId: header['warehouseId'] != null ? String(header['warehouseId']) : '',
       },
       { emitEvent: false },
     );
@@ -2170,10 +2164,10 @@ export class PurchaseRegisterComponent implements OnInit {
       }
     };
 
-    const typeId = this.lineDraft.get('selectedSizeTypeId')?.value;
+    const typeId: string | null = this.lineDraft.get('selectedSizeTypeId')?.value ?? null;
     if (typeId) {
       this.catalog
-        .getSizesBySizeType(Number(typeId))
+        .getSizesBySizeType(typeId)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (rows) => {
@@ -2194,7 +2188,7 @@ export class PurchaseRegisterComponent implements OnInit {
     }
   }
 
-  private hydrateSelectedProductForDraft(productId: number, done: () => void): void {
+  private hydrateSelectedProductForDraft(productId: string, done: () => void): void {
     forkJoin({
       full: this.productService.getOne(productId),
       sizes: this.catalog.getProductSizes(productId),
@@ -2203,22 +2197,22 @@ export class PurchaseRegisterComponent implements OnInit {
         switchMap(({ full, sizes }) => {
           this.selectedProduct.set(full);
           this.productResults.set([full]);
-          const pivot = new Map<number, ProductSizeOption>();
+          const pivot = new Map<string, ProductSizeOption>();
           for (const row of sizes ?? []) {
             pivot.set(row.id, row);
           }
           this.productPivotBySizeId.set(pivot);
 
-          const draftType = this.lineDraft.get('selectedSizeTypeId')?.value;
-          if (draftType != null && Number(draftType) > 0) {
+          const draftType: string | null = this.lineDraft.get('selectedSizeTypeId')?.value ?? null;
+          if (draftType != null && draftType !== '') {
             return of(void 0);
           }
 
           const types = full.sizeTypeId ?? [];
-          const firstType =
-            Array.isArray(types) && types.length > 0 ? Number(types[0]) : null;
+          const firstType: string | null =
+            Array.isArray(types) && types.length > 0 ? String(types[0]) : null;
 
-          if (firstType != null && Number.isFinite(firstType) && firstType > 0) {
+          if (firstType != null && firstType !== '') {
             this.lineDraft.patchValue(
               { selectedSizeTypeId: firstType },
               { emitEvent: false },
@@ -2262,7 +2256,7 @@ export class PurchaseRegisterComponent implements OnInit {
       id: [String(row['id'] ?? genTempId('dv'))],
       displayLabel: [String(row['displayLabel'] ?? '')],
       colorMode: [mode as 'existing' | 'new'],
-      colorId: [row['colorId'] != null ? Number(row['colorId']) : null],
+      colorId: [row['colorId'] != null ? String(row['colorId']) : null],
       colorTempId: [(row['colorTempId'] as string | null) ?? null],
       colorHash: [(row['colorHash'] as string | null) ?? null],
       quantity: [
@@ -2279,7 +2273,7 @@ export class PurchaseRegisterComponent implements OnInit {
         id: String(value['id'] ?? ''),
         displayLabel: String(value['displayLabel'] ?? ''),
         colorMode: value['colorMode'] === 'new' ? 'new' : 'existing',
-        colorId: value['colorId'] != null ? Number(value['colorId']) : null,
+        colorId: value['colorId'] != null ? String(value['colorId']) : null,
         colorTempId: (value['colorTempId'] as string | null) ?? null,
         colorHash: (value['colorHash'] as string | null) ?? null,
         quantity: Number(value['quantity']) || 0,
@@ -2300,11 +2294,11 @@ export class PurchaseRegisterComponent implements OnInit {
         newProductName: String(rawLineDraft['newProductName'] ?? ''),
         newProductGenderId:
           rawLineDraft['newProductGenderId'] != null
-            ? Number(rawLineDraft['newProductGenderId'])
+            ? String(rawLineDraft['newProductGenderId'])
             : null,
         selectedSizeTypeId:
           rawLineDraft['selectedSizeTypeId'] != null
-            ? Number(rawLineDraft['selectedSizeTypeId'])
+            ? String(rawLineDraft['selectedSizeTypeId'])
             : null,
         sizeNewToggle: !!rawLineDraft['sizeNewToggle'],
         newSizeDescription: String(rawLineDraft['newSizeDescription'] ?? ''),
@@ -2314,11 +2308,11 @@ export class PurchaseRegisterComponent implements OnInit {
         newColorHash: String(rawLineDraft['newColorHash'] ?? ''),
         selectedSizeId:
           rawLineDraft['selectedSizeId'] != null
-            ? Number(rawLineDraft['selectedSizeId'])
+            ? String(rawLineDraft['selectedSizeId'])
             : null,
         selectedColorId:
           rawLineDraft['selectedColorId'] != null
-            ? Number(rawLineDraft['selectedColorId'])
+            ? String(rawLineDraft['selectedColorId'])
             : null,
         barcode: String(rawLineDraft['barcode'] ?? ''),
         purchasePrice: Number(rawLineDraft['purchasePrice']) || 0,
@@ -2346,7 +2340,7 @@ export class PurchaseRegisterComponent implements OnInit {
           this.fb.group({
             _rowKey: [String(color['_rowKey'] ?? genTempId('kc'))],
             displayLabel: [String(color['displayLabel'] ?? '')],
-            colorId: [color['colorId'] != null ? Number(color['colorId']) : null],
+            colorId: [color['colorId'] != null ? String(color['colorId']) : null],
             colorTempId: [(color['colorTempId'] as string | null) ?? null],
             colorHash: [(color['colorHash'] as string | null) ?? null],
             quantity: [
@@ -2362,17 +2356,17 @@ export class PurchaseRegisterComponent implements OnInit {
         productName: [String(raw['productName'] ?? '')],
         sizeLabel: [String(raw['sizeLabel'] ?? '')],
         productMode: [raw['productMode'] ?? 'existing'],
-        productId: [raw['productId'] != null ? Number(raw['productId']) : null],
+        productId: [raw['productId'] != null ? String(raw['productId']) : null],
         productTempId: [(raw['productTempId'] as string | null) ?? null],
         productGenderId: [
-          raw['productGenderId'] != null ? Number(raw['productGenderId']) : null,
+          raw['productGenderId'] != null ? String(raw['productGenderId']) : null,
         ],
         sizeMode: [raw['sizeMode'] ?? 'existing'],
-        sizeId: [raw['sizeId'] != null ? Number(raw['sizeId']) : null],
+        sizeId: [raw['sizeId'] != null ? String(raw['sizeId']) : null],
         sizeTempId: [(raw['sizeTempId'] as string | null) ?? null],
-        sizeTypeId: [raw['sizeTypeId'] != null ? Number(raw['sizeTypeId']) : null],
+        sizeTypeId: [raw['sizeTypeId'] != null ? String(raw['sizeTypeId']) : null],
         productSizeId: [
-          raw['productSizeId'] != null ? Number(raw['productSizeId']) : null,
+          raw['productSizeId'] != null ? String(raw['productSizeId']) : null,
         ],
         barcode: [(raw['barcode'] as string | null) ?? null],
         purchasePrice: [

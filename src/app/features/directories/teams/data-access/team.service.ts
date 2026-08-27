@@ -54,7 +54,7 @@ export class TeamService {
     return this.http.get<unknown>(url).pipe(map(adaptTeamList));
   }
 
-  getOne(id: number): Observable<Team> {
+  getOne(id: string): Observable<Team> {
     return this.http.get<unknown>(`${this.base}/${id}`).pipe(map(adaptTeam));
   }
 
@@ -65,13 +65,13 @@ export class TeamService {
     );
   }
 
-  update(id: number, data: TeamPayload): Observable<{ message: string }> {
+  update(id: string, data: TeamPayload): Observable<{ message: string }> {
     return this.http.patch<{ message: string }>(`${this.base}/${id}`, data).pipe(
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );
   }
 
-  delete(id: number): Observable<{ message: string }> {
+  delete(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.base}/${id}`).pipe(
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );

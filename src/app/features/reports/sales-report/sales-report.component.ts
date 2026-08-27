@@ -49,7 +49,7 @@ export class SalesReportComponent implements OnInit {
   protected readonly activeTab = signal<'daily' | 'monthly'>('daily');
   protected readonly selectedDate = signal(todayIsoDate());
   protected readonly selectedMonth = signal(currentMonthValue());
-  protected readonly selectedWarehouseId = signal<number | null>(null);
+  protected readonly selectedWarehouseId = signal<string | null>(null);
   protected readonly dailyReport = signal<DailySalesReport | null>(null);
   protected readonly monthlyReport = signal<MonthlySalesReport | null>(null);
   protected readonly isLoading = signal(false);

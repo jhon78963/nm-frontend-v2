@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { HttpErrorResponse, HttpHeaders, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import {
@@ -9,34 +9,63 @@ import {
   take,
   throwError,
 } from 'rxjs';
+import { TokenStorageService } from './token-storage.service';
 import { AuthService } from '../../features/auth/data-access/auth.service';
+import { environment } from '../../../environments/environment';
 
-// Rutas donde un 401 es esperado/normal: no intentar refresh.
-// /auth/me retorna 401 cuando no hay sesión (guest); sin este skip
-// cada navegación en rutas públicas dispara un refresh innecesario.
-const AUTH_REFRESH_SKIP = [
+/**
+ * URLs públicas donde NO inyectamos el access_token como Bearer.
+ * - /auth/login, /auth/forgot-password, /auth/reset-password: rutas públicas.
+ * - /auth/refresh: el Bearer aquí es el refresh_token (lo gestiona AuthService manualmente).
+ */
+const PUBLIC_URL_PARTS = [
   '/auth/login',
-  '/auth/me',
-  '/auth/refresh',
-  '/auth/logout',
-  '/auth/csrf-token',
-  '/sanctum/csrf-cookie',
   '/auth/forgot-password',
   '/auth/reset-password',
+  '/auth/refresh',
+];
+
+/**
+ * URLs donde un 401 es esperado/válido: no intentar refresh automático.
+ * - /auth/me: durante el arranque de la app se llama sin sesión (guest).
+ *   El restoreSession() de AuthService maneja el retry manual.
+ * - /auth/logout: puede devolver 401 si el token ya expiró; no hay nada que refrescar.
+ */
+const REFRESH_SKIP_URL_PARTS = [
+  ...PUBLIC_URL_PARTS,
+  '/auth/me',
+  '/auth/logout',
 ];
 
 let isRefreshing = false;
-const refreshResult$ = new BehaviorSubject<boolean | null>(null);
+const refreshResult$ = new BehaviorSubject<string | null>(null);
+
+function isPublicUrl(url: string): boolean {
+  return PUBLIC_URL_PARTS.some((part) => url.includes(part));
+}
 
 function shouldSkipRefresh(url: string): boolean {
-  return AUTH_REFRESH_SKIP.some((path) => url.includes(path));
+  return REFRESH_SKIP_URL_PARTS.some((part) => url.includes(part));
+}
+
+function addBearerHeader(req: HttpRequest<unknown>, token: string): HttpRequest<unknown> {
+  return req.clone({
+    setHeaders: { Authorization: `Bearer ${token}` },
+  });
 }
 
 export const tokenInterceptor: HttpInterceptorFn = (request, next) => {
+  const tokenStorage = inject(TokenStorageService);
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  const authReq = request.clone({ withCredentials: true });
+  // Rutas públicas: sin Bearer, sin withCredentials
+  if (isPublicUrl(request.url)) {
+    return next(request);
+  }
+
+  const accessToken = tokenStorage.getAccessToken();
+  const authReq = accessToken ? addBearerHeader(request, accessToken) : request;
 
   return next(authReq).pipe(
     catchError((error: HttpErrorResponse) => {
@@ -44,19 +73,20 @@ export const tokenInterceptor: HttpInterceptorFn = (request, next) => {
         return throwError(() => error);
       }
 
+      // Primer intento de refresh: bloqueamos peticiones paralelas
       if (!isRefreshing) {
         isRefreshing = true;
         refreshResult$.next(null);
 
         return authService.refreshSession().pipe(
-          switchMap(() => {
+          switchMap((newAccessToken) => {
             isRefreshing = false;
-            refreshResult$.next(true);
-            return next(authReq);
+            refreshResult$.next(newAccessToken);
+            return next(addBearerHeader(request, newAccessToken));
           }),
           catchError((refreshError) => {
             isRefreshing = false;
-            refreshResult$.next(false);
+            refreshResult$.next(null);
             authService.clearLocalSession();
             void router.navigate(['/auth/login']);
             return throwError(() => refreshError);
@@ -64,12 +94,13 @@ export const tokenInterceptor: HttpInterceptorFn = (request, next) => {
         );
       }
 
+      // Otras peticiones esperan el resultado del refresh en curso
       return refreshResult$.pipe(
-        filter((result) => result !== null),
+        filter((token) => token !== null),
         take(1),
-        switchMap((success) => {
-          if (success) {
-            return next(authReq);
+        switchMap((newToken) => {
+          if (newToken) {
+            return next(addBearerHeader(request, newToken));
           }
 
           authService.clearLocalSession();

@@ -13,7 +13,7 @@ export function adaptTeam(raw: unknown): Team {
   const r = raw as Record<string, unknown>;
   const salaryRaw = r['salary'];
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     dni: readString(r['dni']),
     name: readString(r['name']),
     surname: readString(r['surname']),
@@ -21,24 +21,32 @@ export function adaptTeam(raw: unknown): Team {
       salaryRaw === null || salaryRaw === undefined || salaryRaw === ''
         ? null
         : readNumber(salaryRaw),
-    warehouseId: readNumber(r['warehouseId'] ?? r['warehouse_id']),
-    userId: (r['userId'] ?? r['user_id']) as number | null ?? null,
+    warehouseId: String(r['warehouseId'] ?? r['warehouse_id'] ?? ''),
+    userId: (r['userId'] ?? r['user_id']) as string | null ?? null,
     userEmail: (r['userEmail'] ?? r['user_email']) as string | null ?? null,
   };
 }
 
 export function adaptTeamList(raw: unknown): TeamListResponse {
+  if (Array.isArray(raw)) {
+    return {
+      data: (raw as unknown[]).map(adaptTeam),
+      paginate: { total: raw.length, pages: 1 },
+    };
+  }
+
   const r = raw as {
-    data: unknown[];
-    paginate: { total: number; pages: number };
+    data?: unknown[];
+    paginate?: { total: number; pages: number };
+    meta?: { total: number; lastPage: number };
   };
+
+  const total = r.paginate?.total ?? r.meta?.total ?? 0;
+  const pages = r.paginate?.pages ?? r.meta?.lastPage ?? 1;
 
   return {
     data: (r.data ?? []).map(adaptTeam),
-    paginate: {
-      total: r.paginate?.total ?? 0,
-      pages: r.paginate?.pages ?? 0,
-    },
+    paginate: { total, pages },
   };
 }
 
@@ -55,9 +63,9 @@ export function adaptWarehouseLookupOptions(raw: unknown): WarehouseLookupOption
   return (r.data ?? []).map((item) => {
     const w = item as Record<string, unknown>;
     return {
-      id: readNumber(w['id']),
+      id: String(w['id'] ?? ''),
       name: readString(w['name']),
-      tenantId: (w['tenantId'] ?? w['tenant_id']) as number | null ?? null,
+      tenantId: (w['tenantId'] ?? w['tenant_id']) as string | null ?? null,
       tenantName: (w['tenantName'] ?? w['tenant_name']) as string | null ?? null,
     };
   });

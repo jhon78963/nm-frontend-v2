@@ -12,7 +12,7 @@ export class SizeLookupService {
 
   getSizeTypes(): Observable<SizeType[]> {
     return this.http
-      .get<unknown>(`${this.api}/size-types`)
+      .get<unknown>(`${this.api}/sizes/size-types`)
       .pipe(map(adaptSizeTypes));
   }
 }

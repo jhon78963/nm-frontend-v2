@@ -50,7 +50,7 @@ export class ProductMultimediaComponent implements OnDestroy {
   protected readonly currentSearch = signal('');
 
   protected readonly selectedProduct = signal<PublishProduct | null>(null);
-  protected readonly mediaCountOverrides = signal<Map<number, number>>(new Map());
+  protected readonly mediaCountOverrides = signal<Map<string, number>>(new Map());
 
   protected readonly selectedProductList = computed(() => {
     const product = this.selectedProduct();

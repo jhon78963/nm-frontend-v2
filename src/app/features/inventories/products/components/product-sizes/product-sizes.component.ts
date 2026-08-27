@@ -60,12 +60,12 @@ export class ProductSizesComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
 
-  protected readonly productId = signal<number | null>(null);
+  protected readonly productId = signal<string | null>(null);
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly sizes = signal<ProductSize[]>([]);
   protected readonly sizeTypes = signal<SizeType[]>([]);
-  protected readonly selectedSizeTypeIds = signal<number[]>([1]);
+  protected readonly selectedSizeTypeIds = signal<string[]>([]);
   protected readonly selectedSizes = signal<ProductSize[]>([]);
 
   protected readonly sizeTableColumns: TableDataColumn<ProductSize>[] = [
@@ -80,11 +80,11 @@ export class ProductSizesComponent implements OnInit {
     { key: 'actions', label: 'Acciones', align: 'right' },
   ];
 
-  private readonly initialSizeSnapshots = new Map<number, SizeFieldSnapshot>();
+  private readonly initialSizeSnapshots = new Map<string, SizeFieldSnapshot>();
 
   ngOnInit(): void {
     const id = this.route.parent?.snapshot.paramMap.get('id');
-    this.productId.set(id ? Number(id) : null);
+    this.productId.set(id ?? null);
 
     if (this.productId()) {
       this.loadSizeTypes();
@@ -116,7 +116,7 @@ export class ProductSizesComponent implements OnInit {
       .subscribe({
         next: (product) => {
           this.selectedSizeTypeIds.set(
-            product.sizeTypeId.length ? product.sizeTypeId : [1],
+            product.sizeTypeId.length ? product.sizeTypeId : [],
           );
           this.loadSizes();
         },
@@ -152,7 +152,7 @@ export class ProductSizesComponent implements OnInit {
       });
   }
 
-  protected toggleSizeType(id: number): void {
+  protected toggleSizeType(id: string): void {
     const current = this.selectedSizeTypeIds();
     const next = current.includes(id)
       ? current.filter((itemId) => itemId !== id)
@@ -162,7 +162,7 @@ export class ProductSizesComponent implements OnInit {
     this.loadSizes();
   }
 
-  protected isSizeTypeSelected(id: number): boolean {
+  protected isSizeTypeSelected(id: string): boolean {
     return this.selectedSizeTypeIds().includes(id);
   }
 

@@ -16,6 +16,16 @@ function readNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function readId(value: unknown, fallback = ''): string {
+  return value == null ? fallback : String(value);
+}
+
+function readOptionalId(value: unknown): string | undefined {
+  if (value == null) return undefined;
+  const s = String(value).trim();
+  return s === '' ? undefined : s;
+}
+
 function readString(value: unknown, fallback = ''): string {
   return value == null ? fallback : String(value);
 }
@@ -31,7 +41,7 @@ function adaptInventory(raw: unknown): ProductVariantInventory | undefined {
   const r = raw as Record<string, unknown>;
   return {
     availableQuantity: readNumber(r['available_quantity'] ?? r['availableQuantity']),
-    warehouseId: readNumber(r['warehouse_id'] ?? r['warehouseId']),
+    warehouseId: readId(r['warehouse_id'] ?? r['warehouseId']),
   };
 }
 
@@ -41,12 +51,12 @@ function adaptColor(raw: unknown): ReconciliationColor {
   const inventory = r['inventory']
     ? adaptInventory(r['inventory'])
     : r['stock'] != null
-      ? { availableQuantity: readNumber(r['stock']), warehouseId: 0 }
+      ? { availableQuantity: readNumber(r['stock']), warehouseId: '' }
       : undefined;
   return {
-    id: readNumber(r['id']),
-    colorId: readNumber(r['colorId'] ?? r['color_id']),
-    description: readString(r['description'], `Color #${readNumber(r['colorId'] ?? r['color_id'])}`),
+    id: readId(r['id']),
+    colorId: readId(r['colorId'] ?? r['color_id']),
+    description: readString(r['description'], `Color #${readId(r['colorId'] ?? r['color_id'])}`),
     hash: readNullableString(r['hash']),
     inventory,
   };
@@ -58,7 +68,7 @@ function adaptSize(raw: unknown): ReconciliationSize {
   const sizeObj =
     sizeRaw && typeof sizeRaw === 'object'
       ? {
-          id: readNumber((sizeRaw as Record<string, unknown>)['id']),
+          id: readId((sizeRaw as Record<string, unknown>)['id']),
           description: readString((sizeRaw as Record<string, unknown>)['description']),
         }
       : null;
@@ -70,12 +80,12 @@ function adaptSize(raw: unknown): ReconciliationSize {
   const inventory = r['inventory']
     ? adaptInventory(r['inventory'])
     : r['stock'] != null
-      ? { availableQuantity: readNumber(r['stock']), warehouseId: 0 }
+      ? { availableQuantity: readNumber(r['stock']), warehouseId: '' }
       : undefined;
 
   return {
-    id: readNumber(r['id']),
-    sizeId: readNumber(r['sizeId'] ?? r['size_id']),
+    id: readId(r['id']),
+    sizeId: readId(r['sizeId'] ?? r['size_id']),
     barcode: readNullableString(r['barcode']),
     inventory,
     purchasePrice:
@@ -101,15 +111,15 @@ export function adaptReconciliationProduct(raw: unknown): ReconciliationProduct 
   const sizes = Array.isArray(sizesRaw) ? sizesRaw.map(adaptSize) : [];
 
   return {
-    id: readNumber(r['id']),
+    id: readId(r['id']),
     name: readString(r['name']),
     barcode: readNullableString(r['barcode']),
     genderId: r['genderId'] != null || r['gender_id'] != null
-      ? readNumber(r['genderId'] ?? r['gender_id'])
+      ? readOptionalId(r['genderId'] ?? r['gender_id'])
       : undefined,
     gender: readNullableString(r['gender']),
     warehouseId: r['warehouseId'] != null || r['warehouse_id'] != null
-      ? readNumber(r['warehouseId'] ?? r['warehouse_id'])
+      ? readOptionalId(r['warehouseId'] ?? r['warehouse_id'])
       : undefined,
     status: readNullableString(r['status']) ?? undefined,
     sizes,
@@ -144,11 +154,11 @@ export function adaptReconciliationUpdateResponse(raw: unknown): ReconciliationU
 function adaptPosSalesVariant(raw: unknown): ReconciliationPosSalesVariant {
   const r = raw as Record<string, unknown>;
   return {
-    productSizeId: readNumber(r['productSizeId'] ?? r['product_size_id']),
-    sizeId: readNumber(r['sizeId'] ?? r['size_id']),
+    productSizeId: readId(r['productSizeId'] ?? r['product_size_id']),
+    sizeId: readId(r['sizeId'] ?? r['size_id']),
     colorId:
       r['colorId'] != null || r['color_id'] != null
-        ? readNumber(r['colorId'] ?? r['color_id'])
+        ? readId(r['colorId'] ?? r['color_id'])
         : null,
     quantitySold: readNumber(r['quantitySold'] ?? r['quantity_sold']),
     saleCount: readNumber(r['saleCount'] ?? r['sale_count']),
@@ -175,7 +185,7 @@ export function adaptPosSalesSummary(raw: unknown): ReconciliationPosSalesSummar
 export function adaptCatalogColor(raw: unknown): CatalogColorOption {
   const r = raw as Record<string, unknown>;
   return {
-    id: readNumber(r['id']),
+    id: readId(r['id']),
     description: readString(r['description']),
   };
 }
@@ -183,7 +193,7 @@ export function adaptCatalogColor(raw: unknown): CatalogColorOption {
 export function adaptAutocompleteOption(raw: unknown): AutocompleteOption {
   const r = raw as Record<string, unknown>;
   return {
-    id: readNumber(r['id']),
+    id: readId(r['id']),
     value: readString(r['value'] ?? r['description']),
   };
 }

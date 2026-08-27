@@ -39,7 +39,7 @@ export class VendorFormComponent implements OnInit {
   private readonly vendorService = inject(VendorService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly vendorId = input<number | null>(null);
+  readonly vendorId = input<string | null>(null);
 
   readonly saved = output<string>();
   readonly closed = output<void>();

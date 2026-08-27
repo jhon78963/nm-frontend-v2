@@ -24,6 +24,10 @@ export function isNumberArray(value: unknown): value is number[] {
   return Array.isArray(value) && value.every((item) => typeof item === 'number');
 }
 
+export function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string');
+}
+
 export interface RestoreSearchPageOptions {
   page: { set: (value: number) => void };
   limit: { set: (value: number) => void };

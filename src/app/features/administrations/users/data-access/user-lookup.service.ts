@@ -22,15 +22,24 @@ export class UserLookupService {
   private readonly api = environment.apiUrl;
 
   getTenants(): Observable<TenantOption[]> {
-    if (this.authService.hasPermission('tenant.getAll')) {
+    const user = this.authService.currentUser();
+
+    if (
+      isSuperAdmin(user) &&
+      this.authService.hasPermission('tenant.getAll')
+    ) {
       return this.http
         .get<unknown>(`${this.api}/tenants?limit=200&page=1`)
         .pipe(map(adaptTenantOptions));
     }
 
-    const tenantId = this.authService.currentUser()?.tenantId;
-    if (tenantId == null || tenantId <= 0) {
+    const tenantId = user?.tenantId;
+    if (!tenantId) {
       return of([]);
+    }
+
+    if (user?.tenantName?.trim()) {
+      return of([{ id: tenantId, name: user.tenantName.trim() }]);
     }
 
     if (this.authService.hasPermission('tenant.get')) {
@@ -47,7 +56,7 @@ export class UserLookupService {
     return of([{ id: tenantId, name: `Cliente #${tenantId}` }]);
   }
 
-  getWarehouses(tenantId?: number | null): Observable<WarehouseOption[]> {
+  getWarehouses(tenantId?: string | null): Observable<WarehouseOption[]> {
     if (!this.authService.hasPermission('warehouse.getAll')) {
       return of([]);
     }
@@ -55,7 +64,7 @@ export class UserLookupService {
     const scopedTenantId = this.resolveWarehouseTenantFilter(tenantId);
     let url = `${this.api}/warehouses?limit=200&page=1`;
 
-    if (scopedTenantId != null && scopedTenantId > 0) {
+    if (scopedTenantId) {
       url += `&tenant_id=${scopedTenantId}`;
     }
 
@@ -73,8 +82,7 @@ export class UserLookupService {
       );
   }
 
-  /** Admin de tenant: solo almacenes de su cliente; Super Admin puede filtrar por tenant. */
-  private resolveWarehouseTenantFilter(tenantId?: number | null): number | null {
+  private resolveWarehouseTenantFilter(tenantId?: string | null): string | null {
     const user = this.authService.currentUser();
 
     if (isSuperAdmin(user) && this.authService.hasPermission('tenant.getAll')) {
@@ -82,7 +90,7 @@ export class UserLookupService {
     }
 
     const actorTenantId = user?.tenantId;
-    if (typeof actorTenantId === 'number' && actorTenantId > 0) {
+    if (actorTenantId) {
       return actorTenantId;
     }
 

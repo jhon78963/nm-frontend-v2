@@ -78,10 +78,10 @@ export class TeamsListComponent implements OnInit {
   protected readonly limit = signal(10);
 
   protected readonly formDialogOpen = signal(false);
-  protected readonly editingTeamId = signal<number | null>(null);
+  protected readonly editingTeamId = signal<string | null>(null);
   protected readonly dailySummaryOpen = signal(false);
 
-  protected readonly deleteConfirmId = signal<number | null>(null);
+  protected readonly deleteConfirmId = signal<string | null>(null);
   protected readonly deleting = signal(false);
 
   protected readonly filterForm = new FormGroup({
@@ -198,7 +198,7 @@ export class TeamsListComponent implements OnInit {
     this.formDialogOpen.set(true);
   }
 
-  protected openEdit(id: number): void {
+  protected openEdit(id: string): void {
     this.editingTeamId.set(id);
     this.formDialogOpen.set(true);
   }
@@ -211,7 +211,7 @@ export class TeamsListComponent implements OnInit {
     this.dailySummaryOpen.set(false);
   }
 
-  protected openDeleteConfirm(id: number): void {
+  protected openDeleteConfirm(id: string): void {
     this.deleteConfirmId.set(id);
   }
 

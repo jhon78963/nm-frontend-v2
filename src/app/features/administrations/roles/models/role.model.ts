@@ -1,20 +1,20 @@
 export interface Permission {
-  id: number;
+  id: string;
   name: string;
   label?: string;
   group?: string;
 }
 
 export interface Role {
-  id: number;
+  id: string;
   name: string;
-  tenantId?: number | null;
+  tenantId?: string | null;
   permissions?: Permission[];
 }
 
 /** Rol custom del tenant (editable). Los globales asignables tienen tenantId null. */
 export function isTenantManagedRole(role: Role): boolean {
-  return typeof role.tenantId === 'number' && role.tenantId > 0;
+  return typeof role.tenantId === 'string' && role.tenantId.length > 0;
 }
 
 export interface RolePagination {

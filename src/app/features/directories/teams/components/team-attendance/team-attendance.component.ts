@@ -61,7 +61,7 @@ export class TeamAttendanceComponent implements OnInit {
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly teamId = signal(0);
+  protected readonly teamId = signal('');
   protected readonly team = signal<Team | null>(null);
   protected readonly loading = signal(true);
   protected readonly viewMonth = signal(new Date().getMonth());
@@ -118,8 +118,8 @@ export class TeamAttendanceComponent implements OnInit {
     this.route.paramMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((params) => {
-        const id = Number(params.get('teamId'));
-        if (!id || Number.isNaN(id)) {
+        const id = params.get('teamId');
+        if (!id) {
           this.toastService.show('error', 'No se indicó un colaborador válido.');
           void this.router.navigate(['/directories/teams']);
           return;
@@ -213,7 +213,7 @@ export class TeamAttendanceComponent implements OnInit {
 
     this.attendanceService
       .store({
-        teamId: this.teamId(),
+        teamId: String(this.teamId()),
         date: row.dateStr,
         status: row.status,
         checkInTime: row.checkInTime || null,

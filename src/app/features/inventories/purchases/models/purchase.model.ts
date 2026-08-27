@@ -1,8 +1,8 @@
 /** Opción de talla devuelta por `GET colors/sizes`. */
 export interface ProductSizeOption {
-  id: number;
+  id: string;
   description?: string;
-  productSizeId?: number;
+  productSizeId?: string;
   stock?: number;
   barcode?: string | null;
   purchasePrice?: number | null;
@@ -12,32 +12,32 @@ export interface ProductSizeOption {
 
 /** Fila de `GET colors/selected`. */
 export interface ProductColorOption {
-  id: number;
+  id: string;
   description: string;
   hash?: string | null;
   isExists: boolean;
   stock: number | null;
-  productSizeId: number | null;
+  productSizeId: string | null;
 }
 
 export interface SizeTypeOption {
-  id: number;
+  id: string;
   description: string;
 }
 
 export type ProductRefPayload =
-  | { mode: 'id'; productId: number }
+  | { mode: 'id'; productId: string }
   | { mode: 'temp'; tempId: string };
 
 export type SizeRefPayload =
-  | { mode: 'id'; sizeId: number }
+  | { mode: 'id'; sizeId: string }
   | { mode: 'temp'; tempId: string };
 
 export interface PurchaseCatalogProductCreate {
   tempId: string;
   mode: 'create';
   name: string;
-  genderId: number;
+  genderId: string;
   description?: string | null;
   barcode?: string | null;
 }
@@ -46,7 +46,7 @@ export interface PurchaseCatalogSizeCreate {
   tempId: string;
   mode: 'create';
   description: string;
-  sizeTypeId: number;
+  sizeTypeId: string;
 }
 
 export interface PurchaseCatalogColorCreate {
@@ -58,7 +58,7 @@ export interface PurchaseCatalogColorCreate {
 
 export interface PurchaseLineColorJson {
   quantity: number;
-  colorId?: number;
+  colorId?: string;
   tempId?: string;
   description?: string;
   hash?: string | null;
@@ -74,16 +74,16 @@ export interface PurchaseLinePayload {
   minSalePrice: number;
   colors: PurchaseLineColorJson[];
   subtotal: number;
-  productSizeId?: number | null;
+  productSizeId?: string | null;
 }
 
 export interface PurchaseBulkPayload {
   purchase: {
     supplierName: string;
-    vendorId?: number | null;
+    vendorId?: string | null;
     documentNote: string | null;
     registeredAt: string;
-    warehouseId: number;
+    warehouseId: string;
     currency: string;
   };
   catalogUpserts: {
@@ -99,7 +99,7 @@ export interface PurchaseDraftColorVariant {
   id: string;
   displayLabel: string;
   colorMode: 'existing' | 'new';
-  colorId: number | null;
+  colorId: string | null;
   colorTempId: string | null;
   colorHash: string | null;
   quantity: number;
@@ -110,14 +110,14 @@ export interface PurchaseLineFormValue {
   productName: string;
   sizeLabel: string;
   productMode: 'existing' | 'new';
-  productId: number | null;
+  productId: string | null;
   productTempId: string | null;
-  productGenderId: number | null;
+  productGenderId: string | null;
   sizeMode: 'existing' | 'new';
-  sizeId: number | null;
+  sizeId: string | null;
   sizeTempId: string | null;
-  sizeTypeId: number | null;
-  productSizeId: number | null;
+  sizeTypeId: string | null;
+  productSizeId: string | null;
   barcode: string | null;
   purchasePrice: number;
   salePrice: number;
@@ -128,19 +128,19 @@ export interface PurchaseLineFormValue {
 
 export interface PurchaseLineColorRowValue {
   displayLabel: string;
-  colorId: number | null;
+  colorId: string | null;
   colorTempId: string | null;
   colorHash: string | null;
   quantity: number;
 }
 
 export interface PurchaseRow {
-  id: number;
+  id: string;
   supplierName: string;
-  vendorId: number | null;
+  vendorId: string | null;
   documentNote: string | null;
   registeredAt: string | null;
-  warehouseId: number;
+  warehouseId: string;
   warehouseName?: string;
   currency: string;
   status: PurchaseStatus;
@@ -152,21 +152,21 @@ export interface PurchaseRow {
 export type PurchaseStatus = 'ACTIVE' | 'CANCELLED' | string;
 
 export interface PurchaseLineColorDeltaRow {
-  id: number;
-  colorId: number;
+  id: string;
+  colorId: string;
   colorDescription?: string;
   quantity: number;
 }
 
 export interface PurchaseLineRow {
-  id: number;
+  id: string;
   lineId: string | null;
-  productId: number;
+  productId: string;
   productName?: string;
-  sizeId: number;
+  sizeId: string;
   sizeDescription?: string;
-  sizeTypeId?: number;
-  productSizeId: number;
+  sizeTypeId?: string;
+  productSizeId: string;
   barcode: string | null;
   purchasePrice: number | null;
   salePrice: number | null;
@@ -178,7 +178,7 @@ export interface PurchaseLineRow {
 }
 
 export interface PurchaseLinkedPayment {
-  cashMovementId: number;
+  cashMovementId: string;
   amount: number;
   paymentMethod: string;
   description: string;
@@ -201,14 +201,14 @@ export interface PurchaseListResponse {
 
 export interface PurchaseRegisterBulkResponse {
   message: string;
-  purchaseId: number;
+  purchaseId: string;
 }
 
 export interface PurchaseHeaderPatch {
   documentNote?: string | null;
   registeredAt?: string | null;
   supplierName?: string;
-  vendorId?: number | null;
+  vendorId?: string | null;
 }
 
 export interface PurchaseLinePatch {
@@ -216,7 +216,7 @@ export interface PurchaseLinePatch {
   purchasePrice: number;
   salePrice?: number | null;
   minSalePrice?: number | null;
-  colorDeltas?: { colorId: number; quantity: number }[];
+  colorDeltas?: { colorId: string; quantity: number }[];
   sizeOnlyQuantity?: number;
 }
 

@@ -29,18 +29,25 @@ function extractErrorMessage(err: unknown): string {
 @Service()
 export class KardexService {
   private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apiUrl}/inventory/kardex`;
+  private readonly base = `${environment.apiUrl}/kardex`;
 
   getReport(params: KardexReportParams): Observable<KardexReport> {
-    let httpParams = new HttpParams()
-      .set('warehouse_id', String(params.warehouseId))
-      .set('product_id', String(params.productId))
-      .set('product_size_id', String(params.productSizeId))
-      .set('fecha_inicio', params.startDate)
-      .set('fecha_fin', params.endDate);
+    let httpParams = new HttpParams();
 
-    if (params.colorId !== null && !Number.isNaN(params.colorId)) {
-      httpParams = httpParams.set('color_id', String(params.colorId));
+    if (params.productId) {
+      httpParams = httpParams.set('productId', String(params.productId));
+    }
+    if (params.productSizeId) {
+      httpParams = httpParams.set('productSizeId', String(params.productSizeId));
+    }
+    if (params.startDate) {
+      httpParams = httpParams.set('dateFrom', params.startDate);
+    }
+    if (params.endDate) {
+      httpParams = httpParams.set('dateTo', params.endDate);
+    }
+    if (params.colorId != null && params.colorId !== '') {
+      httpParams = httpParams.set('colorId', String(params.colorId));
     }
 
     return this.http.get<unknown>(this.base, { params: httpParams }).pipe(

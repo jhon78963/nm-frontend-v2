@@ -49,7 +49,7 @@ export function adaptAdminExpense(raw: Record<string, unknown>): AdminExpense {
   const method = adaptPaymentMethod(raw['method'] ?? raw['payment_method']);
 
   return {
-    id: toNumber(raw['id']),
+    id: String(raw['id'] ?? ''),
     description: String(raw['description'] ?? ''),
     amount: toNumber(raw['amount']),
     date: String(raw['date'] ?? ''),
@@ -69,13 +69,22 @@ export function adaptAdminExpenseReport(raw: unknown): AdminExpenseReport {
   const data = envelope?.data ?? (raw as Record<string, unknown>) ?? {};
   const expensesRaw = data['expenses'];
 
+  // Nest monthly endpoint returns aggregate data (not individual expenses)
+  // Map legacy { expenses[] } OR Nest aggregate { byCategory[], totalExpense }
   const expenses = Array.isArray(expensesRaw)
     ? expensesRaw.map((item) => adaptAdminExpense(item as Record<string, unknown>))
     : [];
 
+  const totalAdmin = toNumber(
+    data['total_monthly_admin'] ??
+      data['totalMonthlyAdmin'] ??
+      data['totalExpense'] ??
+      data['total_expense'],
+  );
+
   return {
-    month: String(data['month'] ?? ''),
-    totalMonthlyAdmin: toNumber(data['total_monthly_admin'] ?? data['totalMonthlyAdmin']),
+    month: String(data['month'] ?? data['accountingMonth'] ?? ''),
+    totalMonthlyAdmin: totalAdmin,
     expenses,
   };
 }

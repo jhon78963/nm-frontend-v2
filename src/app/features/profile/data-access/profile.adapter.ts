@@ -81,7 +81,7 @@ export function adaptProfile(raw: unknown): ProfileData {
   const fullName = surname ? `${firstName} ${surname}`.trim() : firstName;
 
   return {
-    id: readNumber(record['id']),
+    id: record['id'] != null ? String(record['id']) : '',
     name: fullName,
     email: readString(record['email']),
     phone: normalizePhone(record['phone']),

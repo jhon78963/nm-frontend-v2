@@ -64,8 +64,8 @@ import {
 
 interface ProductFormSlice {
   name: string;
-  genderId: number;
-  warehouseId: number;
+  genderId: string;
+  warehouseId: string;
 }
 
 type ConfirmAction =
@@ -118,7 +118,7 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
   protected readonly searchResultsVisible = signal(false);
 
   protected readonly genders = signal<Gender[]>([]);
-  protected readonly warehouseOptions = signal<SelectOption<number>[]>([]);
+  protected readonly warehouseOptions = signal<SelectOption<string>[]>([]);
 
   protected readonly draft = signal<ReconciliationDraft | null>(null);
   protected readonly posSalesSummary = signal<ReconciliationPosSalesSummary | null>(null);
@@ -126,14 +126,14 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
   protected readonly navigationHint = signal<ReconciliationNavigationState | null>(null);
 
   protected readonly replaceDialogVisible = signal(false);
-  protected readonly replaceTargetColorId = signal<number | null>(null);
+  protected readonly replaceTargetColorId = signal<string | null>(null);
   protected readonly catalogColors = signal<CatalogColorOption[]>([]);
   protected readonly catalogColorsLoading = signal(false);
   protected readonly replacingVariantColor = signal(false);
   protected readonly replaceCtx = signal<{
-    productSizeId: number;
+    productSizeId: string;
     sizeLabel: string;
-    fromColorId: number;
+    fromColorId: string;
     fromLabel: string;
     stock: number;
   } | null>(null);
@@ -145,9 +145,9 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
   protected readonly addingSize = signal(false);
 
   protected readonly addColorDialogVisible = signal(false);
-  protected readonly addColorCtx = signal<{ productSizeId: number; sizeLabel: string } | null>(null);
+  protected readonly addColorCtx = signal<{ productSizeId: string; sizeLabel: string } | null>(null);
   protected readonly addColorMode = signal<'catalog' | 'new'>('catalog');
-  protected readonly addColorTargetId = signal<number | null>(null);
+  protected readonly addColorTargetId = signal<string | null>(null);
   protected readonly addColorNewName = signal('');
   protected readonly addColorInitialStock = signal(0);
   protected readonly addingColor = signal(false);
@@ -160,8 +160,8 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
 
   protected readonly productFormModel = signal<ProductFormSlice>({
     name: '',
-    genderId: 1,
-    warehouseId: 1,
+    genderId: '',
+    warehouseId: '',
   });
 
   protected readonly productForm = form(this.productFormModel, (schema) => {
@@ -190,7 +190,7 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
     }),
   );
 
-  protected readonly genderSelectOptions = computed<SelectOption<number>[]>(() =>
+  protected readonly genderSelectOptions = computed<SelectOption<string>[]>(() =>
     this.genders().map((gender) => ({
       label: gender.description,
       value: gender.id,
@@ -233,14 +233,14 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
     () => this.posSalesSummary()?.sinceLabel ?? '10/07/2026',
   );
 
-  protected readonly replaceColorOptions = computed<SelectOption<number>[]>(() => {
+  protected readonly replaceColorOptions = computed<SelectOption<string>[]>(() => {
     const fromId = this.replaceCtx()?.fromColorId;
     return this.catalogColors()
       .filter((color) => color.id !== fromId)
       .map((color) => ({ label: color.description, value: color.id }));
   });
 
-  protected readonly addColorOptions = computed<SelectOption<number>[]>(() => {
+  protected readonly addColorOptions = computed<SelectOption<string>[]>(() => {
     const ctx = this.addColorCtx();
     const size = this.draft()?.sizes.find((item) => item.id === ctx?.productSizeId);
     const used = new Set((size?.colors ?? []).map((color) => color.colorId));
@@ -326,8 +326,7 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
         return;
       }
 
-      const id = Number(raw);
-      if (!Number.isFinite(id) || id < 1) {
+      if (!raw) {
         this.toastService.show('error', 'ID de producto inválido.');
         void this.router.navigate(['/inventories/reconciliations'], {
           replaceUrl: true,
@@ -335,7 +334,7 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
         return;
       }
 
-      this.loadFullProduct(id);
+      this.loadFullProduct(raw);
     });
   }
 
@@ -393,7 +392,7 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
       });
   }
 
-  protected openProduct(id: number): void {
+  protected openProduct(id: string): void {
     this.searchResultsVisible.set(false);
     void this.router.navigate(['/inventories/reconciliations', id], {
       replaceUrl: true,
@@ -430,17 +429,17 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
 
     const formValues = this.productFormModel();
     const productPayload: ProductFormData = {
-      ...base,
-      ...formValues,
-      id: currentDraft.productId,
+      name: formValues.name,
+      genderId: formValues.genderId,
+      warehouseId: formValues.warehouseId,
       barcode: base.barcode,
       description: base.description,
-      purchasePrice: base.purchasePrice,
-      salePrice: base.salePrice,
-      minSalePrice: base.minSalePrice,
       status: base.status,
       percentageDiscount: base.percentageDiscount,
       cashDiscount: base.cashDiscount,
+      isFeatured: base.isFeatured,
+      isOnSale: base.isOnSale,
+      wooStatus: base.wooStatus,
     };
 
     this.saving.set(true);
@@ -691,7 +690,7 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
   }
 
   protected updateSizeField<K extends keyof ReconciliationSizeDraft>(
-    sizeId: number,
+    sizeId: string,
     field: K,
     value: ReconciliationSizeDraft[K],
   ): void {
@@ -707,8 +706,8 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
   }
 
   protected updateColorStock(
-    sizeId: number,
-    colorId: number,
+    sizeId: string,
+    colorId: string,
     value: number,
   ): void {
     this.draft.update((current) => {
@@ -736,8 +735,8 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
   }
 
   protected updateColorReviewed(
-    sizeId: number,
-    colorId: number,
+    sizeId: string,
+    colorId: string,
     checked: boolean,
   ): void {
     this.draft.update((current) => {
@@ -895,7 +894,7 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
     const stock = Math.max(0, Math.trunc(this.addColorInitialStock()));
     const snapshot = captureDraftSnapshot(currentDraft);
 
-    const attachColor = (colorId: number) =>
+    const attachColor = (colorId: string) =>
       this.inventoryService.addColorToProductSize(ctx.productSizeId, colorId, { stock }).pipe(
         switchMap(() =>
           stock > 0
@@ -906,17 +905,17 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
         ),
       );
 
-    const colorId$: Observable<number | null> =
+    const colorId$: Observable<string | null> =
       this.addColorMode() === 'new'
         ? this.inventoryService.resolveOrCreateColorId(this.addColorNewName())
         : this.addColorTargetId() != null
-          ? of(this.addColorTargetId() as number)
-          : of<number | null>(null);
+          ? of(this.addColorTargetId() as string)
+          : of<string | null>(null);
 
     colorId$
       .pipe(
         switchMap((colorId) => {
-          if (colorId == null || colorId < 1) {
+          if (!colorId) {
             throw new Error('Seleccione un color o escriba uno nuevo.');
           }
           return attachColor(colorId);
@@ -999,11 +998,11 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
       });
   }
 
-  protected onReplaceColorSelected(value: number | null): void {
+  protected onReplaceColorSelected(value: string | null): void {
     this.replaceTargetColorId.set(value);
   }
 
-  protected onAddColorSelected(value: number | null): void {
+  protected onAddColorSelected(value: string | null): void {
     this.addColorTargetId.set(value);
   }
 
@@ -1038,7 +1037,7 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
   }
 
   private loadFullProduct(
-    id: number,
+    id: string,
     preserveEditsFrom: ReconciliationDraft | null = null,
   ): void {
     this.loadingBundle.set(true);
@@ -1072,8 +1071,8 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
           if (!preserveEditsFrom) {
             this.productFormModel.set({
               name: meta.name ?? '',
-              genderId: meta.genderId ?? 1,
-              warehouseId: meta.warehouseId ?? 1,
+              genderId: meta.genderId ?? '',
+              warehouseId: meta.warehouseId ?? '',
             });
           }
 
@@ -1098,9 +1097,9 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
     product: ReconciliationProduct,
     preserveEditsFrom?: ReconciliationDraft | null,
     colorReplace?: {
-      productSizeId: number;
-      fromColorId: number;
-      toColorId: number;
+      productSizeId: string;
+      fromColorId: string;
+      toColorId: string;
     },
   ): void {
     const fresh = cloneProductToDraft(product);
@@ -1148,7 +1147,7 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
     });
   }
 
-  private posVariantKey(productSizeId: number, colorId: number | null): string {
+  private posVariantKey(productSizeId: string, colorId: string | null): string {
     return `${productSizeId}:${colorId ?? 'none'}`;
   }
 
@@ -1333,7 +1332,7 @@ export class InventoryReconciliationComponent implements OnInit, AfterViewInit {
     this.draft.set(null);
     this.posSalesSummary.set(null);
     this.lastProductFromApi.set(null);
-    this.productFormModel.set({ name: '', genderId: 1, warehouseId: 1 });
+    this.productFormModel.set({ name: '', genderId: '', warehouseId: '' });
     this.searchQuery.set('');
     this.searchResults.set([]);
     this.searchResultsVisible.set(false);

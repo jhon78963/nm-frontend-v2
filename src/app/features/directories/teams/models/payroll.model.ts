@@ -57,7 +57,7 @@ export interface PayrollMovements {
 }
 
 export interface PayrollPaymentItem {
-  id: number;
+  id: string;
   type: PaymentType;
   typeLabel: string;
   amount: number;
@@ -68,7 +68,7 @@ export interface PayrollPaymentItem {
   accountingPeriodLabel: string | null;
   description: string | null;
   syncedToAdmin: boolean;
-  cashMovementId: number | null;
+  cashMovementId: string | null;
   paymentMethod: string | null;
   voucherPath: string | null;
   voucherPaths: string[];
@@ -101,7 +101,7 @@ export interface PayrollLiquidacionPeriodo {
 
 export interface PayrollData {
   team: {
-    id: number;
+    id: string;
     name: string;
     surname: string;
     dni: string;

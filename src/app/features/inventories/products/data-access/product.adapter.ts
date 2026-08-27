@@ -15,6 +15,7 @@ import {
   ProductHistoryIcon,
   ProductHistoryResponse,
   ProductHistorySeverity,
+  ProductApiWritePayload,
 } from '../models/product.model';
 
 function readNumber(value: unknown, fallback = 0): number {
@@ -51,7 +52,7 @@ function adaptProductVariantInventory(
   const r = raw as Record<string, unknown>;
   return {
     availableQuantity: readNumber(r['available_quantity']),
-    warehouseId: readNumber(r['warehouse_id']),
+    warehouseId: String(r['warehouse_id'] ?? ''),
   };
 }
 
@@ -66,6 +67,33 @@ function readStock(value: unknown): number {
   return Math.max(0, Math.trunc(n));
 }
 
+function sumInventoryBalances(balances: unknown): number {
+  if (!Array.isArray(balances)) {
+    return 0;
+  }
+
+  return balances.reduce((sum, balance) => {
+    const qty = (balance as Record<string, unknown>)['quantity'];
+    return sum + readStock(qty);
+  }, 0);
+}
+
+function buildColorStockMap(balances: unknown): Map<string, number> {
+  const map = new Map<string, number>();
+  if (!Array.isArray(balances)) {
+    return map;
+  }
+
+  for (const balance of balances) {
+    const row = balance as Record<string, unknown>;
+    const colorId = String(row['colorId'] ?? '');
+    if (!colorId) continue;
+    map.set(colorId, readStock(row['quantity']));
+  }
+
+  return map;
+}
+
 export function adaptProductColor(raw: unknown): ProductColor {
   const r = raw as Record<string, unknown>;
   const hash =
@@ -76,14 +104,14 @@ export function adaptProductColor(raw: unknown): ProductColor {
         : undefined;
 
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     description: readString(r['description']),
     hash,
     value: r['value'] ? readString(r['value']) : undefined,
     stock: r['stock'] !== undefined ? readStock(r['stock']) : undefined,
     productSizeId:
       r['productSizeId'] != null && r['productSizeId'] !== ''
-        ? readNumber(r['productSizeId'])
+        ? String(r['productSizeId'])
         : undefined,
     isExists:
       r['isExists'] !== undefined ? readBoolean(r['isExists']) : undefined,
@@ -107,12 +135,14 @@ export function adaptProductSize(raw: unknown): ProductSize {
   const colors = Array.isArray(r['colors'])
     ? (r['colors'] as unknown[]).map(adaptProductColor)
     : undefined;
+  const balances = r['inventoryBalances'];
+  const balanceStock = sumInventoryBalances(balances);
 
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     productSizeId:
       r['productSizeId'] != null && r['productSizeId'] !== ''
-        ? readNumber(r['productSizeId'])
+        ? String(r['productSizeId'])
         : undefined,
     description: readString(r['description']),
     price: r['price'] != null ? readNumber(r['price']) : undefined,
@@ -122,7 +152,9 @@ export function adaptProductSize(raw: unknown): ProductSize {
     stock:
       r['stock'] !== undefined && r['stock'] !== null
         ? readNumber(r['stock'])
-        : undefined,
+        : balanceStock > 0
+          ? balanceStock
+          : undefined,
     purchasePrice:
       r['purchasePrice'] !== undefined && r['purchasePrice'] !== null
         ? readNumber(r['purchasePrice'])
@@ -143,19 +175,69 @@ export function adaptProductSize(raw: unknown): ProductSize {
 function adaptProductMediaItem(raw: unknown): ProductMediaItem {
   const r = raw as Record<string, unknown>;
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     url: readString(r['url']),
     type: r['type'] === 'video' ? 'video' : 'image',
     isPrimary: readBoolean(r['isPrimary']),
   };
 }
 
+function adaptProductSizeFromNest(raw: unknown): ProductSize {
+  const r = raw as Record<string, unknown>;
+  const sizeRec = (r['size'] as Record<string, unknown>) ?? {};
+  const colorLinks = Array.isArray(r['productSizeColors'])
+    ? (r['productSizeColors'] as unknown[])
+    : [];
+  const balances = r['inventoryBalances'];
+  const colorStockMap = buildColorStockMap(balances);
+  const sizeStock = sumInventoryBalances(balances);
+
+  const colors: ProductColor[] = colorLinks.map((link) => {
+    const l = link as Record<string, unknown>;
+    const colorRec = (l['color'] as Record<string, unknown>) ?? {};
+    const colorId = String(colorRec['id'] ?? l['colorId'] ?? '');
+    return {
+      id: colorId,
+      description: readString(colorRec['description']),
+      hash: colorRec['hash'] ? readString(colorRec['hash']) : undefined,
+      productSizeId: String(r['id'] ?? ''),
+      isExists: true,
+      stock: colorStockMap.get(colorId) ?? 0,
+    };
+  });
+
+  return {
+    id: String(sizeRec['id'] ?? r['sizeId'] ?? r['id'] ?? ''),
+    productSizeId: String(r['id'] ?? ''),
+    description: readString(sizeRec['description'] ?? r['description']),
+    price: r['salePrice'] != null ? readNumber(r['salePrice']) : undefined,
+    purchasePrice: r['purchasePrice'] != null ? readNumber(r['purchasePrice']) : undefined,
+    salePrice: r['salePrice'] != null ? readNumber(r['salePrice']) : undefined,
+    minSalePrice: r['minSalePrice'] != null ? readNumber(r['minSalePrice']) : undefined,
+    barcode: r['barcode'] ? readString(r['barcode']) : undefined,
+    stock: sizeStock,
+    colors: colors.length > 0 ? colors : undefined,
+    inventory: adaptProductVariantInventory(r['inventory']),
+  };
+}
+
 export function adaptProduct(raw: unknown): Product {
   const r = raw as Record<string, unknown>;
 
-  const sizes = Array.isArray(r['sizes'])
-    ? (r['sizes'] as unknown[]).map(adaptProductSize)
-    : [];
+  // Nest returns productSizes; legacy uses sizes
+  const sizesRaw = Array.isArray(r['productSizes'])
+    ? r['productSizes']
+    : Array.isArray(r['sizes'])
+      ? r['sizes']
+      : [];
+  const sizes = (sizesRaw as unknown[]).map((s) => {
+    const sr = s as Record<string, unknown>;
+    // Nest nested shape has 'size' sub-object; flat shape has 'description' directly
+    if ('size' in sr && sr['size'] && typeof sr['size'] === 'object') {
+      return adaptProductSizeFromNest(s);
+    }
+    return adaptProductSize(s);
+  });
 
   const media = Array.isArray(r['media'])
     ? (r['media'] as unknown[]).map(adaptProductMediaItem)
@@ -166,18 +248,33 @@ export function adaptProduct(raw: unknown): Product {
     : undefined;
 
   const sizeTypeId = Array.isArray(r['sizeTypeId'])
-    ? (r['sizeTypeId'] as number[])
+    ? (r['sizeTypeId'] as string[])
     : [];
 
   const wooCommerce = r['wooCommerce']
     ? {
-        productId: readNumber((r['wooCommerce'] as Record<string, unknown>)['productId'], null as any),
+        productId: (r['wooCommerce'] as Record<string, unknown>)['productId'] != null
+          ? String((r['wooCommerce'] as Record<string, unknown>)['productId'])
+          : null,
         lastSyncedAt: readString((r['wooCommerce'] as Record<string, unknown>)['lastSyncedAt'], null as any),
       }
     : undefined;
 
+  // Nest returns gender as { id, name }; legacy returns string
+  const genderRaw = r['gender'];
+  const genderId = String(r['genderId'] ?? (genderRaw as Record<string, unknown>)?.['id'] ?? '');
+  const genderLabel =
+    typeof genderRaw === 'string'
+      ? genderRaw
+      : readString((genderRaw as Record<string, unknown>)?.['name']);
+
+  const hasRootStock = r['stock'] !== undefined && r['stock'] !== null;
+  const stock = hasRootStock
+    ? readStock(r['stock'])
+    : sizes.reduce((sum, size) => sum + (size.stock ?? 0), 0);
+
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     name: readString(r['name']),
     barcode: readString(r['barcode']),
     description: readString(r['description']),
@@ -185,15 +282,15 @@ export function adaptProduct(raw: unknown): Product {
     salePrice: readNumber(r['salePrice']),
     minSalePrice: readNumber(r['minSalePrice']),
     status: readString(r['status']),
-    genderId: readNumber(r['genderId']),
-    gender: readString(r['gender']),
-    stock: readStock(r['stock']),
+    genderId,
+    gender: genderLabel,
+    stock,
     sizes,
     filter: readBoolean(r['filter']),
     sizeTypeId,
     percentageDiscount: readNumber(r['percentageDiscount']),
     cashDiscount: readNumber(r['cashDiscount']),
-    warehouseId: readNumber(r['warehouseId']),
+    warehouseId: String(r['warehouseId'] ?? ''),
     inventory: adaptProductVariantInventory(r['inventory']),
     thumbnail: r['thumbnail'] ? readString(r['thumbnail']) : null,
     gallery,
@@ -208,33 +305,95 @@ export function adaptProduct(raw: unknown): Product {
   };
 }
 
+export function toProductWritePayload(
+  data: unknown,
+  options?: { forCreate?: boolean },
+): ProductApiWritePayload {
+  const source = data as Record<string, unknown>;
+  const payload: ProductApiWritePayload = {};
+
+  if (source['name'] !== undefined) {
+    payload.name = readString(source['name']);
+  }
+  if (source['description'] !== undefined) {
+    payload.description = readString(source['description']);
+  }
+  if (source['barcode'] !== undefined) {
+    payload.barcode = readString(source['barcode']);
+  }
+  if (source['status'] !== undefined) {
+    payload.status = readString(source['status']);
+  }
+  if (source['genderId'] !== undefined) {
+    payload.genderId = readString(source['genderId']);
+  }
+  if (source['warehouseId'] !== undefined) {
+    payload.warehouseId = readString(source['warehouseId']);
+  }
+  if (source['vendorId'] !== undefined) {
+    payload.vendorId = readString(source['vendorId']);
+  }
+  if (source['percentageDiscount'] !== undefined) {
+    payload.percentageDiscount = readNumber(source['percentageDiscount']);
+  }
+  if (source['cashDiscount'] !== undefined) {
+    payload.cashDiscount = readNumber(source['cashDiscount']);
+  }
+  if (source['isFeatured'] !== undefined) {
+    payload.isFeatured = readBoolean(source['isFeatured']);
+  }
+  if (source['isOnSale'] !== undefined) {
+    payload.isOnSale = readBoolean(source['isOnSale']);
+  }
+  const wooStatus = source['wooStatus'];
+  if (wooStatus === 'draft' || wooStatus === 'publish') {
+    payload.wooStatus = wooStatus;
+  } else if (wooStatus === null) {
+    payload.wooStatus = null;
+  }
+
+  if (options?.forCreate && Array.isArray(source['sizes'])) {
+    payload.sizes = source['sizes'];
+  }
+
+  return payload;
+}
+
 export function adaptProductList(raw: unknown): ProductListResponse {
+  if (Array.isArray(raw)) {
+    return {
+      data: (raw as unknown[]).map(adaptProduct),
+      paginate: { total: raw.length, pages: 1 },
+    };
+  }
+
   const r = raw as {
-    data: unknown[];
-    paginate: { total: number; pages: number };
+    data?: unknown[];
+    paginate?: { total: number; pages: number };
+    meta?: { total: number; lastPage: number };
   };
+
+  const total = r.paginate?.total ?? r.meta?.total ?? 0;
+  const pages = r.paginate?.pages ?? r.meta?.lastPage ?? 1;
 
   return {
     data: (r.data ?? []).map(adaptProduct),
-    paginate: {
-      total: r.paginate?.total ?? 0,
-      pages: r.paginate?.pages ?? 0,
-    },
+    paginate: { total, pages },
   };
 }
 
 export function adaptGender(raw: unknown): Gender {
   const r = raw as Record<string, unknown>;
   return {
-    id: readNumber(r['id']),
-    description: readString(r['description']),
+    id: String(r['id'] ?? ''),
+    description: readString(r['description'] ?? r['name']),
   };
 }
 
 export function adaptWarehouse(raw: unknown): Warehouse {
   const r = raw as Record<string, unknown>;
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     name: readString(r['name']),
   };
 }
@@ -242,7 +401,7 @@ export function adaptWarehouse(raw: unknown): Warehouse {
 export function adaptSizeType(raw: unknown): SizeType {
   const r = raw as Record<string, unknown>;
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     description: readString(r['description']),
   };
 }
@@ -303,8 +462,7 @@ export function adaptProductHistoryEvent(raw: unknown): ProductHistoryEvent {
     : [];
 
   const id = r['id'];
-  const parsedId =
-    typeof id === 'string' || typeof id === 'number' ? id : readNumber(id);
+  const parsedId = id != null ? String(id) : '';
 
   return {
     id: parsedId,

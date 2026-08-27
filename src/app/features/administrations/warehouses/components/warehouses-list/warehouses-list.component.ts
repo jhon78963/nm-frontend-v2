@@ -44,7 +44,7 @@ import { WarehouseFormComponent } from '../warehouse-form/warehouse-form.compone
 const FILTER_STORAGE_KEY = TABLE_FILTER_KEYS.warehouses;
 
 interface WarehouseFilterState extends SearchPageFilterState {
-  tenantId: number | null;
+  tenantId: string | null;
 }
 
 function isWarehouseFilterState(value: unknown): value is WarehouseFilterState {
@@ -53,7 +53,7 @@ function isWarehouseFilterState(value: unknown): value is WarehouseFilterState {
   }
 
   const tenantId = (value as WarehouseFilterState).tenantId;
-  return tenantId === null || typeof tenantId === 'number';
+  return tenantId === null || typeof tenantId === 'string';
 }
 
 @Component({
@@ -90,28 +90,28 @@ export class WarehousesListComponent implements OnInit {
   protected readonly limit = signal(10);
 
   protected readonly formDialogOpen = signal(false);
-  protected readonly editingWarehouseId = signal<number | null>(null);
+  protected readonly editingWarehouseId = signal<string | null>(null);
 
-  protected readonly deleteConfirmId = signal<number | null>(null);
+  protected readonly deleteConfirmId = signal<string | null>(null);
   protected readonly deleting = signal(false);
 
   protected readonly filterForm = new FormGroup({
     search: new FormControl('', { nonNullable: true }),
-    tenantId: new FormControl<number | ''>('', { nonNullable: true }),
+    tenantId: new FormControl('', { nonNullable: true }),
   });
 
   protected readonly currentSearch = signal('');
-  protected readonly currentTenantId = signal<number | null>(null);
+  protected readonly currentTenantId = signal<string | null>(null);
 
   protected readonly tenantNameById = computed(() => {
-    const map = new Map<number, string>();
+    const map = new Map<string, string>();
     for (const tenant of this.tenants()) {
       map.set(tenant.id, tenant.name);
     }
     return map;
   });
 
-  protected readonly tenantOptions = computed<SelectOption<number>[]>(() =>
+  protected readonly tenantOptions = computed<SelectOption<string>[]>(() =>
     this.tenants().map((tenant) => ({ label: tenant.name, value: tenant.id })),
   );
 
@@ -198,15 +198,7 @@ export class WarehousesListComponent implements OnInit {
     this.filterForm.controls.tenantId.valueChanges
       .pipe(distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
       .subscribe((value) => {
-        const tenantId =
-          value === '' || value === null
-            ? null
-            : typeof value === 'number'
-              ? value
-              : Number(value);
-        this.currentTenantId.set(
-          tenantId !== null && Number.isFinite(tenantId) ? tenantId : null,
-        );
+        this.currentTenantId.set(value || null);
         this.page.set(1);
         this.persistFilters();
         this.loadWarehouses();
@@ -261,12 +253,12 @@ export class WarehousesListComponent implements OnInit {
     this.formDialogOpen.set(true);
   }
 
-  protected openEdit(id: number): void {
+  protected openEdit(id: string): void {
     this.editingWarehouseId.set(id);
     this.formDialogOpen.set(true);
   }
 
-  protected openDeleteConfirm(id: number): void {
+  protected openDeleteConfirm(id: string): void {
     this.deleteConfirmId.set(id);
   }
 

@@ -1,15 +1,15 @@
 export interface ProductVariantInventory {
   availableQuantity: number;
-  warehouseId: number;
+  warehouseId: string;
 }
 
 export interface ProductColor {
-  id: number;
+  id: string;
   description: string;
   hash?: string;
   value?: string;
   stock?: number;
-  productSizeId?: number;
+  productSizeId?: string;
   isExists?: boolean;
   price?: number;
   inventory?: ProductVariantInventory;
@@ -21,8 +21,8 @@ export interface ProductColorVariantRow extends ProductColor {
 }
 
 export interface ProductColorSizeOption {
-  id: number;
-  productSizeId?: number;
+  id: string;
+  productSizeId?: string;
   description: string;
   stock?: number;
 }
@@ -33,8 +33,8 @@ export interface CatalogColorCreateData {
 }
 
 export interface ProductSize {
-  id: number;
-  productSizeId?: number;
+  id: string;
+  productSizeId?: string;
   description: string;
   price?: number;
   colors?: ProductColor[];
@@ -48,14 +48,14 @@ export interface ProductSize {
 }
 
 export interface ProductMediaItem {
-  id: number;
+  id: string;
   url: string;
   type: 'image' | 'video';
   isPrimary: boolean;
 }
 
 export interface Product {
-  id: number;
+  id: string;
   name: string;
   barcode: string;
   description: string;
@@ -63,15 +63,15 @@ export interface Product {
   salePrice: number;
   minSalePrice: number;
   status: string;
-  genderId: number;
+  genderId: string;
   gender: string;
   stock: number;
   sizes: ProductSize[];
   filter: boolean;
-  sizeTypeId: number[];
+  sizeTypeId: string[];
   percentageDiscount: number;
   cashDiscount: number;
-  warehouseId: number;
+  warehouseId: string;
   inventory?: ProductVariantInventory;
   thumbnail?: string | null;
   gallery?: string[];
@@ -80,7 +80,7 @@ export interface Product {
   isOnSale?: boolean;
   wooStatus?: 'draft' | 'publish' | null;
   wooCommerce?: {
-    productId: number | null;
+    productId: string | null;
     lastSyncedAt: string | null;
   };
 }
@@ -94,7 +94,7 @@ export interface ProductListResponse {
 }
 
 export interface ProductFormData {
-  id?: number;
+  id?: string;
   name: string;
   barcode: string;
   description: string;
@@ -102,13 +102,30 @@ export interface ProductFormData {
   salePrice?: number;
   minSalePrice?: number;
   status: string;
-  genderId: number;
+  genderId: string;
   percentageDiscount: number;
   cashDiscount: number;
   isFeatured?: boolean;
   isOnSale?: boolean;
   wooStatus?: 'draft' | 'publish' | null;
-  warehouseId: number;
+  warehouseId: string;
+}
+
+/** Campos aceptados por POST/PATCH /products en el backend. */
+export interface ProductApiWritePayload {
+  name?: string;
+  description?: string;
+  barcode?: string;
+  genderId?: string;
+  vendorId?: string;
+  warehouseId?: string;
+  isFeatured?: boolean;
+  isOnSale?: boolean;
+  wooStatus?: 'draft' | 'publish' | null;
+  status?: string;
+  percentageDiscount?: number;
+  cashDiscount?: number;
+  sizes?: unknown[];
 }
 
 export interface ProductSizeFormData {
@@ -124,9 +141,9 @@ export interface ProductColorFormData {
 }
 
 export interface EcommerceVariantRow {
-  sizeId: number;
+  sizeId: string;
   sizeLabel: string;
-  colorId: number;
+  colorId: string;
   colorLabel: string;
   colorHash: string | null;
   stock: number;
@@ -142,24 +159,24 @@ export interface ProductImportResponse {
 }
 
 export interface Gender {
-  id: number;
+  id: string;
   description: string;
 }
 
 export interface Warehouse {
-  id: number;
+  id: string;
   name: string;
 }
 
 export interface SizeType {
-  id: number;
+  id: string;
   description: string;
 }
 
 export interface ProductFormModel {
   name: string;
-  genderId: number;
-  warehouseId: number;
+  genderId: string;
+  warehouseId: string;
 }
 
 export type ProductHistorySeverity =
@@ -187,7 +204,7 @@ export interface ProductHistoryChange {
 }
 
 export interface ProductHistoryEvent {
-  id: number | string;
+  id: string;
   date: string;
   time: string;
   user: string;

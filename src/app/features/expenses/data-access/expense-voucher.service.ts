@@ -7,7 +7,7 @@ import { ensureVoucherBlobType } from '../admin-expenses/data-access/admin-expen
 @Service()
 export class ExpenseVoucherService {
   private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apiUrl}/cash-flow`;
+  private readonly base = `${environment.apiUrl}/cashflow`;
 
   getVoucherPreview(voucherPath: string): Observable<Blob> {
     const params = new HttpParams().set('path', voucherPath);

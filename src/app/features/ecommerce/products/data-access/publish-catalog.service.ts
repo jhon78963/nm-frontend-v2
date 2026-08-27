@@ -51,29 +51,32 @@ export class PublishCatalogService {
 
   getWarehouses(): Observable<WarehouseOption[]> {
     return this.http.get<unknown>(`${this.apiUrl}/warehouses`).pipe(
-      map((raw) =>
-        Array.isArray(raw) ? (raw as unknown[]).map(adaptWarehouseOption) : [],
-      ),
+      map((raw) => {
+        const arr = Array.isArray(raw) ? raw : ((raw as { data?: unknown[] }).data ?? []);
+        return (arr as unknown[]).map(adaptWarehouseOption);
+      }),
     );
   }
 
   getSizes(): Observable<CatalogOption[]> {
     return this.http
-      .get<{ data: unknown[] }>(`${this.apiUrl}/sizes?limit=200&page=1`)
+      .get<unknown>(`${this.apiUrl}/sizes`)
       .pipe(
-        map((response) =>
-          (response.data ?? []).map(adaptCatalogOption),
-        ),
+        map((raw) => {
+          const arr = Array.isArray(raw) ? raw : ((raw as { data?: unknown[] }).data ?? []);
+          return (arr as unknown[]).map(adaptCatalogOption);
+        }),
       );
   }
 
   getColors(): Observable<CatalogOption[]> {
     return this.http
-      .get<{ data: unknown[] }>(`${this.apiUrl}/colors?limit=200&page=1`)
+      .get<unknown>(`${this.apiUrl}/colors`)
       .pipe(
-        map((response) =>
-          (response.data ?? []).map(adaptCatalogOption),
-        ),
+        map((raw) => {
+          const arr = Array.isArray(raw) ? raw : ((raw as { data?: unknown[] }).data ?? []);
+          return (arr as unknown[]).map(adaptCatalogOption);
+        }),
       );
   }
 }
@@ -84,36 +87,36 @@ export class PublishVariantService {
   private readonly apiUrl = environment.apiUrl;
 
   attachSize(
-    productId: number,
-    sizeId: number,
+    productId: string,
+    sizeId: string | number,
     data: ProductSizePayload,
   ): Observable<{ message: string }> {
     return this.http
       .post<{ message: string }>(
-        `${this.apiUrl}/products/${productId}/size/${sizeId}`,
-        data,
+        `${this.apiUrl}/products/${productId}/sizes`,
+        { sizeId: String(sizeId), ...data },
       )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
   getProductSizeId(
-    productId: number,
-    sizeId: number,
-  ): Observable<{ productSizeId: number }> {
-    return this.http.get<{ productSizeId: number }>(
-      `${this.apiUrl}/products/${productId}/size/${sizeId}`,
+    productId: string,
+    sizeId: string | number,
+  ): Observable<{ productSizeId: string }> {
+    return this.http.get<{ productSizeId: string }>(
+      `${this.apiUrl}/products/${productId}/sizes/${sizeId}`,
     );
   }
 
   attachColor(
-    productSizeId: number,
-    colorId: number,
+    productSizeId: string | number,
+    colorId: string | number,
     data: ProductColorPayload,
   ): Observable<{ message: string }> {
     return this.http
       .post<{ message: string }>(
-        `${this.apiUrl}/product-size/${productSizeId}/color/${colorId}`,
-        data,
+        `${this.apiUrl}/product-sizes/${productSizeId}/colors`,
+        { colorId: String(colorId), ...data },
       )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }

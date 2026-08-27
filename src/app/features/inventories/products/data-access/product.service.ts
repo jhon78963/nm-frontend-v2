@@ -14,6 +14,7 @@ import {
   adaptProductList,
   adaptProductImportResponse,
   adaptProductHistoryResponse,
+  toProductWritePayload,
 } from './product.adapter';
 
 function extractErrorMessage(err: unknown): string {
@@ -46,9 +47,9 @@ export class ProductService {
     limit: number;
     page: number;
     search?: string;
-    genderId?: number[];
+    genderId?: string[];
   }): Observable<ProductListResponse> {
-    let url = `${this.base}?limit=${params.limit}&page=${params.page}`;
+    let url = `${this.base}?perPage=${params.limit}&page=${params.page}`;
 
     if (params.search?.trim()) {
       url += `&search=${encodeURIComponent(params.search.trim())}`;
@@ -61,42 +62,48 @@ export class ProductService {
     return this.http.get<unknown>(url).pipe(map(adaptProductList));
   }
 
-  getOne(id: number): Observable<Product> {
+  getOne(id: string): Observable<Product> {
     return this.http.get<unknown>(`${this.base}/${id}`).pipe(map(adaptProduct));
   }
 
   create(
     data: ProductFormData,
-  ): Observable<{ message: string; productId: number }> {
+  ): Observable<{ message: string; productId: string }> {
     return this.http
-      .post<{ message: string; productId: number }>(this.base, data)
+      .post<{ message: string; productId: string }>(
+        this.base,
+        toProductWritePayload(data, { forCreate: true }),
+      )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
   update(
-    id: number,
+    id: string,
     data: ProductFormData,
-  ): Observable<{ message: string; productId: number }> {
+  ): Observable<{ message: string; productId: string }> {
     return this.http
-      .patch<{ message: string; productId: number }>(`${this.base}/${id}`, data)
+      .patch<{ message: string; productId: string }>(
+        `${this.base}/${id}`,
+        toProductWritePayload(data),
+      )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
-  delete(id: number): Observable<{ message: string }> {
+  delete(id: string): Observable<{ message: string }> {
     return this.http
       .delete<{ message: string }>(`${this.base}/${id}`)
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
-  getHistory(id: number): Observable<ProductHistoryEvent[]> {
+  getHistory(id: string): Observable<ProductHistoryEvent[]> {
     return this.http
       .get<unknown>(`${this.base}/${id}/history`)
       .pipe(map(adaptProductHistoryResponse));
   }
 
-  exportToExcel(warehouseId?: number): Observable<Blob> {
+  exportToExcel(warehouseId?: string): Observable<Blob> {
     const params = warehouseId
-      ? new HttpParams().set('warehouseId', warehouseId.toString())
+      ? new HttpParams().set('warehouseId', warehouseId)
       : undefined;
 
     return this.http.get(`${this.base}/export/excel`, {

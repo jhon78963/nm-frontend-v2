@@ -21,10 +21,14 @@ function toNullableNumber(value: unknown): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function readId(value: unknown): string {
+  return value != null ? String(value) : '';
+}
+
 function adaptColor(raw: unknown): ProductInventoryColor {
   const r = raw as Record<string, unknown>;
   return {
-    colorId: toNumber(r['color_id'] ?? r['colorId']),
+    colorId: readId(r['color_id'] ?? r['colorId']),
     color: String(r['color'] ?? ''),
     stock: toNumber(r['stock']),
   };
@@ -35,8 +39,8 @@ function adaptSize(raw: unknown): ProductInventorySize {
   const colorsRaw = r['colors'];
 
   return {
-    productSizeId: toNumber(r['product_size_id'] ?? r['productSizeId']),
-    sizeId: toNumber(r['size_id'] ?? r['sizeId']),
+    productSizeId: readId(r['product_size_id'] ?? r['productSizeId']),
+    sizeId: readId(r['size_id'] ?? r['sizeId']),
     size: String(r['size'] ?? '—'),
     barcode:
       r['barcode'] === null || r['barcode'] === undefined || r['barcode'] === ''
@@ -83,7 +87,7 @@ export function adaptProductInventoryItem(raw: unknown): ProductInventoryItem {
   const sizesRaw = r['sizes'];
 
   return {
-    id: toNumber(r['id']),
+    id: readId(r['id']),
     name: String(r['name'] ?? ''),
     sizes: Array.isArray(sizesRaw) ? sizesRaw.map(adaptSize) : [],
     ai: adaptAi(r['ai']),

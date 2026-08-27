@@ -42,7 +42,7 @@ export class SizeFormComponent implements OnInit {
   private readonly lookupService = inject(SizeLookupService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly sizeId = input<number | null>(null);
+  readonly sizeId = input<string | null>(null);
 
   readonly saved = output<string>();
   readonly closed = output<void>();
@@ -51,7 +51,7 @@ export class SizeFormComponent implements OnInit {
   protected readonly saving = signal(false);
   protected readonly loadError = signal('');
 
-  protected readonly sizeTypeOptions = signal<SelectOption<number>[]>([]);
+  protected readonly sizeTypeOptions = signal<SelectOption<string>[]>([]);
 
   protected readonly formModel = signal<SizeFormModel>({ ...EMPTY_FORM });
 
@@ -161,7 +161,7 @@ export class SizeFormComponent implements OnInit {
   }
 
   private loadSizeIfEditing(
-    types: { id: number; description: string }[],
+    types: { id: string; description: string }[],
   ): void {
     const id = this.sizeId();
 

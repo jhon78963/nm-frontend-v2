@@ -43,12 +43,12 @@ export class AiPredictionService {
 
   searchProducts(term: string, limit = 15): Observable<AiProductOption[]> {
     const query = encodeURIComponent(term.trim());
-    const url = `${this.apiUrl}/products?limit=${limit}&page=1&search=${query}`;
+    const url = `${this.apiUrl}/products?perPage=${limit}&page=1&search=${query}`;
 
     return this.http.get<unknown>(url).pipe(map(adaptAiProductSearchResponse));
   }
 
-  getProductContext(productId: number): Observable<AiProductContext> {
+  getProductContext(productId: string): Observable<AiProductContext> {
     return this.http
       .get<unknown>(`${this.apiUrl}/ai/products/${productId}/context`)
       .pipe(
@@ -57,7 +57,7 @@ export class AiPredictionService {
       );
   }
 
-  optimizePrice(productId: number): Observable<PriceOptimizationResult> {
+  optimizePrice(productId: string): Observable<PriceOptimizationResult> {
     return this.http
       .post<unknown>(`${this.apiUrl}/ai/predict/price`, { product_id: productId })
       .pipe(
@@ -67,7 +67,7 @@ export class AiPredictionService {
   }
 
   predictDemand(
-    productId: number,
+    productId: string,
     horizonDays: number,
   ): Observable<DemandPredictionResult> {
     return this.http

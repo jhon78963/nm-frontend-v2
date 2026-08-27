@@ -1,31 +1,31 @@
 import type { ProductVariantInventory } from '../../products/models/product.model';
 
 export interface ReconciliationProduct {
-  id: number;
+  id: string;
   name: string;
   barcode: string | null;
-  genderId?: number;
+  genderId?: string;
   gender?: string | null;
-  warehouseId?: number;
+  warehouseId?: string;
   status?: string;
   sizes: ReconciliationSize[];
 }
 
 export interface ReconciliationSize {
-  id: number;
-  sizeId: number;
+  id: string;
+  sizeId: string;
   barcode: string | null;
   inventory?: ProductVariantInventory;
   purchasePrice?: number | null;
   salePrice?: number | null;
   minSalePrice?: number | null;
-  size: { id: number; description: string } | null;
+  size: { id: string; description: string } | null;
   colors: ReconciliationColor[];
 }
 
 export interface ReconciliationColor {
-  id: number;
-  colorId: number;
+  id: string;
+  colorId: string;
   description: string;
   hash?: string | null;
   inventory?: ProductVariantInventory;
@@ -41,9 +41,9 @@ export interface ReconciliationUpdateResponse {
 }
 
 export interface ReconciliationPosSalesVariant {
-  productSizeId: number;
-  sizeId: number;
-  colorId: number | null;
+  productSizeId: string;
+  sizeId: string;
+  colorId: string | null;
   quantitySold: number;
   saleCount: number;
   lastSoldAt: string | null;
@@ -58,7 +58,7 @@ export interface ReconciliationPosSalesSummary {
 }
 
 export interface ReconciliationColorDraft {
-  colorId: number;
+  colorId: string;
   description: string;
   stock: number;
   baselineStock: number;
@@ -69,8 +69,8 @@ export interface ReconciliationColorDraft {
 }
 
 export interface ReconciliationSizeDraft {
-  id: number;
-  sizeId: number;
+  id: string;
+  sizeId: string;
   sizeLabel: string;
   barcode: string | null;
   masterStock: number;
@@ -86,7 +86,7 @@ export interface ReconciliationSizeDraft {
 }
 
 export interface ReconciliationDraft {
-  productId: number;
+  productId: string;
   name: string;
   sku: string | null;
   sizes: ReconciliationSizeDraft[];
@@ -94,33 +94,33 @@ export interface ReconciliationDraft {
 
 export interface ReconciliationUpdatePayload {
   sizes: Array<{
-    id: number;
+    id: string;
     stock?: number;
     barcode?: string | null;
     purchasePrice?: number | null;
     salePrice?: number | null;
     minSalePrice?: number | null;
-    colors?: Array<{ colorId: number; stock: number }>;
+    colors?: Array<{ colorId: string; stock: number }>;
   }>;
 }
 
 export interface ReplaceVariantColorBody {
-  fromColorId: number;
-  toColorId: number;
+  fromColorId: string;
+  toColorId: string;
 }
 
 export interface CatalogColorOption {
-  id: number;
+  id: string;
   description: string;
 }
 
 export interface AutocompleteOption {
-  id: number;
+  id: string;
   value: string;
 }
 
 export interface ReconciliationNavigationState {
-  productId: number;
+  productId: string;
   productName: string;
   barcode?: string;
   gender?: string;

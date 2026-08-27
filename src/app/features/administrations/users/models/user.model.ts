@@ -1,5 +1,5 @@
 export interface User {
-  id: number;
+  id: string;
   username: string;
   email: string;
   name: string;
@@ -7,9 +7,9 @@ export interface User {
   profilePicture?: string | null;
   roles: string[];
   role?: string;
-  tenantId: number | null;
+  tenantId: string | null;
   tenantName?: string | null;
-  warehouseId: number | null;
+  warehouseId: string | null;
   warehouseName?: string | null;
   isEnabled: boolean;
 }
@@ -26,8 +26,8 @@ export interface UserPayload {
   surname?: string;
   profilePicture?: string;
   roleNames: string[];
-  tenantId?: number | null;
-  warehouseId?: number | null;
+  tenantId?: string | null;
+  warehouseId?: string | null;
   password?: string;
   passwordConfirmation?: string;
 }
@@ -38,24 +38,24 @@ export interface UserPasswordResetPayload {
 }
 
 export interface TenantOption {
-  id: number;
+  id: string;
   name: string;
 }
 
 export interface WarehouseOption {
-  id: number;
+  id: string;
   name: string;
-  tenantId?: number | null;
+  tenantId?: string | null;
 }
 
 export interface RoleOption {
-  id: number;
+  id: string;
   name: string;
 }
 
 export interface UserFormModel {
-  tenantId: number | null;
-  warehouseId: number | null;
+  tenantId: string | null;
+  warehouseId: string | null;
   roleName: string;
   name: string;
   surname: string;

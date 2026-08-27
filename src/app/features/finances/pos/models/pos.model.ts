@@ -1,11 +1,11 @@
 export interface ProductVariantInventory {
   available_quantity: number;
-  warehouse_id: number;
+  warehouse_id: string;
 }
 
 export interface Variant {
-  product_size_id: number;
-  color_id: number;
+  product_size_id: string;
+  color_id: string;
   colorName: string;
   hex: string;
   inventory?: ProductVariantInventory;
@@ -23,7 +23,7 @@ export interface Product {
 }
 
 export interface CartItem {
-  cartId: number;
+  cartId: string;
   productId: string;
   sku: string;
   name: string;
@@ -60,7 +60,7 @@ export interface PaymentEntry {
 
 export interface CheckoutResponse {
   success: boolean;
-  sale_id?: number;
+  sale_id?: string;
   ticket_url?: string;
   invoice_number?: string;
   sunat_status?: string;

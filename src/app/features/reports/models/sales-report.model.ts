@@ -10,7 +10,7 @@ export interface DailySaleRow {
 export interface DailySalesReport {
   date: string;
   dateIso: string;
-  warehouseId: number;
+  warehouseId: string;
   warehouseName: string;
   rows: DailySaleRow[];
   totals: {
@@ -41,7 +41,7 @@ export interface MonthlySalesReport {
   year: number;
   monthLabel: string;
   monthIso: string;
-  warehouseId: number;
+  warehouseId: string;
   warehouseName: string;
   rows: MonthlySaleRow[];
   totals: {
@@ -85,7 +85,7 @@ export interface PeriodSalesReport {
   from: string;
   to: string;
   periodLabel: string;
-  warehouseId: number;
+  warehouseId: string;
   rows: PeriodSaleRow[];
   totals: {
     quantity: number;
@@ -105,13 +105,13 @@ export interface SalesReportFilters {
   date?: string;
   month?: number;
   year?: number;
-  warehouseId?: number;
+  warehouseId?: string;
 }
 
 export interface SalesPeriodFilters {
   from: string;
   to: string;
-  warehouseId?: number;
+  warehouseId?: string;
 }
 
 export interface SalesReportSummary {
@@ -133,7 +133,7 @@ export interface SalesPaymentBreakdown {
 }
 
 export interface SalesDailyTransaction {
-  id: number;
+  id: string;
   source: 'sale' | 'income';
   code: string;
   time: string;

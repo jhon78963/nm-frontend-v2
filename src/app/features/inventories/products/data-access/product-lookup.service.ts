@@ -20,7 +20,7 @@ export class ProductLookupService {
 
   getGenders(): Observable<Gender[]> {
     return this.http
-      .get<unknown>(`${this.apiUrl}/genders?limit=200&page=1`)
+      .get<unknown>(`${this.apiUrl}/genders`)
       .pipe(map((raw) => extractApiList(raw).map(adaptGender)));
   }
 
@@ -32,7 +32,7 @@ export class ProductLookupService {
     let url = `${this.apiUrl}/warehouses?limit=200&page=1`;
     const tenantId = this.actorTenantIdForWarehouseLookup();
 
-    if (tenantId != null && tenantId > 0) {
+    if (tenantId != null) {
       url += `&tenant_id=${tenantId}`;
     }
 
@@ -43,11 +43,11 @@ export class ProductLookupService {
 
   getSizeTypes(): Observable<SizeType[]> {
     return this.http
-      .get<unknown>(`${this.apiUrl}/size-types?limit=200&page=1`)
+      .get<unknown>(`${this.apiUrl}/sizes/size-types`)
       .pipe(map((raw) => extractApiList(raw).map(adaptSizeType)));
   }
 
-  private actorTenantIdForWarehouseLookup(): number | null {
+  private actorTenantIdForWarehouseLookup(): string | null {
     const user = this.authService.currentUser();
 
     if (isSuperAdmin(user) && this.authService.hasPermission('tenant.getAll')) {
@@ -55,15 +55,15 @@ export class ProductLookupService {
     }
 
     const tenantId = user?.tenantId;
-    return typeof tenantId === 'number' && tenantId > 0 ? tenantId : null;
+    return tenantId ? String(tenantId) : null;
   }
 
   private warehousesFromSessionUser(): Warehouse[] {
     const user = this.authService.currentUser();
     const warehouseId = user?.warehouseId;
 
-    if (typeof warehouseId === 'number' && warehouseId > 0) {
-      return [{ id: warehouseId, name: `Tienda #${warehouseId}` }];
+    if (warehouseId) {
+      return [{ id: String(warehouseId), name: `Tienda #${warehouseId}` }];
     }
 
     return [];

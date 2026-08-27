@@ -298,7 +298,7 @@ export function recalcStats(params: {
 }
 
 export function domingoRecuperaStorageKey(
-  teamId: number,
+  teamId: string,
   viewYear: number,
   viewMonth: number,
 ): string {
@@ -310,7 +310,7 @@ export function valdeoNthStorageKey(viewYear: number, viewMonth: number): string
 }
 
 export function quincenaViewStorageKey(
-  teamId: number,
+  teamId: string,
   viewYear: number,
   viewMonth: number,
 ): string {

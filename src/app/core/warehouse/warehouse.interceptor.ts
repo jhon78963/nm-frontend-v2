@@ -5,12 +5,12 @@ import { ActiveWarehouseService } from './active-warehouse.service';
 const WAREHOUSE_HEADER = 'X-Warehouse-Id';
 
 const WAREHOUSE_SKIP_URL_PARTS = [
-  '/sanctum/csrf-cookie',
-  '/auth/csrf-token',
   '/auth/login',
   '/auth/me',
   '/auth/refresh',
   '/auth/logout',
+  '/auth/forgot-password',
+  '/auth/reset-password',
 ];
 
 function shouldAttachWarehouseHeader(url: string): boolean {
@@ -33,7 +33,7 @@ export const warehouseInterceptor: HttpInterceptorFn = (request, next) => {
 
   return next(
     request.clone({
-      setHeaders: { [WAREHOUSE_HEADER]: String(warehouseId) },
+      setHeaders: { [WAREHOUSE_HEADER]: warehouseId },
     }),
   );
 };

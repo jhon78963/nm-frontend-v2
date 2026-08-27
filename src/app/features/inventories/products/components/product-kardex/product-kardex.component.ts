@@ -91,7 +91,7 @@ export class ProductKardexComponent implements OnInit {
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly productId = signal<number | null>(null);
+  protected readonly productId = signal<string | null>(null);
   protected readonly product = signal<Product | null>(null);
   protected readonly sizes = signal<ProductSize[]>([]);
   protected readonly loadingContext = signal(true);
@@ -108,7 +108,7 @@ export class ProductKardexComponent implements OnInit {
   protected readonly directionFilter = signal<'all' | 'IN' | 'OUT'>('all');
   protected readonly currentPage = signal(1);
 
-  protected readonly colorOptions = signal<SelectOption<number>[]>([]);
+  protected readonly colorOptions = signal<SelectOption<string>[]>([]);
 
   protected readonly filterModel = signal<KardexFilterModel>({
     ...buildCurrentMonthRange(),
@@ -140,12 +140,12 @@ export class ProductKardexComponent implements OnInit {
     }),
   );
 
-  protected readonly sizeOptions = computed<SelectOption<number>[]>(() =>
+  protected readonly sizeOptions = computed<SelectOption<string>[]>(() =>
     this.sizes()
-      .filter((size) => size.isExists === true && (size.productSizeId ?? 0) > 0)
+      .filter((size) => size.isExists === true && !!size.productSizeId)
       .map((size) => ({
         label: size.description,
-        value: size.productSizeId as number,
+        value: size.productSizeId as string,
       })),
   );
 
@@ -283,7 +283,7 @@ export class ProductKardexComponent implements OnInit {
     { key: 'balance', label: 'Saldo', align: 'right' },
   ];
 
-  private readonly trackedSizeId = signal<number | null | undefined>(undefined);
+  private readonly trackedSizeId = signal<string | null | undefined>(undefined);
 
   private readonly syncColorsOnSizeChange = effect(() => {
     const sizeId = this.filterModel().productSizeId;
@@ -316,9 +316,8 @@ export class ProductKardexComponent implements OnInit {
       .subscribe((params) => {
         const idRaw = params.get('id');
         if (idRaw) {
-          const id = Number(idRaw);
-          this.productId.set(id);
-          this.loadProductContext(id);
+          this.productId.set(idRaw);
+          this.loadProductContext(idRaw);
         }
       });
   }
@@ -382,11 +381,11 @@ export class ProductKardexComponent implements OnInit {
 
     const product = this.product();
     const filters = this.filterModel();
-    const warehouseId = product?.warehouseId ?? 0;
-    const productSizeId = filters.productSizeId ?? 0;
+    const warehouseId = product?.warehouseId ?? '';
+    const productSizeId = filters.productSizeId ?? '';
     const productId = this.productId();
 
-    if (warehouseId < 1) {
+    if (!warehouseId) {
       this.toastService.show(
         'error',
         'El producto no tiene almacén asignado; no se puede consultar el kardex.',
@@ -394,7 +393,7 @@ export class ProductKardexComponent implements OnInit {
       return;
     }
 
-    if (productId === null || productSizeId < 1) {
+    if (productId === null || !productSizeId) {
       this.toastService.show('error', 'Selecciona una talla válida.');
       return;
     }
@@ -484,7 +483,7 @@ export class ProductKardexComponent implements OnInit {
     });
   }
 
-  private loadProductContext(id: number): void {
+  private loadProductContext(id: string): void {
     this.loadingContext.set(true);
     this.loadError.set(false);
     this.kardexReport.set(null);
@@ -495,7 +494,7 @@ export class ProductKardexComponent implements OnInit {
         switchMap((product) => {
           this.product.set(product);
           const typeIds =
-            product.sizeTypeId.length > 0 ? product.sizeTypeId : [1];
+            product.sizeTypeId.length > 0 ? product.sizeTypeId : [];
           return this.productSizesService.getSizes(id, typeIds);
         }),
         catchError(() => {
@@ -511,7 +510,7 @@ export class ProductKardexComponent implements OnInit {
       )
       .subscribe((sizes) => {
         const usable = sizes.filter(
-          (size) => size.isExists === true && (size.productSizeId ?? 0) > 0,
+          (size) => size.isExists === true && !!size.productSizeId,
         );
         this.sizes.set(usable);
         this.loadingContext.set(false);
@@ -530,7 +529,7 @@ export class ProductKardexComponent implements OnInit {
     const productSizeId = this.filterModel().productSizeId;
     const size = this.sizes().find((item) => item.productSizeId === productSizeId);
 
-    if (productId === null || !size || size.id < 1) {
+    if (productId === null || !size || !size.id) {
       this.colorOptions.set([]);
       return;
     }
@@ -544,7 +543,7 @@ export class ProductKardexComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((colors) => {
-        const options: SelectOption<number>[] = colors
+        const options: SelectOption<string>[] = colors
           .filter((color) => color.isExists !== false)
           .map((color) => ({
             label: color.description || `Color #${color.id}`,

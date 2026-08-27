@@ -70,13 +70,13 @@ export class SalesListComponent implements OnInit {
   protected readonly limit = signal(10);
 
   protected readonly formDialogOpen = signal(false);
-  protected readonly editingSaleId = signal<number | null>(null);
+  protected readonly editingSaleId = signal<string | null>(null);
   protected readonly formReadOnly = signal(false);
 
-  protected readonly cancelConfirmId = signal<number | null>(null);
+  protected readonly cancelConfirmId = signal<string | null>(null);
   protected readonly cancelling = signal(false);
 
-  protected readonly exchangeSaleId = signal<number | null>(null);
+  protected readonly exchangeSaleId = signal<string | null>(null);
 
   protected readonly filterForm = new FormGroup({
     search: new FormControl('', { nonNullable: true }),
@@ -220,19 +220,19 @@ export class SalesListComponent implements OnInit {
     this.filterForm.controls.search.setValue('');
   }
 
-  protected openEdit(id: number): void {
+  protected openEdit(id: string): void {
     this.editingSaleId.set(id);
     this.formReadOnly.set(false);
     this.formDialogOpen.set(true);
   }
 
-  protected openView(id: number): void {
+  protected openView(id: string): void {
     this.editingSaleId.set(id);
     this.formReadOnly.set(true);
     this.formDialogOpen.set(true);
   }
 
-  protected openCancelConfirm(id: number): void {
+  protected openCancelConfirm(id: string): void {
     this.cancelConfirmId.set(id);
   }
 
@@ -268,7 +268,7 @@ export class SalesListComponent implements OnInit {
       });
   }
 
-  protected previewTicket(id: number): void {
+  protected previewTicket(id: string): void {
     void this.saleService.openTicketPreview(id).catch(() => {
       this.toastService.show(
         'error',
@@ -287,7 +287,7 @@ export class SalesListComponent implements OnInit {
     this.formDialogOpen.set(false);
   }
 
-  protected openExchange(id: number): void {
+  protected openExchange(id: string): void {
     this.exchangeSaleId.set(id);
   }
 

@@ -188,7 +188,7 @@ export class ProductsPublishComponent implements OnInit {
     this.createDrawerOpen.set(false);
   }
 
-  protected onProductCreated(productId: number): void {
+  protected onProductCreated(productId: string): void {
     this.createDrawerOpen.set(false);
     this.loadProducts();
 

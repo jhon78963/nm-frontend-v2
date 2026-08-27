@@ -24,10 +24,15 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
     catchError((error: HttpErrorResponse) => {
       const status = error.status;
 
-      if (status === 419) {
-        toastService.show('error', 'Tu sesión ha expirado por seguridad');
-        authService.clearLocalSession();
-        void router.navigate(['/auth/login']);
+      // 401 Unauthorized: el tokenInterceptor ya intentó el refresh.
+      // Si llega aquí, significa que el refresh también falló → forzar logout.
+      if (status === 401) {
+        const skipRoutes = ['/auth/login', '/auth/me', '/auth/refresh', '/auth/logout'];
+        const isSkipped = skipRoutes.some((r) => request.url.includes(r));
+        if (!isSkipped) {
+          authService.clearLocalSession();
+          void router.navigate(['/auth/login']);
+        }
         return throwError(() => error);
       }
 
@@ -54,8 +59,8 @@ export const errorInterceptor: HttpInterceptorFn = (request, next) => {
       }
 
       if (status >= 500) {
-        if (environment.production) {
-          console.error('Error interno del servidor');
+        if (!environment.production) {
+          console.error('[Server Error]', error);
         }
         toastService.show(
           'error',

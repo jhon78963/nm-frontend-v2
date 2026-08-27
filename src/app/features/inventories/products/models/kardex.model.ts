@@ -1,8 +1,8 @@
 export interface KardexReportParams {
-  warehouseId: number;
-  productId: number;
-  productSizeId: number;
-  colorId: number | null;
+  warehouseId: string;
+  productId: string;
+  productSizeId: string;
+  colorId: string | null;
   startDate: string;
   endDate: string;
 }
@@ -13,7 +13,7 @@ export interface KardexReference {
 }
 
 export interface KardexMovement {
-  id: number;
+  id: string;
   occurredAt: string;
   direction: 'IN' | 'OUT';
   movementTypeLabel: string;
@@ -40,6 +40,6 @@ export interface KardexReport {
 export interface KardexFilterModel {
   startDate: string;
   endDate: string;
-  productSizeId: number | null;
-  colorId: number | null;
+  productSizeId: string | null;
+  colorId: string | null;
 }

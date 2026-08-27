@@ -1,22 +1,22 @@
 export interface ActionLogUser {
-  id: number;
+  id: string;
   name: string;
   email: string;
 }
 
 export interface ActionLogTeam {
-  id: number;
+  id: string;
   name: string;
 }
 
 export interface ActionLog {
-  id: number;
+  id: string;
   creationTime: string;
   action: string;
   description: string | null;
   metadata: Record<string, unknown> | null;
   ipAddress: string | null;
-  warehouseId: number | null;
+  warehouseId: string | null;
   userName: string | null;
   user: ActionLogUser | null;
   team: ActionLogTeam | null;

@@ -24,7 +24,7 @@ export interface AttendanceMonthResponse {
 }
 
 export interface AttendancePayload {
-  teamId: number;
+  teamId: string;
   date: string;
   status: AttendanceStatus;
   checkInTime: string | null;
@@ -67,7 +67,7 @@ export interface AttendanceStats {
 }
 
 export interface DailyAttendanceRow {
-  teamId: number;
+  teamId: string;
   name: string;
   surname: string;
   date: string;

@@ -37,44 +37,48 @@ export class ProductColorsService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl;
 
-  getColors(productId: number, sizeId: number): Observable<ProductColorVariantRow[]> {
+  getColors(productId: string, sizeId: string): Observable<ProductColorVariantRow[]> {
     return this.http
-      .get<unknown>(
-        `${this.apiUrl}/colors/selected?productId=${productId}&sizeId=${sizeId}`,
-      )
+      .get<unknown>(`${this.apiUrl}/colors?productId=${productId}&sizeId=${sizeId}`)
       .pipe(
-        map((raw) =>
-          Array.isArray(raw)
-            ? (raw as unknown[]).map(adaptProductColorVariantRow)
-            : [],
-        ),
+        map((raw) => {
+          const list = Array.isArray(raw)
+            ? raw
+            : Array.isArray((raw as { data?: unknown[] })?.data)
+              ? ((raw as { data: unknown[] }).data)
+              : [];
+          return (list as unknown[]).map(adaptProductColorVariantRow);
+        }),
       );
   }
 
-  getSizes(productId: number, size?: string): Observable<ProductColorSizeOption[]> {
-    let url = `${this.apiUrl}/colors/sizes?productId=${productId}`;
+  getSizes(productId: string, size?: string): Observable<ProductColorSizeOption[]> {
+    let url = `${this.apiUrl}/sizes?productId=${productId}`;
     if (size?.trim()) {
-      url += `&size=${encodeURIComponent(size.trim())}`;
+      url += `&search=${encodeURIComponent(size.trim())}`;
     }
 
-    return this.http.get<unknown[]>(url).pipe(
-      map((raw) =>
-        Array.isArray(raw)
-          ? (raw as unknown[]).map((item) => {
-              const adapted = adaptProductSize(item);
-              return {
-                id: adapted.id,
-                productSizeId: adapted.productSizeId,
-                description: adapted.description,
-                stock: adapted.stock,
-              } satisfies ProductColorSizeOption;
-            })
-          : [],
-      ),
+    return this.http.get<unknown>(url).pipe(
+      map((raw) => {
+        const list = Array.isArray(raw)
+          ? raw
+          : Array.isArray((raw as { data?: unknown[] })?.data)
+            ? ((raw as { data: unknown[] }).data)
+            : [];
+        return (list as unknown[]).map((item) => {
+          const adapted = adaptProductSize(item);
+          return {
+            id: adapted.id,
+            productSizeId: adapted.productSizeId,
+            description: adapted.description,
+            stock: adapted.stock,
+          } satisfies ProductColorSizeOption;
+        });
+      }),
     );
   }
 
-  getAttachedColorVariants(productId: number): Observable<EcommerceVariantRow[]> {
+  getAttachedColorVariants(productId: string): Observable<EcommerceVariantRow[]> {
     return this.getSizes(productId).pipe(
       switchMap((sizes) => {
         if (sizes.length === 0) {
@@ -114,38 +118,38 @@ export class ProductColorsService {
   }
 
   add(
-    productSizeId: number,
-    colorId: number,
+    productSizeId: string,
+    colorId: string,
     data: ProductColorFormData,
   ): Observable<{ message: string }> {
     return this.http
       .post<{ message: string }>(
-        `${this.apiUrl}/product-size/${productSizeId}/color/${colorId}`,
-        data,
+        `${this.apiUrl}/product-sizes/${productSizeId}/colors`,
+        { colorId, ...data },
       )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
   update(
-    productSizeId: number,
-    colorId: number,
+    productSizeId: string,
+    colorId: string,
     data: ProductColorFormData,
   ): Observable<{ message: string }> {
     return this.http
       .patch<{ message: string }>(
-        `${this.apiUrl}/product-size/${productSizeId}/color/${colorId}`,
+        `${this.apiUrl}/product-sizes/${productSizeId}/colors/${colorId}`,
         data,
       )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 
   remove(
-    productSizeId: number,
-    colorId: number,
+    productSizeId: string,
+    colorId: string,
   ): Observable<{ message: string }> {
     return this.http
       .delete<{ message: string }>(
-        `${this.apiUrl}/product-size/${productSizeId}/color/${colorId}`,
+        `${this.apiUrl}/product-sizes/${productSizeId}/colors/${colorId}`,
       )
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }

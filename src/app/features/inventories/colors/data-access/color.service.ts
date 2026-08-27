@@ -45,7 +45,7 @@ export class ColorService {
     return this.http.get<unknown>(url).pipe(map(adaptColorList));
   }
 
-  getOne(id: number): Observable<Color> {
+  getOne(id: string): Observable<Color> {
     return this.http
       .get<unknown>(`${this.base}/${id}`)
       .pipe(map(adaptColor));
@@ -57,13 +57,13 @@ export class ColorService {
     );
   }
 
-  update(id: number, data: ColorPayload): Observable<{ message: string }> {
+  update(id: string, data: ColorPayload): Observable<{ message: string }> {
     return this.http.patch<{ message: string }>(`${this.base}/${id}`, data).pipe(
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );
   }
 
-  delete(id: number): Observable<{ message: string }> {
+  delete(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.base}/${id}`).pipe(
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );

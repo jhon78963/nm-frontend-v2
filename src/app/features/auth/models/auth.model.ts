@@ -41,7 +41,7 @@ export interface ChangePasswordFormModel {
 }
 
 export interface AuthUser {
-  id: number;
+  id: string;
   username: string;
   email: string;
   name: string;
@@ -50,7 +50,8 @@ export interface AuthUser {
   role: string;
   roles?: string[];
   permissions?: string[];
-  tenantId?: number | null;
-  warehouseId?: number | null;
+  tenantId?: string | null;
+  tenantName?: string | null;
+  warehouseId?: string | null;
   mustChangePassword?: boolean;
 }

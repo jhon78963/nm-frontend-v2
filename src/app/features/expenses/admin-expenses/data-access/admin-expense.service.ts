@@ -15,13 +15,13 @@ import { adaptAdminExpenseReport } from './admin-expense.adapter';
 @Service()
 export class AdminExpenseService {
   private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apiUrl}/cash-flow`;
+  private readonly base = `${environment.apiUrl}/cashflow`;
 
   private readonly reportState = signal<AdminExpenseReport>(EMPTY_ADMIN_EXPENSE_REPORT);
   readonly report = this.reportState.asReadonly();
 
   loadMonthlyReport(month: string): Observable<AdminExpenseReport> {
-    const url = `${this.base}/admin/monthly?month=${encodeURIComponent(month)}`;
+    const url = `${this.base}/monthly?month=${encodeURIComponent(month)}`;
 
     return this.http.get<unknown>(url).pipe(
       map((response) => adaptAdminExpenseReport(response)),
@@ -34,23 +34,22 @@ export class AdminExpenseService {
     files: File[] | null,
     viewMonth: string,
   ): Observable<AdminExpenseReport> {
-    const formData = this.buildFormData(payload, files);
+    const body = this.buildJsonPayload(payload);
 
-    return this.http.post<unknown>(this.base, formData).pipe(
+    return this.http.post<unknown>(this.base, body).pipe(
       switchMap(() => this.loadMonthlyReport(viewMonth)),
     );
   }
 
   updateExpense(
-    id: number,
+    id: string,
     payload: AdminExpensePayload,
     files: File[] | null,
     viewMonth: string,
   ): Observable<AdminExpenseReport> {
-    const formData = this.buildFormData(payload, files);
-    formData.append('_method', 'PUT');
+    const body = this.buildJsonPayload(payload);
 
-    return this.http.post<unknown>(`${this.base}/${id}`, formData).pipe(
+    return this.http.patch<unknown>(`${this.base}/${id}`, body).pipe(
       switchMap(() => this.loadMonthlyReport(viewMonth)),
     );
   }
@@ -84,25 +83,16 @@ export class AdminExpenseService {
     this.reportState.set(EMPTY_ADMIN_EXPENSE_REPORT);
   }
 
-  private buildFormData(payload: AdminExpensePayload, files: File[] | null): FormData {
-    const formData = new FormData();
-    formData.append('type', payload.type);
-    formData.append('category', payload.category);
-    formData.append('amount', payload.amount.toString());
-    formData.append('description', payload.description);
-    formData.append('date', payload.date);
-    formData.append('accounting_month', payload.accounting_month);
-
-    if (payload.payroll_period) {
-      formData.append('payroll_period', payload.payroll_period);
-    }
-
-    formData.append('payment_method', payload.payment_method);
-
-    for (const file of files ?? []) {
-      formData.append('images[]', file);
-    }
-
-    return formData;
+  private buildJsonPayload(payload: AdminExpensePayload): Record<string, unknown> {
+    return {
+      type: payload.type,
+      category: payload.category,
+      amount: payload.amount,
+      description: payload.description,
+      date: payload.date.slice(0, 10),
+      paymentMethod: payload.payment_method,
+      accountingMonth: payload.accounting_month,
+      ...(payload.payroll_period ? { payrollPeriod: payload.payroll_period } : {}),
+    };
   }
 }

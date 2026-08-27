@@ -18,7 +18,7 @@ export function adaptVendor(raw: unknown): Vendor {
   const r = raw as Record<string, unknown>;
   const balanceRaw = r['balance'];
   return {
-    id: readNumber(r['id']),
+    id: String(r['id'] ?? ''),
     name: readString(r['name']),
     address: readOptionalString(r['address']),
     local: readOptionalString(r['local']),
@@ -36,16 +36,24 @@ export function adaptVendor(raw: unknown): Vendor {
 }
 
 export function adaptVendorList(raw: unknown): VendorListResponse {
+  if (Array.isArray(raw)) {
+    return {
+      data: (raw as unknown[]).map(adaptVendor),
+      paginate: { total: raw.length, pages: 1 },
+    };
+  }
+
   const r = raw as {
-    data: unknown[];
-    paginate: { total: number; pages: number };
+    data?: unknown[];
+    paginate?: { total: number; pages: number };
+    meta?: { total: number; lastPage: number };
   };
+
+  const total = r.paginate?.total ?? r.meta?.total ?? 0;
+  const pages = r.paginate?.pages ?? r.meta?.lastPage ?? 1;
 
   return {
     data: (r.data ?? []).map(adaptVendor),
-    paginate: {
-      total: r.paginate?.total ?? 0,
-      pages: r.paginate?.pages ?? 0,
-    },
+    paginate: { total, pages },
   };
 }

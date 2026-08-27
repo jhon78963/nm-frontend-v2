@@ -1,7 +1,7 @@
 import { Permission, Role, RoleListResponse } from '../models/role.model';
 
 function adaptPermission(raw: unknown): Permission {
-  const r = raw as { id: number; name: string; label?: string; group?: string };
+  const r = raw as { id: string; name: string; label?: string; group?: string };
   return {
     id: r.id,
     name: r.name,
@@ -12,9 +12,9 @@ function adaptPermission(raw: unknown): Permission {
 
 export function adaptRole(raw: unknown): Role {
   const r = raw as {
-    id: number;
+    id: string;
     name: string;
-    tenantId?: number | null;
+    tenantId?: string | null;
     permissions?: unknown[];
   };
   return {
