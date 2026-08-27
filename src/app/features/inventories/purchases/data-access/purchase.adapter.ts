@@ -107,6 +107,7 @@ export function adaptPurchaseLineRow(raw: unknown): PurchaseLineRow {
   const productSize = r['productSize'] as Record<string, unknown> | undefined;
   const product = productSize?.['product'] as Record<string, unknown> | undefined;
   const size = productSize?.['size'] as Record<string, unknown> | undefined;
+  const sizeType = size?.['sizeType'] as Record<string, unknown> | undefined;
   const deltasRaw = r['colorDeltas'] ?? r['color_deltas'];
   const purchasePrice = readOptionalNumber(r['purchasePrice'] ?? r['purchase_price']);
   const quantity = readNumber(r['quantity'], 1);
@@ -121,7 +122,14 @@ export function adaptPurchaseLineRow(raw: unknown): PurchaseLineRow {
     sizeDescription:
       readOptionalString(r['sizeDescription'] ?? r['size_description'] ?? size?.['description']) ??
       undefined,
-    sizeTypeId: readOptionalId(r['sizeTypeId'] ?? r['size_type_id']) ?? undefined,
+    sizeTypeId:
+      readOptionalId(
+        r['sizeTypeId'] ??
+          r['size_type_id'] ??
+          size?.['sizeTypeId'] ??
+          size?.['size_type_id'] ??
+          sizeType?.['id'],
+      ) ?? undefined,
     productSizeId: readId(r['productSizeId'] ?? r['product_size_id'] ?? productSize?.['id']),
     barcode: readOptionalString(r['barcode'] ?? productSize?.['barcode']),
     purchasePrice,

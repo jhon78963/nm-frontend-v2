@@ -23,10 +23,17 @@ export function adaptSize(raw: unknown): Size {
       : sizeTypeRaw && typeof sizeTypeRaw === 'object'
         ? readString((sizeTypeRaw as Record<string, unknown>)['description'])
         : '';
+  const sizeTypeIdRaw =
+    r['sizeTypeId'] ??
+    r['size_type_id'] ??
+    (sizeTypeRaw && typeof sizeTypeRaw === 'object'
+      ? (sizeTypeRaw as Record<string, unknown>)['id']
+      : null);
   return {
     id: r['id'] != null ? String(r['id']) : '',
     description: readString(r['description']),
     sizeTypeLabel,
+    sizeTypeId: sizeTypeIdRaw != null ? String(sizeTypeIdRaw) : null,
   };
 }
 

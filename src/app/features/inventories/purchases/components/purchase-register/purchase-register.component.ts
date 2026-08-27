@@ -1867,54 +1867,72 @@ export class PurchaseRegisterComponent implements OnInit {
         ? String(raw['sizeTypeId'])
         : null;
 
-    const applySizeContext = (sizeTypeId: string | null): void => {
-      this.lineDraft.patchValue(
-        {
-          selectedSizeTypeId: sizeTypeId,
-          selectedSizeId: null,
-          selectedColorId: null,
-        },
-        { emitEvent: false },
-      );
-
-      if (!sizeTypeId) {
-        this.catalogSizes.set([]);
-        this.syncCatalogSizeOptions();
-        this.refreshColorsAfterSizeChange();
-        return;
+    const resolveSizeTypeId$ = (): Observable<string | null> => {
+      if (sizeTypeFromRow != null) {
+        return of(sizeTypeFromRow);
       }
 
-      this.catalog
-        .getSizesBySizeType(sizeTypeId)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (sizes) => {
-            this.catalogSizes.set(sizes ?? []);
-            this.syncCatalogSizeOptions();
-            if (sizeMode === 'existing' && sizeId != null) {
-              this.lineDraft.patchValue({ selectedSizeId: sizeId }, { emitEvent: false });
-            }
-            this.refreshColorsAfterSizeChange();
-          },
-          error: () => {
-            this.catalogSizes.set([]);
-            this.syncCatalogSizeOptions();
-            this.refreshColorsAfterSizeChange();
-          },
-        });
+      const fromProduct = this.firstProductSizeTypeId(product);
+      if (fromProduct != null) {
+        return of(fromProduct);
+      }
+
+      if (sizeMode === 'existing' && sizeId != null) {
+        return this.catalog.getSizeOne(sizeId).pipe(
+          map((size) => size.sizeTypeId ?? null),
+          catchError(() => of(null)),
+        );
+      }
+
+      return of(null);
     };
 
-    if (sizeTypeFromRow != null) {
-      applySizeContext(sizeTypeFromRow);
+    resolveSizeTypeId$()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((sizeTypeId) => {
+        this.applyLineDraftSizeContext(sizeTypeId, sizeMode, sizeId);
+      });
+  }
+
+  private applyLineDraftSizeContext(
+    sizeTypeId: string | null,
+    sizeMode: string,
+    sizeId: string | null,
+  ): void {
+    this.lineDraft.patchValue(
+      {
+        selectedSizeTypeId: sizeTypeId,
+        selectedSizeId: null,
+        selectedColorId: null,
+      },
+      { emitEvent: false },
+    );
+
+    if (!sizeTypeId) {
+      this.catalogSizes.set([]);
+      this.syncCatalogSizeOptions();
+      this.refreshColorsAfterSizeChange();
       return;
     }
 
-    if (sizeMode === 'existing' && sizeId != null) {
-      applySizeContext(this.firstProductSizeTypeId(product));
-      return;
-    }
-
-    applySizeContext(this.firstProductSizeTypeId(product));
+    this.catalog
+      .getSizesBySizeType(sizeTypeId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (sizes) => {
+          this.catalogSizes.set(sizes ?? []);
+          this.syncCatalogSizeOptions();
+          if (sizeMode === 'existing' && sizeId != null) {
+            this.lineDraft.patchValue({ selectedSizeId: sizeId }, { emitEvent: false });
+          }
+          this.refreshColorsAfterSizeChange();
+        },
+        error: () => {
+          this.catalogSizes.set([]);
+          this.syncCatalogSizeOptions();
+          this.refreshColorsAfterSizeChange();
+        },
+      });
   }
 
   private firstProductSizeTypeId(product?: Product | null): string | null {

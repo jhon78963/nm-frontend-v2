@@ -2,12 +2,14 @@ export interface Size {
   id: string;
   description: string;
   sizeTypeLabel: string;
+  sizeTypeId?: string | null;
 }
 
 export interface SizeDetail {
   id: string;
   description: string;
   sizeTypeLabel: string;
+  sizeTypeId?: string | null;
 }
 
 export interface SizeType {
