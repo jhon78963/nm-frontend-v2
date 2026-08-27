@@ -169,8 +169,34 @@ export class PurchaseService {
     purchaseId: string,
     payload: Pick<PurchaseBulkPayload, 'catalogUpserts' | 'lines' | 'totals'>,
   ): Observable<{ message: string }> {
+    const hasCatalogUpserts =
+      (payload.catalogUpserts.products?.length ?? 0) > 0 ||
+      (payload.catalogUpserts.sizes?.length ?? 0) > 0 ||
+      (payload.catalogUpserts.colors?.length ?? 0) > 0;
+
+    if (hasCatalogUpserts) {
+      return throwError(
+        () =>
+          'Agregar productos, tallas o colores nuevos al editar aún no está soportado. Use referencias existentes del catálogo.',
+      );
+    }
+
+    const lines = payload.lines
+      .filter((line) => line.productRef.mode === 'id' && line.sizeRef.mode === 'id')
+      .map((line) => ({
+        productId: line.productRef.mode === 'id' ? line.productRef.productId : '',
+        sizeId: line.sizeRef.mode === 'id' ? line.sizeRef.sizeId : '',
+        productSizeId: line.productSizeId ?? undefined,
+        purchasePrice: line.purchasePrice,
+        salePrice: line.salePrice ?? undefined,
+        quantity: line.colors.reduce((sum, color) => sum + color.quantity, 0),
+        colorDeltas: line.colors
+          .filter((color) => color.colorId)
+          .map((color) => ({ colorId: color.colorId!, quantity: color.quantity })),
+      }));
+
     return this.http
-      .post<{ message: string }>(`${this.base}/${purchaseId}/lines/bulk`, payload)
+      .post<{ message: string }>(`${this.base}/${purchaseId}/lines/bulk`, { lines })
       .pipe(catchError((err) => throwError(() => extractErrorMessage(err))));
   }
 

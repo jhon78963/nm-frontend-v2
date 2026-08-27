@@ -1212,7 +1212,16 @@ export class PurchaseRegisterComponent implements OnInit {
   }
 
   private isPersistedLineId(lineId: string): boolean {
-    return /^\d+$/.test(lineId.trim());
+    const trimmed = lineId.trim();
+    if (!trimmed || trimmed.startsWith('l_')) {
+      return false;
+    }
+    if (/^\d+$/.test(trimmed)) {
+      return true;
+    }
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      trimmed,
+    );
   }
 
   private lineHasColorBreakdown(colors: Record<string, unknown>[]): boolean {
