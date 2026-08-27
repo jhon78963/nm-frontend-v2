@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import { AuthService } from '../../../auth/data-access/auth.service';
 import { adaptCheckoutToReceiptData } from './pos-receipt.adapter';
+import { adaptPosSearchResponse } from './pos-product.adapter';
 import {
   CartItem,
   CheckoutResponse,
@@ -65,11 +66,18 @@ export class PosService {
   async searchProductBySku(sku: string): Promise<Product | undefined> {
     this.isLoading.set(true);
     try {
-      return await firstValueFrom(
-        this.http.get<Product>(`${this.base}/products/pos-search`, {
+      const raw = await firstValueFrom(
+        this.http.get<unknown>(`${this.base}/products/pos-search`, {
           params: new HttpParams().set('q', sku),
         }),
       );
+      const warehouseId = this.authService.currentUser()?.warehouseId ?? '';
+      const product = adaptPosSearchResponse(raw, sku, warehouseId);
+      if (!product) {
+        this.showToast('Producto no encontrado');
+        return undefined;
+      }
+      return product;
     } catch (error) {
       if (error instanceof HttpErrorResponse) {
         switch (error.status) {
@@ -100,15 +108,38 @@ export class PosService {
   async searchCustomerByDni(dni: string): Promise<boolean> {
     this.isLoading.set(true);
     try {
-      const customer = await firstValueFrom(
-        this.http.get<Customer>(`${this.base}/customers/pos-search`, {
+      const raw = await firstValueFrom(
+        this.http.get<unknown>(`${this.base}/customers/pos-search`, {
           params: new HttpParams().set('q', dni),
         }),
       );
+      const customer = this.adaptPosCustomer(raw);
+      if (!customer) {
+        this.showToast('Cliente no encontrado');
+        return false;
+      }
       this.currentCustomer.set(customer);
       this.showToast('Cliente encontrado');
       return true;
-    } catch {
+    } catch (error) {
+      if (error instanceof HttpErrorResponse) {
+        const body = error.error as Record<string, unknown> | null;
+        const code = typeof body?.['code'] === 'string' ? body['code'] : '';
+        const message = typeof body?.['message'] === 'string' ? body['message'] : '';
+
+        if (code === 'SUNAT_TIMEOUT' || code === 'SUNAT_UNAVAILABLE') {
+          this.showToast(
+            message || 'El servicio de SUNAT está inestable. Reintente en un momento.',
+          );
+          return false;
+        }
+
+        if (code === 'DOC_NOT_FOUND') {
+          this.showToast(message || 'Cliente no encontrado');
+          return false;
+        }
+      }
+
       this.showToast('Cliente no encontrado');
       return false;
     } finally {
@@ -417,5 +448,29 @@ export class PosService {
 
   private isMobileBrowser(): boolean {
     return /Android|webOS|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  }
+
+  private adaptPosCustomer(raw: unknown): Customer | null {
+    if (!raw || typeof raw !== 'object') return null;
+
+    const row = raw as Record<string, unknown>;
+    const id = row['id'] != null ? String(row['id']) : '';
+    const documentNumber = String(
+      row['document_number'] ?? row['documentNumber'] ?? row['dni'] ?? '',
+    ).trim();
+    const documentType = String(
+      row['document_type'] ?? row['documentType'] ?? 'DNI',
+    ).trim();
+    const name = String(row['name'] ?? '').trim();
+
+    if (!id || !documentNumber || !name) return null;
+
+    return {
+      id,
+      dni: documentNumber,
+      name,
+      document_type: documentType,
+      document_number: documentNumber,
+    };
   }
 }

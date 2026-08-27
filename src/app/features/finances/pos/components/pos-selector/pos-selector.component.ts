@@ -25,7 +25,8 @@ export class PosSelectorComponent {
 
   protected readonly availableSizes = computed(() => {
     const prod = this.posService.modalState().product;
-    return prod ? Object.keys(prod.variants) : [];
+    const variants = prod?.variants;
+    return variants && typeof variants === 'object' ? Object.keys(variants) : [];
   });
 
   protected readonly currentSizeVariants = computed(() => {
@@ -58,10 +59,13 @@ export class PosSelectorComponent {
         this.pricingAlert.set(null);
         this.activeSize.set(null);
 
+        const variants = state.product.variants;
+        if (!variants || typeof variants !== 'object') return;
+
         // Pre-fill from cart
         const cartItems = this.posService.cart().filter((i) => i.productId === state.product!.id);
         cartItems.forEach((cartItem) => {
-          const variantsInSize = state.product!.variants[cartItem.size] ?? [];
+          const variantsInSize = variants[cartItem.size] ?? [];
           const realVariant = variantsInSize.find(
             (v) => String(v.color_id) === String(cartItem.color.color_id),
           );
@@ -83,14 +87,14 @@ export class PosSelectorComponent {
         } else {
           const scannedSku = state.product.sku;
           let foundSize: string | null = null;
-          for (const sizeKey of Object.keys(state.product.variants)) {
-            const hasMatch = state.product.variants[sizeKey].some((v) => v.sku === scannedSku);
+          for (const sizeKey of Object.keys(variants)) {
+            const hasMatch = variants[sizeKey].some((v) => v.sku === scannedSku);
             if (hasMatch) {
               foundSize = sizeKey;
               break;
             }
           }
-          const sizes = Object.keys(state.product.variants);
+          const sizes = Object.keys(variants);
           this.activeSize.set(foundSize ?? (sizes[0] ?? null));
         }
       });
