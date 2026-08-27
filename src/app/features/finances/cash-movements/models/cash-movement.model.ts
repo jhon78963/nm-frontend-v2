@@ -12,6 +12,7 @@ export interface CashMovementItem {
   amount: number;
   date?: string;
   payment_method?: string;
+  payments?: Array<{ method: string; amount: number }>;
 }
 
 export interface CashDailySummary {

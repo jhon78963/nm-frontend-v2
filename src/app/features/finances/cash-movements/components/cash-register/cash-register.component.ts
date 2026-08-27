@@ -18,6 +18,7 @@ import {
 } from '../../../../../shared/ui/table-data/table-data.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import {
+  applyPaymentFiltersToSales,
   formatViewDate,
   matchesPaymentFilter,
 } from '../../data-access/cash-movement.adapter';
@@ -301,6 +302,11 @@ export class CashRegisterComponent implements OnInit {
   private filterList(section: ListSection): CashMovementItem[] {
     const filters = this.paymentFilters();
     const list = this.report().lists[section] ?? [];
+
+    if (section === 'sales') {
+      return applyPaymentFiltersToSales(list, filters);
+    }
+
     return list.filter((item) => matchesPaymentFilter(item.method, filters));
   }
 

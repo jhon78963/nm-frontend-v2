@@ -76,11 +76,65 @@ export function normalizePaymentMethod(value: unknown): PaymentMethod {
 }
 
 function readDocumentType(value: unknown): SaleDocumentType | null {
-  const type = readOptionalString(value);
-  if (type === 'BOLETA' || type === 'FACTURA' || type === 'TICKET_INTERNO') {
+  const type = readOptionalString(value)?.toUpperCase();
+  if (type === 'BOLETA' || type === 'FACTURA') {
     return type;
   }
+  if (type === 'TICKET' || type === 'TICKET_INTERNO') {
+    return 'TICKET_INTERNO';
+  }
   return null;
+}
+
+function normalizeSaleStatus(value: unknown): string {
+  const status = readString(value, 'ACTIVE').toUpperCase();
+  if (status === 'COMPLETED') return 'ACTIVE';
+  if (status === 'CANCELLED' || status === 'CANCELED') return 'CANCELED';
+  return status;
+}
+
+function formatPaymentMethodLabel(value: unknown): string {
+  const raw = readOptionalString(value)?.toUpperCase() ?? '';
+  switch (raw) {
+    case 'CASH':
+    case 'EFECTIVO':
+      return 'Efectivo';
+    case 'YAPE':
+    case 'PLIN':
+    case 'YAPE/PLIN':
+      return 'Yape / Plin';
+    case 'CARD':
+    case 'TARJETA':
+      return 'Tarjeta';
+    case 'MIXED':
+      return 'Mixto';
+    default:
+      return raw || '—';
+  }
+}
+
+function resolveSaleCode(raw: Record<string, unknown>): string {
+  const code = readOptionalString(raw['code']);
+  if (code) return code;
+
+  const id = readOptionalString(raw['id']);
+  if (!id) return '—';
+
+  return `V-${id.replace(/-/g, '').slice(0, 12).toUpperCase()}`;
+}
+
+function resolveCreationTime(raw: Record<string, unknown>): string {
+  return readString(
+    raw['creationTime'] ??
+      raw['creation_time'] ??
+      raw['createdAt'] ??
+      raw['created_at'] ??
+      raw['date'],
+  );
+}
+
+function resolveSaleTotal(raw: Record<string, unknown>): number {
+  return readNumber(raw['total'] ?? raw['totalAmount'] ?? raw['total_amount']);
 }
 
 export function adaptSale(raw: unknown): Sale {
@@ -88,11 +142,11 @@ export function adaptSale(raw: unknown): Sale {
 
   return {
     id: String(r['id'] ?? ''),
-    code: readString(r['code']),
-    creationTime: readString(r['creationTime'] ?? r['creation_time'] ?? r['date']),
-    total: readNumber(r['total']),
-    status: readString(r['status'], 'ACTIVE'),
-    paymentMethod: readString(r['paymentMethod'] ?? r['payment_method']),
+    code: resolveSaleCode(r),
+    creationTime: resolveCreationTime(r),
+    total: resolveSaleTotal(r),
+    status: normalizeSaleStatus(r['status']),
+    paymentMethod: formatPaymentMethodLabel(r['paymentMethod'] ?? r['payment_method']),
     customer: readCustomerName(r['customer']),
     documentType: readDocumentType(r['document_type'] ?? r['documentType']),
     fullInvoiceNumber: readOptionalString(
@@ -106,8 +160,10 @@ export function adaptSale(raw: unknown): Sale {
         ? readNumber(r['taxable_base'] ?? r['taxableBase'])
         : null,
     igvAmount:
-      r['igv_amount'] != null || r['igvAmount'] != null
-        ? readNumber(r['igv_amount'] ?? r['igvAmount'])
+      r['igv_amount'] != null ||
+      r['igvAmount'] != null ||
+      r['igv'] != null
+        ? readNumber(r['igv_amount'] ?? r['igvAmount'] ?? r['igv'])
         : null,
     sunatStatus: readSunatStatus(r['sunat_status'] ?? r['sunatStatus']),
   };
@@ -141,11 +197,21 @@ function adaptSaleItem(raw: unknown): SaleItem {
   const quantity = readNumber(r['quantity'], 1);
   const unitPrice = readNumber(r['unit_price'] ?? r['unitPrice']);
   const subtotal = readNumber(r['subtotal'], quantity * unitPrice);
+  const productName = readString(
+    r['product_name'] ?? r['productName'] ?? r['productNameSnapshot'],
+  );
+  const sizeName = readString(r['size_snapshot'] ?? r['sizeSnapshot']);
+  const colorName = readString(r['color_snapshot'] ?? r['colorSnapshot']);
+  const descriptionFull = readString(
+    r['description_full'] ??
+      r['descriptionFull'] ??
+      [productName, sizeName, colorName].filter(Boolean).join(' · '),
+  );
 
   return {
     id: r['id'] != null ? String(r['id']) : null,
-    productName: readString(r['product_name'] ?? r['productName']),
-    descriptionFull: readString(r['description_full'] ?? r['descriptionFull']),
+    productName,
+    descriptionFull,
     quantity,
     unitPrice,
     subtotal,
@@ -172,7 +238,11 @@ function adaptSalePayment(raw: unknown): SalePayment {
 export function adaptSaleDetail(raw: unknown): SaleDetail {
   const r = raw as Record<string, unknown>;
   const base = adaptSale(raw);
-  const itemsRaw = Array.isArray(r['items']) ? r['items'] : [];
+  const itemsRaw = Array.isArray(r['items'])
+    ? r['items']
+    : Array.isArray(r['details'])
+      ? r['details']
+      : [];
   const paymentsRaw = Array.isArray(r['payments']) ? r['payments'] : [];
 
   let payments = paymentsRaw.map(adaptSalePayment);

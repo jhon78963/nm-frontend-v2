@@ -10,10 +10,29 @@ function toNumber(value: unknown, fallback = 0): number {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function adaptPayments(raw: unknown): Array<{ method: string; amount: number }> | undefined {
+  if (!Array.isArray(raw)) {
+    return undefined;
+  }
+
+  return raw
+    .map((entry) => {
+      const record = entry as Record<string, unknown>;
+      const method = String(record['method'] ?? record['paymentMethod'] ?? '');
+      const amount = toNumber(record['amount']);
+      if (!method) {
+        return null;
+      }
+      return { method, amount };
+    })
+    .filter((entry): entry is { method: string; amount: number } => entry !== null);
+}
+
 function adaptMovementItem(raw: Record<string, unknown>): CashMovementItem {
   const method = String(
     raw['paymentMethod'] ?? raw['method'] ?? raw['payment_method'] ?? 'CASH',
   );
+  const payments = adaptPayments(raw['payments']);
 
   const dateRaw = raw['date'];
   const dateStr = dateRaw != null ? String(dateRaw) : undefined;
@@ -31,6 +50,7 @@ function adaptMovementItem(raw: Record<string, unknown>): CashMovementItem {
     amount: toNumber(raw['amount']),
     date: dateStr,
     payment_method: method as PaymentMethod,
+    payments,
   };
 }
 
@@ -102,6 +122,10 @@ export function matchesPaymentFilter(
 ): boolean {
   const normalized = method.toUpperCase();
 
+  if (normalized.includes('MIXED')) {
+    return filters.cash || filters.yape || filters.card;
+  }
+
   if (normalized.includes('CASH') || normalized.includes('EFECTIVO')) {
     return filters.cash;
   }
@@ -114,7 +138,53 @@ export function matchesPaymentFilter(
     return filters.card;
   }
 
-  return true;
+  return filters.cash || filters.yape || filters.card;
+}
+
+function paymentMethodMatchesFilter(
+  method: string,
+  filters: { cash: boolean; yape: boolean; card: boolean },
+): boolean {
+  return matchesPaymentFilter(method, filters);
+}
+
+function resolveFilteredMethod(matchedPayments: Array<{ method: string; amount: number }>): string {
+  const uniqueMethods = [...new Set(matchedPayments.map((payment) => payment.method))];
+  if (uniqueMethods.length === 1) {
+    return uniqueMethods[0];
+  }
+  return 'MIXED';
+}
+
+export function applyPaymentFiltersToSales(
+  items: CashMovementItem[],
+  filters: { cash: boolean; yape: boolean; card: boolean },
+): CashMovementItem[] {
+  return items.flatMap((item) => {
+    if (!item.payments?.length) {
+      return paymentMethodMatchesFilter(item.method, filters) ? [item] : [];
+    }
+
+    const matchedPayments = item.payments.filter((payment) =>
+      paymentMethodMatchesFilter(payment.method, filters),
+    );
+    const amount = matchedPayments.reduce((sum, payment) => sum + payment.amount, 0);
+
+    if (amount <= 0) {
+      return [];
+    }
+
+    const method = resolveFilteredMethod(matchedPayments);
+
+    return [
+      {
+        ...item,
+        amount,
+        method,
+        payment_method: method as PaymentMethod,
+      },
+    ];
+  });
 }
 
 export function formatIsoDate(date: Date): string {
