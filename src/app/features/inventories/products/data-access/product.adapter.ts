@@ -94,6 +94,22 @@ function buildColorStockMap(balances: unknown): Map<string, number> {
   return map;
 }
 
+function resolveProductSizeStock(
+  balances: unknown,
+  linkedColorIds: string[],
+): number {
+  const colorStockMap = buildColorStockMap(balances);
+
+  if (linkedColorIds.length > 0) {
+    return linkedColorIds.reduce(
+      (sum, colorId) => sum + (colorStockMap.get(colorId) ?? 0),
+      0,
+    );
+  }
+
+  return sumInventoryBalances(balances);
+}
+
 export function adaptProductColor(raw: unknown): ProductColor {
   const r = raw as Record<string, unknown>;
   const hash =
@@ -136,7 +152,10 @@ export function adaptProductSize(raw: unknown): ProductSize {
     ? (r['colors'] as unknown[]).map(adaptProductColor)
     : undefined;
   const balances = r['inventoryBalances'];
-  const balanceStock = sumInventoryBalances(balances);
+  const linkedColorIds = (colors ?? [])
+    .map((color) => color.id)
+    .filter((colorId) => colorId !== '');
+  const balanceStock = resolveProductSizeStock(balances, linkedColorIds);
 
   return {
     id: String(r['id'] ?? ''),
@@ -190,7 +209,6 @@ function adaptProductSizeFromNest(raw: unknown): ProductSize {
     : [];
   const balances = r['inventoryBalances'];
   const colorStockMap = buildColorStockMap(balances);
-  const sizeStock = sumInventoryBalances(balances);
 
   const colors: ProductColor[] = colorLinks.map((link) => {
     const l = link as Record<string, unknown>;
@@ -205,6 +223,9 @@ function adaptProductSizeFromNest(raw: unknown): ProductSize {
       stock: colorStockMap.get(colorId) ?? 0,
     };
   });
+
+  const linkedColorIds = colors.map((color) => color.id).filter((colorId) => colorId !== '');
+  const sizeStock = resolveProductSizeStock(balances, linkedColorIds);
 
   return {
     id: String(sizeRec['id'] ?? r['sizeId'] ?? r['id'] ?? ''),
