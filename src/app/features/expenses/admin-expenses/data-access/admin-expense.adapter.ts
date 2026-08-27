@@ -76,10 +76,7 @@ export function adaptAdminExpenseReport(raw: unknown): AdminExpenseReport {
     : [];
 
   const totalAdmin = toNumber(
-    data['total_monthly_admin'] ??
-      data['totalMonthlyAdmin'] ??
-      data['totalExpense'] ??
-      data['total_expense'],
+    data['total_monthly_admin'] ?? data['totalMonthlyAdmin'],
   );
 
   return {

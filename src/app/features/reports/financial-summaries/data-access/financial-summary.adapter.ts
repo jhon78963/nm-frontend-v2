@@ -70,7 +70,8 @@ function adaptRecentTransaction(raw: unknown): RecentTransaction {
 }
 
 export function adaptFinancialSummary(raw: unknown): FinancialSummary {
-  const r = (raw ?? {}) as Record<string, unknown>;
+  const envelope = (raw ?? {}) as Record<string, unknown>;
+  const r = (envelope['data'] ?? envelope) as Record<string, unknown>;
   const transactions = Array.isArray(r['recent_transactions'])
     ? r['recent_transactions'].map(adaptRecentTransaction)
     : [];

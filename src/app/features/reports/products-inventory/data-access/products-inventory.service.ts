@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Service } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import {
   ProductInventoryItem,
@@ -35,7 +35,7 @@ export class ProductsInventoryService {
     return this.http.get<unknown>(`${this.aiBase}/reports/products-inventory`, { params }).pipe(
       map((response) => {
         const envelope = response as {
-          data?: { products?: unknown[]; horizon_days?: number };
+          data?: { products?: unknown[]; horizon_days?: number; ai_summary?: unknown };
         };
 
         return {
@@ -44,6 +44,15 @@ export class ProductsInventoryService {
           aiSummary: adaptProductsInventoryAiSummary(response),
         };
       }),
+      catchError(() =>
+        this.loadInventory().pipe(
+          map((products) => ({
+            products,
+            horizonDays,
+            aiSummary: null,
+          })),
+        ),
+      ),
     );
   }
 

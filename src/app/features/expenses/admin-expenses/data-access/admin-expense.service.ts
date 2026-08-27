@@ -21,7 +21,7 @@ export class AdminExpenseService {
   readonly report = this.reportState.asReadonly();
 
   loadMonthlyReport(month: string): Observable<AdminExpenseReport> {
-    const url = `${this.base}/monthly?month=${encodeURIComponent(month)}`;
+    const url = `${this.base}/admin/monthly?month=${encodeURIComponent(month)}`;
 
     return this.http.get<unknown>(url).pipe(
       map((response) => adaptAdminExpenseReport(response)),

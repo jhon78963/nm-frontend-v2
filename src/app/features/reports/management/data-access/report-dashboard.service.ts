@@ -11,13 +11,15 @@ import { adaptReportDashboard } from './report-dashboard.adapter';
 @Service()
 export class ReportDashboardService {
   private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apiUrl}/dashboard`;
+  private readonly base = `${environment.apiUrl}/reports/dashboard`;
 
   private readonly dashboardState = signal<ReportDashboard>(EMPTY_REPORT_DASHBOARD);
   readonly dashboard = this.dashboardState.asReadonly();
 
   loadDashboard(startDate: string, endDate: string): Observable<ReportDashboard> {
-    const url = `${this.base}?startDate=${startDate}&endDate=${endDate}`;
+    const url =
+      `${this.base}?start_date=${encodeURIComponent(startDate)}` +
+      `&end_date=${encodeURIComponent(endDate)}`;
 
     return this.http.get<unknown>(url).pipe(
       map((response) => adaptReportDashboard(response)),

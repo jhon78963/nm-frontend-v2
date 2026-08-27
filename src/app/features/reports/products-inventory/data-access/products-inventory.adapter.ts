@@ -87,8 +87,8 @@ export function adaptProductInventoryItem(raw: unknown): ProductInventoryItem {
   const sizesRaw = r['sizes'];
 
   return {
-    id: readId(r['id']),
-    name: String(r['name'] ?? ''),
+    id: readId(r['id'] ?? r['productId']),
+    name: String(r['name'] ?? r['product'] ?? ''),
     sizes: Array.isArray(sizesRaw) ? sizesRaw.map(adaptSize) : [],
     ai: adaptAi(r['ai']),
   };

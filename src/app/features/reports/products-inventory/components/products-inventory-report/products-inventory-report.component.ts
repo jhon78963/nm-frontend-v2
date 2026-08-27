@@ -136,11 +136,17 @@ export class ProductsInventoryReportComponent implements OnInit {
             this.products.set(result.products);
             this.horizonDays.set(result.horizonDays);
             this.aiSummary.set(result.aiSummary);
+            if (this.includeAi() && !result.aiSummary) {
+              this.toastService.show(
+                'info',
+                'Inventario cargado sin predicciones IA (motor no disponible).',
+              );
+            }
             this.loading.set(false);
           },
           error: () => {
             this.loading.set(false);
-            this.toastService.show('error', 'No se pudo cargar el inventario con predicciones IA.');
+            this.toastService.show('error', 'No se pudo cargar el inventario.');
           },
         });
       return;

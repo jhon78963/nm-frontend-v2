@@ -38,7 +38,7 @@ export class AccumulatedExpenseService {
   readonly account = this.accountState.asReadonly();
 
   loadMonthlyReport(month: string): Observable<AccumulatedExpenseReport> {
-    const url = `${this.cashFlowBase}/monthly?month=${encodeURIComponent(month)}`;
+    const url = `${this.cashFlowBase}/accumulated/monthly?month=${encodeURIComponent(month)}`;
 
     return this.http.get<unknown>(url).pipe(
       map((response) => adaptAccumulatedExpenseReport(response)),
