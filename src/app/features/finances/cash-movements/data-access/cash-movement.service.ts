@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Service, signal } from '@angular/core';
-import { map, Observable, switchMap, tap } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 import { environment } from '../../../../../environments/environment';
 import {
   CashDailyReport,
@@ -33,11 +33,21 @@ export class CashMovementService {
   registerMovement(
     payload: MovementPayload,
     viewDate: string,
+    voucherFiles?: File[],
   ): Observable<CashDailyReport> {
     const body = this.buildJsonPayload(payload);
 
     return this.http.post<unknown>(this.base, body).pipe(
-      switchMap(() => this.loadDailyReport(viewDate)),
+      switchMap((response) => {
+        const movementId = (response as Record<string, unknown>)?.['id'] as string | undefined;
+        if (voucherFiles?.length && movementId) {
+          return this.uploadVouchers(movementId, voucherFiles).pipe(
+            catchError(() => of(null)),
+            switchMap(() => this.loadDailyReport(viewDate)),
+          );
+        }
+        return this.loadDailyReport(viewDate);
+      }),
     );
   }
 
@@ -51,6 +61,14 @@ export class CashMovementService {
     return this.http.patch<unknown>(`${this.base}/${id}`, body).pipe(
       switchMap(() => this.loadDailyReport(viewDate)),
     );
+  }
+
+  uploadVouchers(movementId: string, files: File[]): Observable<unknown> {
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append('files', file, file.name);
+    }
+    return this.http.post(`${this.base}/${movementId}/vouchers`, formData);
   }
 
   deleteMovement(

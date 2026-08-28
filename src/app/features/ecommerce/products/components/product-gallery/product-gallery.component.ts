@@ -679,11 +679,25 @@ export class ProductGalleryComponent implements OnDestroy {
       }
     }
 
-    const pending = this.mediaItems().filter((item) => !urls.has(item.id));
+    const pending = this.mediaItems().filter((item) => !this.displayUrls().has(item.id));
     if (pending.length === 0) return;
 
+    // Items con URL pública directa (nuevo storage-service): no necesitan blob
+    const withPublicUrl = pending.filter((item) => !!item.publicUrl);
+    const withoutUrl = pending.filter((item) => !item.publicUrl);
+
+    if (withPublicUrl.length > 0) {
+      const newUrls = new Map(this.displayUrls());
+      for (const item of withPublicUrl) {
+        newUrls.set(item.id, item.publicUrl!);
+      }
+      this.displayUrls.set(newUrls);
+    }
+
+    if (withoutUrl.length === 0) return;
+
     forkJoin(
-      pending.map((item) =>
+      withoutUrl.map((item) =>
         this.productMediaService.getPreviewBlob(this.productId(), item.id).pipe(
           tap((blob) => this.setDisplayUrl(item.id, blob)),
           catchError(() => of(null)),
@@ -694,10 +708,10 @@ export class ProductGalleryComponent implements OnDestroy {
       .subscribe({
         next: (results) => {
           const failed = results.filter((blob) => blob === null).length;
-          if (failed > 0 && failed === pending.length) {
+          if (failed > 0 && failed === withoutUrl.length) {
             this.toastService.show(
               'info',
-              'No se pudieron cargar las imágenes. En local, verifica que el servicio de upload esté activo.',
+              'No se pudieron cargar algunas imágenes.',
             );
           }
         },

@@ -21,11 +21,12 @@ function readBoolean(value: unknown, fallback = false): boolean {
 
 function adaptMediaItem(raw: unknown): PublishProductMediaItem {
   const r = raw as Record<string, unknown>;
+  const mime = readString(r['mimeType']);
   return {
     id: String(r['id'] ?? ''),
     url: readString(r['url']),
-    type: r['type'] === 'video' ? 'video' : 'image',
-    isPrimary: readBoolean(r['isPrimary']),
+    type: mime.startsWith('video/') || r['type'] === 'video' ? 'video' : 'image',
+    isPrimary: readBoolean(r['isPrimary'] ?? r['isCover']),
   };
 }
 

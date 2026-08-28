@@ -27,6 +27,7 @@ import {
   SelectComponent,
   SelectOption,
 } from '../../../../../shared/ui/select/select.component';
+import { VoucherFilePickerComponent } from '../../../../expenses/admin-expenses/components/voucher-file-picker/voucher-file-picker.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
 import {
@@ -62,6 +63,7 @@ const EMPTY_FORM: MovementFormModel = {
     MoneyInputComponent,
     TableActionButtonComponent,
     SelectComponent,
+    VoucherFilePickerComponent,
   ],
   templateUrl: './movement-form.component.html',
 })
@@ -80,6 +82,7 @@ export class MovementFormComponent {
 
   protected readonly saving = signal(false);
   protected readonly formModel = signal<MovementFormModel>({ ...EMPTY_FORM });
+  protected readonly voucherFiles = signal<File[]>([]);
   protected readonly dateControl = new FormControl('', { nonNullable: true });
 
   protected readonly isEditing = computed(() => this.editingItem() !== null);
@@ -186,6 +189,10 @@ export class MovementFormComponent {
     this.formModel.update((current) => ({ ...current, date: value }));
   }
 
+  protected onVoucherFilesChange(files: File[]): void {
+    this.voucherFiles.set(files);
+  }
+
   protected onSubmit(): void {
     if (!this.canSubmit()) {
       return;
@@ -215,13 +222,15 @@ export class MovementFormComponent {
 
     this.saving.set(true);
 
+    const files = this.voucherFiles();
     const request$ = editing
       ? this.cashMovementService.updateMovement(editing.id, payload, viewDateStr)
-      : this.cashMovementService.registerMovement(payload, viewDateStr);
+      : this.cashMovementService.registerMovement(payload, viewDateStr, files.length ? files : undefined);
 
     request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.saving.set(false);
+        this.voucherFiles.set([]);
         this.toastService.show(
           'success',
           editing ? 'Movimiento actualizado.' : 'Movimiento registrado.',

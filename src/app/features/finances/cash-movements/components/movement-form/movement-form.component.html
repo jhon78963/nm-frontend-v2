@@ -120,6 +120,12 @@
         [formField]="movementForm.amount"
         [errorMessage]="amountError()"
       />
+
+      @if (!isEditing()) {
+        <app-voucher-file-picker
+          (filesChange)="onVoucherFilesChange($event)"
+        />
+      }
     </div>
   </div>
 
