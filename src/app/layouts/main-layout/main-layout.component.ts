@@ -187,6 +187,15 @@ export class MainLayoutComponent implements OnInit {
     return this.headerShortcuts.filter((item) => this.canSeeShortcut(item));
   });
 
+  protected readonly userAvatarUrl = computed(() => {
+    const raw = this.authService.currentUser()?.profilePicture?.trim();
+    if (!raw || raw.includes('/assets/img/avatars/')) {
+      return null;
+    }
+
+    return raw;
+  });
+
   private readonly closeProfileMenuOnModal = effect(() => {
     if (this.hasActiveModal()) {
       this.isProfileMenuOpen.set(false);

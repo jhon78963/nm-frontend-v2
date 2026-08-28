@@ -224,12 +224,20 @@
             aria-label="Menú de perfil de usuario"
             (click)="toggleProfileMenu()"
           >
-            <span
-              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-500 text-sm font-bold text-white shadow-sm"
-              aria-hidden="true"
-            >
-              {{ userInitials() }}
-            </span>
+            @if (userAvatarUrl(); as avatarUrl) {
+              <img
+                class="h-8 w-8 shrink-0 rounded-full object-cover shadow-sm ring-2 ring-orange-100"
+                [src]="avatarUrl"
+                [alt]="'Foto de perfil de ' + userDisplayName()"
+              />
+            } @else {
+              <span
+                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-500 text-sm font-bold text-white shadow-sm"
+                aria-hidden="true"
+              >
+                {{ userInitials() }}
+              </span>
+            }
             <span class="hidden flex-col items-start sm:flex">
               <span class="text-sm font-medium leading-tight text-gray-800">{{ userDisplayName() }}</span>
               @if (userRole()) {
@@ -255,12 +263,20 @@
           >
             <!-- Cabecera con info del usuario -->
             <div class="flex items-center gap-3 border-b border-gray-100 px-4 py-3.5">
-              <span
-                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-500 text-sm font-bold text-white shadow-sm"
-                aria-hidden="true"
-              >
-                {{ userInitials() }}
-              </span>
+              @if (userAvatarUrl(); as avatarUrl) {
+                <img
+                  class="h-10 w-10 shrink-0 rounded-full object-cover shadow-sm ring-2 ring-orange-100"
+                  [src]="avatarUrl"
+                  [alt]="'Foto de perfil de ' + userDisplayName()"
+                />
+              } @else {
+                <span
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-orange-500 text-sm font-bold text-white shadow-sm"
+                  aria-hidden="true"
+                >
+                  {{ userInitials() }}
+                </span>
+              }
               <div class="min-w-0">
                 <p class="truncate text-sm font-semibold text-gray-900">{{ userDisplayName() }}</p>
                 @if (userRole()) {
