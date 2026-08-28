@@ -2,6 +2,7 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   inject,
   input,
   OnInit,
@@ -16,22 +17,24 @@ import {
   required,
 } from '@angular/forms/signals';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { SelectComponent, SelectOption } from '../../../../../shared/ui/select/select.component';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
 import { WarehouseLookupService } from '../../data-access/warehouse-lookup.service';
 import { WarehouseService } from '../../data-access/warehouse.service';
-import { WarehouseFormModel } from '../../models/warehouse.model';
+import { TenantLookupOption, WarehouseFormModel } from '../../models/warehouse.model';
 
 const EMPTY_FORM: WarehouseFormModel = {
   name: '',
   tenantId: null,
+  electronicInvoicingEnabled: false,
 };
 
 @Component({
   selector: 'app-warehouse-form',
-  imports: [FormField, InputComponent, SelectComponent, ButtonComponent, TableActionButtonComponent],
+  imports: [FormField, InputComponent, SelectComponent, CheckboxComponent, ButtonComponent, TableActionButtonComponent],
   templateUrl: './warehouse-form.component.html',
 })
 export class WarehouseFormComponent implements OnInit {
@@ -49,6 +52,8 @@ export class WarehouseFormComponent implements OnInit {
   protected readonly loadError = signal('');
 
   protected readonly tenantOptions = signal<SelectOption<string>[]>([]);
+  private readonly tenantLookup = signal<TenantLookupOption[]>([]);
+  protected readonly tenantElectronicInvoicingEnabled = signal(false);
 
   protected readonly formModel = signal<WarehouseFormModel>({ ...EMPTY_FORM });
 
@@ -73,12 +78,34 @@ export class WarehouseFormComponent implements OnInit {
     }),
   );
 
+  constructor() {
+    effect(() => {
+      const tenantId = this.formModel().tenantId;
+      if (!tenantId) {
+        this.tenantElectronicInvoicingEnabled.set(false);
+        return;
+      }
+
+      const tenant = this.tenantLookup().find((item) => item.id === tenantId);
+      const enabled = tenant?.electronicInvoicingEnabled ?? false;
+      this.tenantElectronicInvoicingEnabled.set(enabled);
+
+      if (!enabled) {
+        this.formModel.update((current) => ({
+          ...current,
+          electronicInvoicingEnabled: false,
+        }));
+      }
+    });
+  }
+
   ngOnInit(): void {
     this.lookupService
       .getTenants()
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (tenants) => {
+          this.tenantLookup.set(tenants);
           this.tenantOptions.set(
             tenants.map((t) => ({ label: t.name, value: t.id })),
           );
@@ -96,9 +123,24 @@ export class WarehouseFormComponent implements OnInit {
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (warehouse) => {
+            this.tenantLookup.update((current) => {
+              const others = current.filter((item) => item.id !== warehouse.tenantId);
+              return [
+                ...others,
+                {
+                  id: warehouse.tenantId ?? '',
+                  name:
+                    current.find((item) => item.id === warehouse.tenantId)?.name ??
+                    'Cliente',
+                  electronicInvoicingEnabled:
+                    warehouse.tenantElectronicInvoicingEnabled ?? false,
+                },
+              ];
+            });
             this.formModel.set({
               name: warehouse.name,
               tenantId: warehouse.tenantId,
+              electronicInvoicingEnabled: warehouse.electronicInvoicingEnabled ?? false,
             });
             this.loadingData.set(false);
           },
@@ -129,6 +171,7 @@ export class WarehouseFormComponent implements OnInit {
     const payload = {
       name: model.name.trim(),
       tenantId,
+      electronicInvoicingEnabled: model.electronicInvoicingEnabled,
     };
 
     const id = this.warehouseId();
@@ -176,5 +219,12 @@ export class WarehouseFormComponent implements OnInit {
 
   protected close(): void {
     this.closed.emit();
+  }
+
+  protected onWarehouseElectronicInvoicingChange(enabled: boolean): void {
+    this.formModel.update((current) => ({
+      ...current,
+      electronicInvoicingEnabled: enabled,
+    }));
   }
 }

@@ -12,14 +12,17 @@ import {
   DocumentType,
   ModalState,
   PaymentEntry,
+  PosFiscalConfig,
   Product,
   ReceiptData,
 } from '../models/pos.model';
 import { ReceiptPrinter } from '../utils/receipt-printer';
 
-const DEFAULT_SERIE: Record<Exclude<DocumentType, 'TICKET_INTERNO'>, string> = {
-  BOLETA: 'B001',
-  FACTURA: 'F001',
+const DEFAULT_FISCAL_CONFIG: PosFiscalConfig = {
+  tenantElectronicInvoicingEnabled: false,
+  warehouseElectronicInvoicingEnabled: false,
+  electronicInvoicingEnabled: false,
+  series: { boleta: null, factura: null },
 };
 
 const AUTO_PRINT_STORAGE_KEY = 'pos-auto-print';
@@ -43,6 +46,7 @@ export class PosService {
   readonly toastMessage = signal<string | null>(null);
   readonly isLoading = signal(false);
   readonly documentType = signal<DocumentType>('TICKET_INTERNO');
+  readonly fiscalConfig = signal<PosFiscalConfig>({ ...DEFAULT_FISCAL_CONFIG });
   readonly lastSaleIdForReprint = signal<string | null>(null);
   readonly receiptPreviewOpen = signal(false);
   readonly pendingReceiptData = signal<ReceiptData | null>(null);
@@ -50,7 +54,10 @@ export class PosService {
 
   readonly serie = computed<string>(() => {
     const type = this.documentType();
-    return type === 'TICKET_INTERNO' ? '' : (DEFAULT_SERIE[type] ?? '');
+    const config = this.fiscalConfig();
+    if (type === 'BOLETA') return config.series.boleta ?? 'B001';
+    if (type === 'FACTURA') return config.series.factura ?? 'F001';
+    return '';
   });
 
   readonly grandTotal = computed(() =>
@@ -62,6 +69,23 @@ export class PosService {
   );
 
   // ── API ───────────────────────────────────────────────────────────────────
+
+  async loadFiscalConfig(): Promise<void> {
+    const warehouseId = this.authService.currentUser()?.warehouseId;
+    if (!warehouseId) {
+      this.fiscalConfig.set({ ...DEFAULT_FISCAL_CONFIG });
+      return;
+    }
+
+    try {
+      const raw = await firstValueFrom(
+        this.http.get<unknown>(`${this.base}/pos/fiscal-config`),
+      );
+      this.fiscalConfig.set(this.adaptFiscalConfig(raw));
+    } catch {
+      this.fiscalConfig.set({ ...DEFAULT_FISCAL_CONFIG });
+    }
+  }
 
   async searchProductBySku(sku: string): Promise<Product | undefined> {
     this.isLoading.set(true);
@@ -155,6 +179,27 @@ export class PosService {
     if (!payments.length) {
       this.showToast('Debe registrar al menos un método de pago');
       return;
+    }
+
+    const docType = this.documentType();
+    const customer = this.currentCustomer();
+    if (docType === 'FACTURA') {
+      const docTypeValue = (customer?.document_type ?? '').toUpperCase();
+      const docNumber = (customer?.document_number ?? customer?.dni ?? '').trim();
+      if (!customer) {
+        this.showToast('Para Factura debe buscar un cliente con RUC');
+        return;
+      }
+      if (docTypeValue !== 'RUC' || docNumber.length !== 11) {
+        this.showToast('El cliente debe tener un RUC válido de 11 dígitos');
+        return;
+      }
+    } else if (docType === 'BOLETA' && customer) {
+      const docTypeValue = (customer.document_type ?? '').toUpperCase();
+      if (docTypeValue === 'RUC') {
+        this.showToast('Cliente con RUC: use Factura en lugar de Boleta');
+        return;
+      }
     }
 
     this.isLoading.set(true);
@@ -448,6 +493,27 @@ export class PosService {
 
   private isMobileBrowser(): boolean {
     return /Android|webOS|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+  }
+
+  private adaptFiscalConfig(raw: unknown): PosFiscalConfig {
+    const row = (raw ?? {}) as Record<string, unknown>;
+    const series = (row['series'] ?? {}) as Record<string, unknown>;
+
+    return {
+      tenantElectronicInvoicingEnabled: Boolean(
+        row['tenantElectronicInvoicingEnabled'] ?? row['tenant_electronic_invoicing_enabled'],
+      ),
+      warehouseElectronicInvoicingEnabled: Boolean(
+        row['warehouseElectronicInvoicingEnabled'] ?? row['warehouse_electronic_invoicing_enabled'],
+      ),
+      electronicInvoicingEnabled: Boolean(
+        row['electronicInvoicingEnabled'] ?? row['electronic_invoicing_enabled'],
+      ),
+      series: {
+        boleta: typeof series['boleta'] === 'string' ? series['boleta'] : null,
+        factura: typeof series['factura'] === 'string' ? series['factura'] : null,
+      },
+    };
   }
 
   private adaptPosCustomer(raw: unknown): Customer | null {

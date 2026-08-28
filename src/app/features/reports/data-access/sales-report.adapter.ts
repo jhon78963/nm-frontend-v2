@@ -19,6 +19,16 @@ function readString(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value : fallback;
 }
 
+function readField<T>(row: Record<string, unknown>, keys: string[]): T | undefined {
+  for (const key of keys) {
+    if (row[key] !== undefined && row[key] !== null) {
+      return row[key] as T;
+    }
+  }
+
+  return undefined;
+}
+
 interface PaymentSplit {
   cash: number;
   yape: number;
@@ -166,9 +176,12 @@ function adaptDailyTransactions(raw: unknown): SalesDailyTransaction[] {
 export function adaptDailySalesReport(raw: unknown, warehouseId = ''): DailySalesReport {
   const data = (raw as { data?: unknown })?.data ?? raw;
   const row = (data ?? {}) as Record<string, unknown>;
-  const paymentBreakdown = adaptPaymentBreakdown(row['payment_breakdown']);
+  const paymentBreakdown = adaptPaymentBreakdown(
+    readField(row, ['payment_breakdown', 'paymentBreakdown']),
+  );
   const paymentSplit = buildPaymentSplit(paymentBreakdown);
-  const hourly = (row['hourly_chart'] ?? {}) as Record<string, unknown>;
+  const hourly = (readField<Record<string, unknown>>(row, ['hourly_chart', 'hourlyChart']) ??
+    {}) as Record<string, unknown>;
   const labels = Array.isArray(hourly['labels'])
     ? hourly['labels'].map((label) => readString(label))
     : [];
@@ -210,16 +223,19 @@ export function adaptDailySalesReport(raw: unknown, warehouseId = ''): DailySale
     },
     summary,
     paymentBreakdown,
-    transactions: adaptDailyTransactions(row['sales']),
+    transactions: adaptDailyTransactions(readField(row, ['sales'])),
   };
 }
 
 export function adaptMonthlySalesReport(raw: unknown, warehouseId = ''): MonthlySalesReport {
   const data = (raw as { data?: unknown })?.data ?? raw;
   const row = (data ?? {}) as Record<string, unknown>;
-  const paymentBreakdown = adaptPaymentBreakdown(row['payment_breakdown']);
+  const paymentBreakdown = adaptPaymentBreakdown(
+    readField(row, ['payment_breakdown', 'paymentBreakdown']),
+  );
   const paymentSplit = buildPaymentSplit(paymentBreakdown);
-  const dailyBreakdown = Array.isArray(row['daily_breakdown']) ? row['daily_breakdown'] : [];
+  const dailyBreakdownRaw = readField<unknown[]>(row, ['daily_breakdown', 'dailyBreakdown']);
+  const dailyBreakdown = Array.isArray(dailyBreakdownRaw) ? dailyBreakdownRaw : [];
   const monthIso = readString(row['month_iso'] ?? row['monthIso'], '');
   const [yearPart, monthPart] = monthIso.split('-');
 
@@ -251,7 +267,8 @@ export function adaptMonthlySalesReport(raw: unknown, warehouseId = ''): Monthly
     ),
   };
 
-  const chart = (row['daily_chart'] ?? {}) as Record<string, unknown>;
+  const chart = (readField<Record<string, unknown>>(row, ['daily_chart', 'dailyChart']) ??
+    {}) as Record<string, unknown>;
 
   return {
     month: readNumber(monthPart, new Date().getMonth() + 1),
@@ -282,12 +299,15 @@ export function adaptMonthlySalesReport(raw: unknown, warehouseId = ''): Monthly
 export function adaptPeriodSalesReport(raw: unknown, warehouseId = ''): PeriodSalesReport {
   const data = (raw as { data?: unknown })?.data ?? raw;
   const row = (data ?? {}) as Record<string, unknown>;
-  const paymentBreakdown = adaptPaymentBreakdown(row['payment_breakdown']);
+  const paymentBreakdown = adaptPaymentBreakdown(
+    readField(row, ['payment_breakdown', 'paymentBreakdown']),
+  );
   const paymentSplit =
     paymentBreakdown.length > 0
       ? buildPaymentSplit(paymentBreakdown)
       : null;
-  const dailyBreakdown = Array.isArray(row['daily_breakdown']) ? row['daily_breakdown'] : [];
+  const dailyBreakdownRaw = readField<unknown[]>(row, ['daily_breakdown', 'dailyBreakdown']);
+  const dailyBreakdown = Array.isArray(dailyBreakdownRaw) ? dailyBreakdownRaw : [];
   const summaryRaw = adaptSummary(row['summary']);
 
   const rows: PeriodSaleRow[] = dailyBreakdown.map((item) => {
@@ -331,8 +351,8 @@ export function adaptPeriodSalesReport(raw: unknown, warehouseId = ''): PeriodSa
   };
 
   return {
-    from: readString(row['start_date'] ?? row['startDate']),
-    to: readString(row['end_date'] ?? row['endDate']),
+    from: readString(readField(row, ['start_date', 'startDate'])),
+    to: readString(readField(row, ['end_date', 'endDate'])),
     periodLabel: readString(row['period_label'] ?? row['periodLabel']),
     warehouseId,
     rows,

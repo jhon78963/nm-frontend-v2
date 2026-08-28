@@ -89,7 +89,7 @@
       Tipo de comprobante
     </p>
     <div class="flex gap-1.5" role="group" aria-label="Tipo de comprobante">
-      @for (opt of docTypes; track opt.value) {
+      @for (opt of docTypes(); track opt.value) {
         <button
           type="button"
           class="flex-1 rounded-lg border py-1.5 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-1"

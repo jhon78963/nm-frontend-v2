@@ -5,6 +5,7 @@ import {
   DestroyRef,
   ElementRef,
   inject,
+  OnInit,
   signal,
   viewChild,
 } from '@angular/core';
@@ -29,10 +30,14 @@ import { PosService } from '../data-access/pos.service';
   templateUrl: './pos.component.html',
   styleUrl: './pos.component.scss',
 })
-export class PosComponent {
+export class PosComponent implements OnInit {
   protected readonly posService = inject(PosService);
   private readonly authService = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
+
+  ngOnInit(): void {
+    void this.posService.loadFiscalConfig();
+  }
 
   protected readonly barcodeQuery = signal('');
   protected readonly barcodeInputRef = viewChild<ElementRef<HTMLInputElement>>('barcodeInput');

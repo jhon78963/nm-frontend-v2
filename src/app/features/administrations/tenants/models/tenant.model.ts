@@ -18,6 +18,7 @@ export interface TenantSetting {
   socialLinks?: SocialLinks;
   logoUrl?: string | null;
   ticketFooterNote?: string | null;
+  electronicInvoicingEnabled?: boolean;
 }
 
 export interface Tenant {
@@ -51,6 +52,7 @@ export interface TenantSettingPayload {
   socialLinks?: SocialLinks;
   logoUrl?: string | null;
   ticketFooterNote?: string | null;
+  electronicInvoicingEnabled?: boolean;
 }
 
 export interface TenantFormModel {
@@ -70,4 +72,5 @@ export interface TenantFormModel {
   tiktok: string;
   logoUrl: string;
   ticketFooterNote: string;
+  electronicInvoicingEnabled: boolean;
 }

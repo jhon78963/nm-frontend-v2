@@ -21,11 +21,15 @@ export class PosFooterComponent {
 
   protected readonly posService = inject(PosService);
 
-  protected readonly docTypes: { label: string; value: DocumentType; disabled?: boolean }[] = [
-    { label: 'Ticket', value: 'TICKET_INTERNO' },
-    { label: 'Boleta', value: 'BOLETA', disabled: true },
-    { label: 'Factura', value: 'FACTURA', disabled: true },
-  ];
+  protected readonly docTypes = computed(() => {
+    const fiscalEnabled = this.posService.fiscalConfig().electronicInvoicingEnabled;
+
+    return [
+      { label: 'Ticket', value: 'TICKET_INTERNO' as DocumentType, disabled: false },
+      { label: 'Boleta', value: 'BOLETA' as DocumentType, disabled: !fiscalEnabled },
+      { label: 'Factura', value: 'FACTURA' as DocumentType, disabled: !fiscalEnabled },
+    ];
+  });
 
   protected readonly methods = signal<PaymentMethodState[]>([
     { id: 'CASH', label: 'Efectivo', active: true, amount: null },
@@ -52,7 +56,7 @@ export class PosFooterComponent {
 
   protected readonly paymentError = signal<string | null>(null);
 
-  // Reset payment methods when cart is cleared
+  // Reset payment methods when cart is cleared; keep ticket when fiscal is off
   private readonly _cartWatcher = effect(
     () => {
       if (this.posService.cart().length === 0) {
@@ -62,8 +66,18 @@ export class PosFooterComponent {
     { allowSignalWrites: true },
   );
 
+  private readonly _fiscalWatcher = effect(
+    () => {
+      const fiscalEnabled = this.posService.fiscalConfig().electronicInvoicingEnabled;
+      if (!fiscalEnabled && this.posService.documentType() !== 'TICKET_INTERNO') {
+        this.posService.documentType.set('TICKET_INTERNO');
+      }
+    },
+    { allowSignalWrites: true },
+  );
+
   protected selectDocType(value: DocumentType): void {
-    const option = this.docTypes.find((o) => o.value === value);
+    const option = this.docTypes().find((o) => o.value === value);
     if (option?.disabled) return;
     this.posService.documentType.set(value);
   }

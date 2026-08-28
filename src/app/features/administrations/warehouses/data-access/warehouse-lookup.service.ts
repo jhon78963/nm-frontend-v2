@@ -7,6 +7,21 @@ import { AuthService } from '../../../auth/data-access/auth.service';
 import { TenantLookupOption } from '../models/warehouse.model';
 import { adaptTenantLookupOptions } from './warehouse.adapter';
 
+function mapTenantLookupOption(raw: unknown): TenantLookupOption {
+  const tenant = raw as TenantLookupOption & {
+    setting?: { electronicInvoicingEnabled?: boolean };
+  };
+
+  return {
+    id: tenant.id,
+    name: tenant.name,
+    electronicInvoicingEnabled:
+      tenant.electronicInvoicingEnabled ??
+      tenant.setting?.electronicInvoicingEnabled ??
+      false,
+  };
+}
+
 @Injectable({ providedIn: 'root' })
 export class WarehouseLookupService {
   private readonly http = inject(HttpClient);
@@ -27,18 +42,16 @@ export class WarehouseLookupService {
       return of([]);
     }
 
-    const tenantName =
-      user?.tenantName?.trim() ||
-      (this.authService.hasPermission('tenant.get') ? null : `Cliente #${tenantId}`);
-
-    if (tenantName) {
-      return of([{ id: tenantId, name: tenantName }]);
-    }
-
     return this.http.get<unknown>(`${this.api}/tenants/${tenantId}`).pipe(
       map((raw) => {
-        const tenant = raw as TenantLookupOption;
-        return [{ id: tenant.id, name: tenant.name }];
+        const tenant = mapTenantLookupOption(raw);
+        const tenantName = user?.tenantName?.trim();
+        return [
+          {
+            ...tenant,
+            name: tenantName || tenant.name,
+          },
+        ];
       }),
     );
   }

@@ -102,3 +102,13 @@ export interface ReceiptPayment {
 }
 
 export type PrintFormat = 'thermal-80mm' | 'a4';
+
+export interface PosFiscalConfig {
+  tenantElectronicInvoicingEnabled: boolean;
+  warehouseElectronicInvoicingEnabled: boolean;
+  electronicInvoicingEnabled: boolean;
+  series: {
+    boleta: string | null;
+    factura: string | null;
+  };
+}

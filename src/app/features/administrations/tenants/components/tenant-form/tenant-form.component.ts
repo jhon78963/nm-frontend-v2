@@ -19,6 +19,7 @@ import {
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
@@ -42,11 +43,12 @@ const EMPTY_FORM: TenantFormModel = {
   tiktok: '',
   logoUrl: '',
   ticketFooterNote: '',
+  electronicInvoicingEnabled: false,
 };
 
 @Component({
   selector: 'app-tenant-form',
-  imports: [FormField, InputComponent, ButtonComponent, TableActionButtonComponent],
+  imports: [FormField, InputComponent, CheckboxComponent, ButtonComponent, TableActionButtonComponent],
   templateUrl: './tenant-form.component.html',
 })
 export class TenantFormComponent implements OnInit {
@@ -136,6 +138,7 @@ export class TenantFormComponent implements OnInit {
               tiktok: setting?.socialLinks?.tiktok ?? '',
               logoUrl: setting?.logoUrl ?? '',
               ticketFooterNote: setting?.ticketFooterNote ?? '',
+              electronicInvoicingEnabled: setting?.electronicInvoicingEnabled ?? false,
             });
             this.loadingData.set(false);
           },
@@ -243,6 +246,14 @@ export class TenantFormComponent implements OnInit {
       },
       logoUrl: trimOrNull(model.logoUrl),
       ticketFooterNote: trimOrNull(model.ticketFooterNote),
+      electronicInvoicingEnabled: model.electronicInvoicingEnabled,
     };
+  }
+
+  protected onElectronicInvoicingChange(enabled: boolean): void {
+    this.formModel.update((current) => ({
+      ...current,
+      electronicInvoicingEnabled: enabled,
+    }));
   }
 }

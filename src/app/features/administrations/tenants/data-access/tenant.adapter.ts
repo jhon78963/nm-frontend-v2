@@ -30,6 +30,7 @@ export function adaptTenantSetting(raw: unknown): TenantSetting {
     socialLinks: adaptSocialLinks(r.socialLinks),
     logoUrl: r.logoUrl ?? null,
     ticketFooterNote: r.ticketFooterNote ?? null,
+    electronicInvoicingEnabled: r.electronicInvoicingEnabled ?? false,
   };
 }
 
