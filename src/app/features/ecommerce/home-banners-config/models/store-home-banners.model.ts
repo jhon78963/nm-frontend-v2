@@ -15,9 +15,25 @@ export interface StorePromoBanner {
   isActive: boolean;
 }
 
+export interface StoreOfferBanner {
+  id?: string;
+  imageUrl: string;
+  href: string;
+  altText: string;
+  isActive: boolean;
+}
+
 export interface StoreHomeBannersFormModel {
   heroSlides: StoreHeroSlide[];
   promoBanners: StorePromoBanner[];
+  offerBanner: StoreOfferBanner;
+}
+
+export interface StoreOfferBannerPayload {
+  imageUrl: string;
+  href: string;
+  altText?: string;
+  isActive?: boolean;
 }
 
 export interface StoreHeroSlidesPayload {

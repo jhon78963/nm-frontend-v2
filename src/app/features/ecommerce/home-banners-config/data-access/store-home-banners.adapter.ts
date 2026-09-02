@@ -1,5 +1,6 @@
 import {
   StoreHeroSlide,
+  StoreOfferBanner,
   StorePromoBanner,
 } from '../models/store-home-banners.model';
 
@@ -44,4 +45,32 @@ export function adaptPromoBannersResponse(raw: unknown): StorePromoBanner[] {
     : [];
 
   return [...banners].sort((a, b) => a.order - b.order);
+}
+
+function adaptOfferBanner(raw: unknown): StoreOfferBanner {
+  const item = raw as Record<string, unknown>;
+
+  return {
+    id: typeof item['id'] === 'string' ? item['id'] : undefined,
+    imageUrl: String(item['imageUrl'] ?? ''),
+    href: String(item['href'] ?? ''),
+    altText: String(item['alt'] ?? item['altText'] ?? 'Banner promocional del home'),
+    isActive: item['status'] !== false && item['isActive'] !== false,
+  };
+}
+
+export function adaptOfferBannerResponse(raw: unknown): StoreOfferBanner {
+  const data = raw as Record<string, unknown>;
+  const banner = data['banner'];
+
+  if (!banner || typeof banner !== 'object') {
+    return {
+      imageUrl: '',
+      href: '/tienda',
+      altText: 'Banner promocional del home',
+      isActive: true,
+    };
+  }
+
+  return adaptOfferBanner(banner);
 }

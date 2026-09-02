@@ -9,13 +9,22 @@ import { StoreHomeBannersService } from '../../data-access/store-home-banners.se
 import {
   StoreHeroSlide,
   StoreHomeBannersFormModel,
+  StoreOfferBanner,
   StorePromoBanner,
 } from '../../models/store-home-banners.model';
 import { toPersistedId } from '../../utils/persisted-id.util';
 
+const EMPTY_OFFER_BANNER: StoreOfferBanner = {
+  imageUrl: '',
+  href: '/tienda',
+  altText: 'Banner promocional del home',
+  isActive: true,
+};
+
 const EMPTY_FORM: StoreHomeBannersFormModel = {
   heroSlides: [],
   promoBanners: [],
+  offerBanner: { ...EMPTY_OFFER_BANNER },
 };
 
 @Component({
@@ -40,6 +49,7 @@ export class StoreHomeBannersConfigComponent implements OnInit {
 
   protected readonly heroSlides = computed(() => this.formModel().heroSlides);
   protected readonly promoBanners = computed(() => this.formModel().promoBanners);
+  protected readonly offerBanner = computed(() => this.formModel().offerBanner);
 
   ngOnInit(): void {
     this.loadConfig();
@@ -52,13 +62,15 @@ export class StoreHomeBannersConfigComponent implements OnInit {
     forkJoin({
       heroSlides: this.storeHomeBannersService.getHeroSlides(),
       promoBanners: this.storeHomeBannersService.getPromoBanners(),
+      offerBanner: this.storeHomeBannersService.getOfferBanner(),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ heroSlides, promoBanners }) => {
+        next: ({ heroSlides, promoBanners, offerBanner }) => {
           this.formModel.set({
             heroSlides: heroSlides.map((item) => ({ ...item })),
             promoBanners: promoBanners.map((item) => ({ ...item })),
+            offerBanner: { ...offerBanner },
           });
           this.loading.set(false);
         },
@@ -140,6 +152,13 @@ export class StoreHomeBannersConfigComponent implements OnInit {
     this.moveItem('promoBanners', index, direction);
   }
 
+  protected updateOfferBanner(patch: Partial<StoreOfferBanner>): void {
+    this.formModel.update((current) => ({
+      ...current,
+      offerBanner: { ...current.offerBanner, ...patch },
+    }));
+  }
+
   protected onSubmit(event: Event): void {
     event.preventDefault();
 
@@ -167,6 +186,15 @@ export class StoreHomeBannersConfigComponent implements OnInit {
       return;
     }
 
+    const offerBanner = model.offerBanner;
+    if (offerBanner.isActive && (!offerBanner.imageUrl.trim() || !offerBanner.href.trim())) {
+      this.toastService.show(
+        'error',
+        'Completa imagen y enlace del banner secundario ancho.',
+      );
+      return;
+    }
+
     this.saving.set(true);
 
     forkJoin({
@@ -189,13 +217,20 @@ export class StoreHomeBannersConfigComponent implements OnInit {
           isActive: item.isActive,
         })),
       }),
+      offerBanner: this.storeHomeBannersService.saveOfferBanner({
+        imageUrl: offerBanner.imageUrl.trim(),
+        href: offerBanner.href.trim(),
+        altText: offerBanner.altText.trim() || 'Banner promocional del home',
+        isActive: offerBanner.isActive,
+      }),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ heroSlides, promoBanners }) => {
+        next: ({ heroSlides, promoBanners, offerBanner: savedOfferBanner }) => {
           this.formModel.set({
             heroSlides: heroSlides.map((item) => ({ ...item })),
             promoBanners: promoBanners.map((item) => ({ ...item })),
+            offerBanner: { ...savedOfferBanner },
           });
           this.saving.set(false);
           this.toastService.show('success', 'Banners guardados correctamente.');

@@ -5,11 +5,14 @@ import { environment } from '../../../../../environments/environment';
 import {
   StoreHeroSlide,
   StoreHeroSlidesPayload,
+  StoreOfferBanner,
+  StoreOfferBannerPayload,
   StorePromoBanner,
   StorePromoBannersPayload,
 } from '../models/store-home-banners.model';
 import {
   adaptHeroSlidesResponse,
+  adaptOfferBannerResponse,
   adaptPromoBannersResponse,
 } from './store-home-banners.adapter';
 
@@ -62,6 +65,19 @@ export class StoreHomeBannersService {
   savePromoBanners(payload: StorePromoBannersPayload): Observable<StorePromoBanner[]> {
     return this.http.put<unknown>(`${this.promoBase}/admin`, payload).pipe(
       map(adaptPromoBannersResponse),
+      catchError((err) => throwError(() => extractErrorMessage(err))),
+    );
+  }
+
+  getOfferBanner(): Observable<StoreOfferBanner> {
+    return this.http
+      .get<unknown>(`${this.promoBase}/offer`)
+      .pipe(map(adaptOfferBannerResponse));
+  }
+
+  saveOfferBanner(payload: StoreOfferBannerPayload): Observable<StoreOfferBanner> {
+    return this.http.put<unknown>(`${this.promoBase}/offer/admin`, payload).pipe(
+      map(adaptOfferBannerResponse),
       catchError((err) => throwError(() => extractErrorMessage(err))),
     );
   }
