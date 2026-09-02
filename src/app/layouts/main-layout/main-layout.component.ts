@@ -90,6 +90,31 @@ export class MainLayoutComponent implements OnInit {
           route: '/ecommerce/banners',
           permission: 'tenant.get',
         },
+        {
+          label: 'Servicios del home',
+          route: '/ecommerce/services',
+          permission: 'tenant.get',
+        },
+        {
+          label: 'Footer',
+          route: '/ecommerce/footer',
+          permission: 'tenant.get',
+        },
+        {
+          label: 'Redes sociales',
+          route: '/ecommerce/social-media',
+          permission: 'tenant.get',
+        },
+        {
+          label: 'Colecciones',
+          route: '/ecommerce/collections',
+          permission: 'tenant.get',
+        },
+        {
+          label: 'Productos por categoría',
+          route: '/ecommerce/category-products',
+          permission: 'tenant.get',
+        },
       ],
     },
     {

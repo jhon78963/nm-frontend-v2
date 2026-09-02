@@ -1,0 +1,212 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight text-gray-900">Footer</h1>
+    <p class="mt-1 text-sm text-gray-500">
+      Administra newsletter, contacto, redes sociales y enlaces del pie de página de
+      <span class="font-medium text-gray-700">nm-ecommerce</span>.
+    </p>
+  </div>
+
+  @if (loadError()) {
+    <app-alert variant="error" [message]="loadError()" />
+    <app-button type="button" variant="secondary" (clicked)="loadConfig()">
+      Reintentar
+    </app-button>
+  } @else if (loading()) {
+    <div class="h-32 animate-pulse rounded-xl bg-gray-100" aria-busy="true"></div>
+  } @else {
+    <form class="space-y-6" (submit)="onSubmit($event)">
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+        <h2 class="text-base font-semibold text-gray-900">Newsletter</h2>
+        <label class="block text-sm">
+          <span class="mb-1 block font-medium text-gray-700">Título</span>
+          <input
+            type="text"
+            class="input-field w-full"
+            [value]="formModel().newsletterTitle"
+            (input)="updateField('newsletterTitle', $any($event.target).value)"
+          />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1 block font-medium text-gray-700">Subtítulo</span>
+          <input
+            type="text"
+            class="input-field w-full"
+            [value]="formModel().newsletterSubtitle"
+            (input)="updateField('newsletterSubtitle', $any($event.target).value)"
+          />
+        </label>
+      </section>
+
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+        <h2 class="text-base font-semibold text-gray-900">Información de contacto</h2>
+        <label class="block text-sm">
+          <span class="mb-1 block font-medium text-gray-700">Sobre la tienda</span>
+          <textarea
+            class="input-field w-full"
+            rows="3"
+            [value]="formModel().aboutText"
+            (input)="updateField('aboutText', $any($event.target).value)"
+          ></textarea>
+        </label>
+        <div class="grid gap-4 md:grid-cols-3">
+          <label class="block text-sm">
+            <span class="mb-1 block font-medium text-gray-700">Dirección</span>
+            <input
+              type="text"
+              class="input-field w-full"
+              [value]="formModel().address"
+              (input)="updateField('address', $any($event.target).value)"
+            />
+          </label>
+          <label class="block text-sm">
+            <span class="mb-1 block font-medium text-gray-700">Teléfono de soporte</span>
+            <input
+              type="text"
+              class="input-field w-full"
+              [value]="formModel().supportNumber"
+              (input)="updateField('supportNumber', $any($event.target).value)"
+            />
+          </label>
+          <label class="block text-sm">
+            <span class="mb-1 block font-medium text-gray-700">Email de soporte</span>
+            <input
+              type="email"
+              class="input-field w-full"
+              [value]="formModel().supportEmail"
+              (input)="updateField('supportEmail', $any($event.target).value)"
+            />
+          </label>
+        </div>
+      </section>
+
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+        <label class="flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            [checked]="formModel().socialMediaEnabled"
+            (change)="updateField('socialMediaEnabled', $any($event.target).checked)"
+          />
+          Mostrar redes sociales
+        </label>
+        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          @for (field of [
+            { key: 'facebookUrl', label: 'Facebook' },
+            { key: 'twitterUrl', label: 'Twitter / X' },
+            { key: 'instagramUrl', label: 'Instagram' },
+            { key: 'pinterestUrl', label: 'Pinterest' },
+            { key: 'tiktokUrl', label: 'TikTok' },
+          ]; track field.key) {
+            <label class="block text-sm">
+              <span class="mb-1 block font-medium text-gray-700">{{ field.label }}</span>
+              <input
+                type="text"
+                class="input-field w-full"
+                placeholder="https://"
+                [value]="$any(formModel())[field.key]"
+                (input)="updateField($any(field.key), $any($event.target).value)"
+              />
+            </label>
+          }
+        </div>
+      </section>
+
+      @for (section of [
+        { key: 'categories', title: 'Categorías', description: 'Enlaces a categorías del catálogo.' },
+        { key: 'usefulLinks', title: 'Enlaces útiles', description: 'Páginas informativas (nosotros, términos, etc.).' },
+        { key: 'helpCenterLinks', title: 'Centro de ayuda', description: 'Enlaces de soporte y ayuda.' },
+      ]; track section.key) {
+        <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 class="text-base font-semibold text-gray-900">{{ section.title }}</h2>
+              <p class="mt-1 text-sm text-gray-500">{{ section.description }}</p>
+            </div>
+            <app-button type="button" variant="secondary" (clicked)="addLink($any(section.key))">
+              Agregar enlace
+            </app-button>
+          </div>
+
+          @if ($any(formModel())[section.key].length === 0) {
+            <p class="mt-5 rounded-lg border border-dashed border-gray-200 px-4 py-8 text-center text-sm text-gray-500">
+              No hay enlaces configurados.
+            </p>
+          } @else {
+            <div class="mt-5 space-y-3">
+              @for (item of $any(formModel())[section.key]; track $index; let i = $index) {
+                <div class="grid gap-3 rounded-lg border border-gray-100 bg-gray-50/80 p-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end">
+                  <label class="block text-sm">
+                    <span class="mb-1 block font-medium text-gray-700">Nombre</span>
+                    <input
+                      type="text"
+                      class="input-field w-full"
+                      [value]="item.name"
+                      (input)="updateLink($any(section.key), i, { name: $any($event.target).value })"
+                    />
+                  </label>
+                  <label class="block text-sm">
+                    <span class="mb-1 block font-medium text-gray-700">Enlace</span>
+                    <input
+                      type="text"
+                      class="input-field w-full"
+                      [value]="item.href"
+                      (input)="updateLink($any(section.key), i, { href: $any($event.target).value })"
+                    />
+                  </label>
+                  <app-table-action-button
+                    icon="trash"
+                    label="Eliminar"
+                    variant="danger"
+                    (clicked)="removeLink($any(section.key), i)"
+                  />
+                </div>
+              }
+            </div>
+          }
+        </section>
+      }
+
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+        <h2 class="text-base font-semibold text-gray-900">Copyright y pagos</h2>
+        <label class="flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            [checked]="formModel().copyrightEnabled"
+            (change)="updateField('copyrightEnabled', $any($event.target).checked)"
+          />
+          Mostrar copyright
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1 block font-medium text-gray-700">Texto de copyright</span>
+          <input
+            type="text"
+            class="input-field w-full"
+            [value]="formModel().copyrightContent"
+            (input)="updateField('copyrightContent', $any($event.target).value)"
+          />
+        </label>
+        <label class="block text-sm">
+          <span class="mb-1 block font-medium text-gray-700">URL imagen de métodos de pago</span>
+          <input
+            type="text"
+            class="input-field w-full"
+            placeholder="/images/payment-methods.png"
+            [value]="formModel().paymentImageUrl"
+            (input)="updateField('paymentImageUrl', $any($event.target).value)"
+          />
+        </label>
+      </section>
+
+      <div class="flex justify-end gap-3 border-t border-gray-200 pt-4">
+        <app-button type="button" variant="secondary" (clicked)="loadConfig()" [disabled]="saving()">
+          Descartar cambios
+        </app-button>
+        <app-button type="submit" variant="primary" [loading]="saving()">
+          Guardar footer
+        </app-button>
+      </div>
+    </form>
+  }
+</div>

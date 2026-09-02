@@ -1,0 +1,208 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight text-gray-900">Productos por categoría</h1>
+    <p class="mt-1 text-sm text-gray-500">
+      Administra el panel izquierdo, pestañas de categorías y banner lateral del inicio de
+      <span class="font-medium text-gray-700">nm-ecommerce</span>.
+    </p>
+  </div>
+
+  @if (loadError()) {
+    <app-alert variant="error" [message]="loadError()" />
+    <app-button type="button" variant="secondary" (clicked)="loadConfig()">
+      Reintentar
+    </app-button>
+  } @else if (loading()) {
+    <div class="h-32 animate-pulse rounded-xl bg-gray-100" aria-busy="true"></div>
+  } @else {
+    <form class="space-y-6" (submit)="onSubmit($event)">
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <label class="flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            [checked]="formModel().status"
+            (change)="updateStatus($any($event.target).checked)"
+          />
+          Mostrar sección de productos por categoría en el home
+        </label>
+      </section>
+
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+        <h2 class="text-base font-semibold text-gray-900">Panel izquierdo</h2>
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="block text-sm">
+            <span class="mb-1 block font-medium text-gray-700">Título</span>
+            <input
+              type="text"
+              class="input-field w-full"
+              placeholder="Menos de S/ 20"
+              [value]="formModel().leftPanel.title"
+              (input)="updateLeftPanel({ title: $any($event.target).value })"
+            />
+          </label>
+          <label class="flex items-end gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              [checked]="formModel().leftPanel.status"
+              (change)="updateLeftPanel({ status: $any($event.target).checked })"
+            />
+            Panel activo
+          </label>
+        </div>
+        <label class="block text-sm">
+          <span class="mb-1 block font-medium text-gray-700">IDs de productos (UUID separados por coma)</span>
+          <input
+            type="text"
+            class="input-field w-full font-mono text-xs"
+            placeholder="uuid-1, uuid-2"
+            [value]="formatProductIdsInput(formModel().leftPanel.productIds)"
+            (input)="updateLeftPanelProductIds($any($event.target).value)"
+          />
+        </label>
+      </section>
+
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-gray-900">Panel de categorías (derecha)</h2>
+            <p class="mt-1 text-sm text-gray-500">Pestañas con productos por categoría o género.</p>
+          </div>
+        </div>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="block text-sm">
+            <span class="mb-1 block font-medium text-gray-700">Título de la sección</span>
+            <input
+              type="text"
+              class="input-field w-full"
+              [value]="formModel().rightPanel.productCategory.title"
+              (input)="updateProductCategory({ title: $any($event.target).value })"
+            />
+          </label>
+          <label class="flex items-end gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              [checked]="formModel().rightPanel.productCategory.status"
+              (change)="updateProductCategory({ status: $any($event.target).checked })"
+            />
+            Sección activa
+          </label>
+        </div>
+
+        <div class="flex justify-end">
+          <app-button type="button" variant="secondary" (clicked)="addTab()">
+            Agregar pestaña
+          </app-button>
+        </div>
+
+        @if (tabs().length === 0) {
+          <p class="rounded-lg border border-dashed border-gray-200 px-4 py-8 text-center text-sm text-gray-500">
+            No hay pestañas configuradas.
+          </p>
+        } @else {
+          <div class="space-y-3">
+            @for (tab of tabs(); track $index; let i = $index) {
+              <div class="space-y-3 rounded-lg border border-gray-100 bg-gray-50/80 p-4">
+                <div class="grid gap-3 md:grid-cols-3">
+                  <label class="block text-sm">
+                    <span class="mb-1 block font-medium text-gray-700">ID</span>
+                    <input
+                      type="text"
+                      class="input-field w-full"
+                      [value]="tab.id"
+                      (input)="updateTab(i, { id: $any($event.target).value })"
+                    />
+                  </label>
+                  <label class="block text-sm">
+                    <span class="mb-1 block font-medium text-gray-700">Nombre</span>
+                    <input
+                      type="text"
+                      class="input-field w-full"
+                      [value]="tab.name"
+                      (input)="updateTab(i, { name: $any($event.target).value })"
+                    />
+                  </label>
+                  <label class="block text-sm">
+                    <span class="mb-1 block font-medium text-gray-700">Slug (opcional)</span>
+                    <input
+                      type="text"
+                      class="input-field w-full"
+                      [value]="tab.slug"
+                      (input)="updateTab(i, { slug: $any($event.target).value })"
+                    />
+                  </label>
+                </div>
+                <label class="block text-sm">
+                  <span class="mb-1 block font-medium text-gray-700">IDs de productos (UUID separados por coma)</span>
+                  <input
+                    type="text"
+                    class="input-field w-full font-mono text-xs"
+                    [value]="formatProductIdsInput(tab.productIds)"
+                    (input)="updateTabProductIds(i, $any($event.target).value)"
+                  />
+                </label>
+                <div class="flex justify-end">
+                  <app-table-action-button
+                    icon="trash"
+                    label="Eliminar pestaña"
+                    variant="danger"
+                    (clicked)="removeTab(i)"
+                  />
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+        <h2 class="text-base font-semibold text-gray-900">Banner lateral</h2>
+        <label class="flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            [checked]="formModel().rightPanel.productBanner.status"
+            (change)="updateProductBanner({ status: $any($event.target).checked })"
+          />
+          Mostrar banner
+        </label>
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="block text-sm">
+            <span class="mb-1 block font-medium text-gray-700">URL de imagen</span>
+            <input
+              type="text"
+              class="input-field w-full"
+              [value]="formModel().rightPanel.productBanner.imageUrl"
+              (input)="updateProductBanner({ imageUrl: $any($event.target).value })"
+            />
+          </label>
+          <label class="block text-sm">
+            <span class="mb-1 block font-medium text-gray-700">Enlace</span>
+            <input
+              type="text"
+              class="input-field w-full"
+              [value]="formModel().rightPanel.productBanner.href"
+              (input)="updateProductBanner({ href: $any($event.target).value })"
+            />
+          </label>
+        </div>
+        <label class="block text-sm">
+          <span class="mb-1 block font-medium text-gray-700">Texto alternativo</span>
+          <input
+            type="text"
+            class="input-field w-full"
+            [value]="formModel().rightPanel.productBanner.alt"
+            (input)="updateProductBanner({ alt: $any($event.target).value })"
+          />
+        </label>
+      </section>
+
+      <div class="flex justify-end">
+        <app-button type="submit" [loading]="saving()">Guardar cambios</app-button>
+      </div>
+    </form>
+  }
+</div>
