@@ -1,0 +1,113 @@
+<div class="space-y-5">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight text-gray-900">Pedidos web</h1>
+    <p class="mt-0.5 text-sm text-gray-500">
+      Gestiona los pedidos del ecommerce (equivalente a WooCommerce → Pedidos).
+    </p>
+  </div>
+
+  <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto]" [formGroup]="filterForm">
+    <app-input
+      class="block w-full"
+      label="Buscar"
+      formControlName="search"
+      placeholder="Número de pedido o correo…"
+    />
+
+    <app-select
+      label="Estado"
+      formControlName="status"
+      [options]="[
+        { label: 'Todos', value: '' },
+        ...statusOptions.map((option) => ({ label: option.label, value: option.value }))
+      ]"
+    />
+
+    <div class="flex flex-col gap-2">
+      <span class="text-sm font-medium text-gray-700 invisible" aria-hidden="true">Acciones</span>
+      <app-button type="button" variant="secondary" (clicked)="clearFilters()">
+        Limpiar filtros
+      </app-button>
+    </div>
+  </div>
+
+  <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <tr>
+          <th class="px-4 py-3">Pedido</th>
+          <th class="px-4 py-3">Cliente</th>
+          <th class="px-4 py-3">Fecha</th>
+          <th class="px-4 py-3">Estado</th>
+          <th class="px-4 py-3">Pago</th>
+          <th class="px-4 py-3 text-right">Total</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        @if (loading()) {
+          <tr>
+            <td colspan="7" class="px-4 py-8 text-center text-gray-500">Cargando pedidos…</td>
+          </tr>
+        } @else if (orders().length === 0) {
+          <tr>
+            <td colspan="7" class="px-4 py-8 text-center text-gray-500">No hay pedidos.</td>
+          </tr>
+        } @else {
+          @for (order of orders(); track order.id) {
+            <tr class="hover:bg-gray-50">
+              <td class="px-4 py-3 font-medium text-gray-900">#{{ order.orderNumber }}</td>
+              <td class="px-4 py-3">
+                <div>{{ order.billing.firstName }} {{ order.billing.lastName }}</div>
+                <div class="text-xs text-gray-500">{{ order.email }}</div>
+              </td>
+              <td class="px-4 py-3 text-gray-600">{{ formatDate(order.createdAt) }}</td>
+              <td class="px-4 py-3">
+                <span class="inline-flex rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-medium text-indigo-700">
+                  {{ order.statusLabel || order.status }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-gray-600">
+                {{ order.paymentStatus === 'paid' ? 'Pagado' : 'Pendiente' }}
+              </td>
+              <td class="px-4 py-3 text-right font-medium text-gray-900">
+                {{ formatMoney(order.total) }}
+              </td>
+              <td class="px-4 py-3 text-right">
+                <a
+                  [routerLink]="['/ecommerce/orders', order.id]"
+                  class="text-sm font-semibold text-indigo-600 hover:text-indigo-800"
+                >
+                  Ver
+                </a>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex items-center justify-between text-sm text-gray-600">
+    <span>{{ total() }} pedido(s)</span>
+    <div class="flex items-center gap-2">
+      <app-button
+        type="button"
+        variant="secondary"
+        [disabled]="page() <= 1"
+        (clicked)="goToPage(page() - 1)"
+      >
+        Anterior
+      </app-button>
+      <span>Página {{ page() }} de {{ totalPages() }}</span>
+      <app-button
+        type="button"
+        variant="secondary"
+        [disabled]="page() >= totalPages()"
+        (clicked)="goToPage(page() + 1)"
+      >
+        Siguiente
+      </app-button>
+    </div>
+  </div>
+</div>

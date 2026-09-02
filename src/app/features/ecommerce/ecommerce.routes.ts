@@ -58,6 +58,11 @@ const routes: Routes = [
     data: { breadcrumb: 'Media' },
     loadChildren: () => import('./media/media.routes'),
   },
+  {
+    path: 'orders',
+    data: { breadcrumb: 'Pedidos web' },
+    loadChildren: () => import('./orders/orders.routes'),
+  },
   { path: 'config', redirectTo: 'header', pathMatch: 'full' },
   { path: '', redirectTo: 'header', pathMatch: 'full' },
 ];
