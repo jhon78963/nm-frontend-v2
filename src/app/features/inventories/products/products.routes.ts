@@ -74,15 +74,16 @@ export const routes: Routes = [
             (m) => m.ProductColorsComponent,
           ),
       },
-      {
-        path: 'ecommerce',
-        canActivate: [permissionGuard],
-        data: { breadcrumb: 'Ecommerce', permission: 'product.update' },
-        loadComponent: () =>
-          import('./components/product-ecommerce-step/product-ecommerce-step.component').then(
-            (m) => m.ProductEcommerceStepComponent,
-          ),
-      },
+      // WordPress / WooCommerce — desactivado (reemplazado por nm-ecommerce)
+      // {
+      //   path: 'ecommerce',
+      //   canActivate: [permissionGuard],
+      //   data: { breadcrumb: 'Ecommerce', permission: 'product.update' },
+      //   loadComponent: () =>
+      //     import('./components/product-ecommerce-step/product-ecommerce-step.component').then(
+      //       (m) => m.ProductEcommerceStepComponent,
+      //     ),
+      // },
       {
         path: 'kardex',
         canActivate: [permissionGuard],

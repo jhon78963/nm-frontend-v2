@@ -77,8 +77,14 @@ export class MainLayoutComponent implements OnInit {
     {
       label: 'Ecommerce',
       items: [
-        { label: 'Publicar productos', route: '/ecommerce/products', permissions: ['product.update', 'product.create'] },
-        { label: 'Multimedia', route: '/ecommerce/multimedia', permission: 'product.update' },
+        // WordPress / WooCommerce — desactivado (reemplazado por nm-ecommerce)
+        // { label: 'Publicar productos', route: '/ecommerce/products', permissions: ['product.update', 'product.create'] },
+        // { label: 'Multimedia', route: '/ecommerce/multimedia', permission: 'product.update' },
+        {
+          label: 'Configuración tienda',
+          route: '/ecommerce/config',
+          permission: 'tenant.get',
+        },
       ],
     },
     {
