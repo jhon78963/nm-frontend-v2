@@ -2,6 +2,7 @@ import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { MediaPickerFieldComponent } from '../../../../../shared/ui/media-picker/media-picker-field.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { StoreFooterService } from '../../data-access/store-footer.service';
@@ -36,7 +37,7 @@ const EMPTY_FORM: StoreFooterFormModel = {
 
 @Component({
   selector: 'app-store-footer-config',
-  imports: [AlertComponent, ButtonComponent, TableActionButtonComponent],
+  imports: [AlertComponent, ButtonComponent, MediaPickerFieldComponent, TableActionButtonComponent],
   templateUrl: './store-footer-config.component.html',
 })
 export class StoreFooterConfigComponent implements OnInit {

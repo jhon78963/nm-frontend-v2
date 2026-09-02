@@ -1,0 +1,72 @@
+<label class="block text-sm">
+  <span class="mb-1 block font-medium text-gray-700">{{ label() }}</span>
+
+  <div class="space-y-3">
+    @if (currentValue()) {
+      <div class="flex items-start gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3">
+        @if (isImageUrl(currentValue())) {
+          <img
+            [src]="currentValue()"
+            alt="Vista previa"
+            class="h-16 w-16 rounded-lg border border-gray-200 object-cover"
+          />
+        } @else {
+          <div class="flex h-16 w-16 items-center justify-center rounded-lg border border-gray-200 bg-white text-xs text-gray-500">
+            Archivo
+          </div>
+        }
+
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-xs text-gray-600">{{ currentValue() }}</p>
+          <div class="mt-2 flex flex-wrap gap-2">
+            <app-button
+              type="button"
+              variant="secondary"
+              [disabled]="isDisabled() || disabled()"
+              (clicked)="openModal()"
+            >
+              Cambiar
+            </app-button>
+            <app-button
+              type="button"
+              variant="secondary"
+              [disabled]="isDisabled() || disabled()"
+              (clicked)="clearValue()"
+            >
+              Quitar
+            </app-button>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <div class="flex flex-wrap gap-2">
+        <app-button
+          type="button"
+          variant="secondary"
+          [disabled]="isDisabled() || disabled()"
+          (clicked)="openModal()"
+        >
+          Elegir de biblioteca
+        </app-button>
+      </div>
+    }
+
+    <input
+      type="text"
+      class="input-field w-full"
+      placeholder="URL del archivo (opcional)"
+      [value]="currentValue()"
+      [disabled]="isDisabled() || disabled()"
+      (input)="updateValueFromInput($event)"
+      (blur)="onTouched()"
+    />
+  </div>
+</label>
+
+<app-media-picker-modal
+  [open]="modalOpen()"
+  [accept]="accept()"
+  [multiple]="multiple()"
+  (closed)="closeModal()"
+  (selected)="onSelected($event)"
+/>

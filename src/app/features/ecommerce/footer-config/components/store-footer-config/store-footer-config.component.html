@@ -187,16 +187,11 @@
             (input)="updateField('copyrightContent', $any($event.target).value)"
           />
         </label>
-        <label class="block text-sm">
-          <span class="mb-1 block font-medium text-gray-700">URL imagen de métodos de pago</span>
-          <input
-            type="text"
-            class="input-field w-full"
-            placeholder="/images/payment-methods.png"
-            [value]="formModel().paymentImageUrl"
-            (input)="updateField('paymentImageUrl', $any($event.target).value)"
-          />
-        </label>
+        <app-media-picker-field
+          label="Imagen de métodos de pago"
+          [value]="formModel().paymentImageUrl"
+          (valueChange)="updateField('paymentImageUrl', $event)"
+        />
       </section>
 
       <div class="flex justify-end gap-3 border-t border-gray-200 pt-4">

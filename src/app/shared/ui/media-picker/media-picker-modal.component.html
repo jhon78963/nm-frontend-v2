@@ -1,0 +1,111 @@
+@if (open()) {
+  <div
+    class="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+    aria-hidden="true"
+    (click)="onBackdropClick()"
+  ></div>
+
+  <div
+    class="fixed inset-4 z-[60] mx-auto flex max-w-6xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl sm:inset-8"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="media-picker-title"
+  >
+    <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+      <div>
+        <h2 id="media-picker-title" class="text-lg font-semibold text-gray-900">
+          Seleccionar multimedia
+        </h2>
+        <p class="text-sm text-gray-500">Elige un archivo existente o sube uno nuevo.</p>
+      </div>
+      <app-button type="button" variant="secondary" (clicked)="closed.emit()">
+        Cerrar
+      </app-button>
+    </div>
+
+    <div class="border-b border-gray-200 px-6">
+      <div class="flex gap-4">
+        <button
+          type="button"
+          class="border-b-2 px-1 py-3 text-sm font-medium transition"
+          [class.border-indigo-600]="activeTab() === 'library'"
+          [class.text-indigo-600]="activeTab() === 'library'"
+          [class.border-transparent]="activeTab() !== 'library'"
+          [class.text-gray-500]="activeTab() !== 'library'"
+          (click)="setTab('library')"
+        >
+          Biblioteca
+        </button>
+        <button
+          type="button"
+          class="border-b-2 px-1 py-3 text-sm font-medium transition"
+          [class.border-indigo-600]="activeTab() === 'upload'"
+          [class.text-indigo-600]="activeTab() === 'upload'"
+          [class.border-transparent]="activeTab() !== 'upload'"
+          [class.text-gray-500]="activeTab() !== 'upload'"
+          (click)="setTab('upload')"
+        >
+          Subir nuevo
+        </button>
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6">
+      @if (activeTab() === 'library') {
+        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end">
+          <label class="block flex-1 text-sm">
+            <span class="mb-1 block font-medium text-gray-700">Buscar</span>
+            <input
+              type="search"
+              class="input-field w-full"
+              placeholder="Nombre de archivo..."
+              (input)="onSearchInput($event)"
+            />
+          </label>
+          <label class="block w-full max-w-xs text-sm">
+            <span class="mb-1 block font-medium text-gray-700">Ordenar</span>
+            <select class="input-field w-full" [value]="sort()" (change)="onSortChange($event)">
+              @for (option of sortOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <app-media-grid
+          [items]="items()"
+          [loading]="loading()"
+          [multiple]="multiple()"
+          [selectedIds]="multiple() ? selectedItems().map((item) => item.id) : (selectedItem() ? [selectedItem()!.id] : [])"
+          (itemSelected)="onItemSelected($event)"
+          (itemToggled)="onItemToggled($event)"
+        />
+      } @else {
+        <app-file-dropzone
+          [accept]="accept()"
+          [maxFiles]="multiple() ? 10 : 1"
+          [multiple]="multiple()"
+          [maxFileSizeMb]="5"
+          subjectLabel="archivos multimedia"
+          formatsHint="JPEG, PNG, WebP, PDF, Word, Excel"
+          (filesChange)="onFilesChange($event)"
+        />
+
+        <div class="mt-4 flex justify-end">
+          <app-button type="button" variant="primary" [loading]="uploading()" (clicked)="uploadFiles()">
+            Subir archivos
+          </app-button>
+        </div>
+      }
+    </div>
+
+    <div class="flex justify-end gap-3 border-t border-gray-200 px-6 py-4">
+      <app-button type="button" variant="secondary" (clicked)="closed.emit()">
+        Cancelar
+      </app-button>
+      <app-button type="button" variant="primary" (clicked)="confirmSelection()">
+        Usar selección
+      </app-button>
+    </div>
+  </div>
+}

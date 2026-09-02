@@ -1,0 +1,122 @@
+<div class="space-y-6">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div>
+      <h1 class="text-2xl font-bold tracking-tight text-gray-900">Media</h1>
+      <p class="mt-1 text-sm text-gray-500">
+        Biblioteca de imágenes, documentos y archivos para el storefront
+        <span class="font-medium text-gray-700">nm-ecommerce</span>.
+      </p>
+    </div>
+
+    <div class="flex flex-wrap gap-2">
+      @if (selectedIds().length > 0) {
+        <app-button
+          type="button"
+          variant="secondary"
+          [loading]="deleting()"
+          (clicked)="deleteSelected()"
+        >
+          Eliminar ({{ selectedIds().length }})
+        </app-button>
+      }
+      <app-button type="button" variant="primary" (clicked)="toggleUploader()">
+        {{ showUploader() ? 'Cerrar uploader' : 'Subir archivos' }}
+      </app-button>
+    </div>
+  </div>
+
+  @if (showUploader()) {
+    <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      <h2 class="text-base font-semibold text-gray-900">Subir archivos</h2>
+      <p class="mt-1 text-sm text-gray-500">
+        Imágenes (JPEG, PNG, WebP), PDF, Word y Excel. Máximo 5 MB por archivo.
+      </p>
+
+      <div class="mt-4">
+        <app-file-dropzone
+          [accept]="accept"
+          [maxFiles]="10"
+          [maxFileSizeMb]="5"
+          subjectLabel="archivos multimedia"
+          formatsHint="JPEG, PNG, WebP, PDF, Word, Excel"
+          (filesChange)="onFilesChange($event)"
+        />
+      </div>
+
+      <div class="mt-4 flex justify-end">
+        <app-button
+          type="button"
+          variant="primary"
+          [loading]="uploading()"
+          [disabled]="pendingFiles().length === 0"
+          (clicked)="uploadFiles()"
+        >
+          Subir a la biblioteca
+        </app-button>
+      </div>
+    </section>
+  }
+
+  <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+    <div class="mb-5 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+      <label class="block w-full max-w-md text-sm">
+        <span class="mb-1 block font-medium text-gray-700">Buscar</span>
+        <input
+          type="search"
+          class="input-field w-full"
+          placeholder="Nombre de archivo..."
+          [value]="search()"
+          (input)="onSearchInput($event)"
+        />
+      </label>
+
+      <label class="block w-full max-w-xs text-sm">
+        <span class="mb-1 block font-medium text-gray-700">Ordenar</span>
+        <select class="input-field w-full" [value]="sort()" (change)="onSortChange($event)">
+          @for (option of sortOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    @if (loadError()) {
+      <app-alert variant="error" [message]="loadError()" />
+      <div class="mt-4">
+        <app-button type="button" variant="secondary" (clicked)="loadLibrary()">
+          Reintentar
+        </app-button>
+      </div>
+    } @else {
+      <app-media-grid
+        [items]="items()"
+        [loading]="loading()"
+        [multiple]="true"
+        [selectedIds]="selectedIds()"
+        (itemToggled)="onItemToggled($event)"
+      />
+
+      @if (totalPages() > 1) {
+        <div class="mt-6 flex items-center justify-center gap-3">
+          <app-button
+            type="button"
+            variant="secondary"
+            [disabled]="page() <= 1 || loading()"
+            (clicked)="goToPage(page() - 1)"
+          >
+            Anterior
+          </app-button>
+          <span class="text-sm text-gray-600">Página {{ page() }} de {{ totalPages() }}</span>
+          <app-button
+            type="button"
+            variant="secondary"
+            [disabled]="page() >= totalPages() || loading()"
+            (clicked)="goToPage(page() + 1)"
+          >
+            Siguiente
+          </app-button>
+        </div>
+      }
+    }
+  </section>
+</div>

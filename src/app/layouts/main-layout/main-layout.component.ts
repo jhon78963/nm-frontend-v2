@@ -115,6 +115,11 @@ export class MainLayoutComponent implements OnInit {
           route: '/ecommerce/category-products',
           permission: 'tenant.get',
         },
+        {
+          label: 'Media',
+          route: '/ecommerce/media',
+          permission: 'tenant.get',
+        },
       ],
     },
     {

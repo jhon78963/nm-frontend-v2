@@ -48,6 +48,11 @@ const routes: Routes = [
     loadChildren: () =>
       import('./home-category-products-config/home-category-products-config.routes'),
   },
+  {
+    path: 'media',
+    data: { breadcrumb: 'Media' },
+    loadChildren: () => import('./media/media.routes'),
+  },
   { path: 'config', redirectTo: 'header', pathMatch: 'full' },
   { path: '', redirectTo: 'header', pathMatch: 'full' },
 ];

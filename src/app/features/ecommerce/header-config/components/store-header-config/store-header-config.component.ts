@@ -10,6 +10,7 @@ import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { MediaPickerFieldComponent } from '../../../../../shared/ui/media-picker/media-picker-field.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { TextareaComponent } from '../../../../../shared/ui/textarea/textarea.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -38,6 +39,7 @@ const EMPTY_FORM: StoreHeaderFormModel = {
     ButtonComponent,
     CheckboxComponent,
     InputComponent,
+    MediaPickerFieldComponent,
     TableActionButtonComponent,
     TextareaComponent,
   ],

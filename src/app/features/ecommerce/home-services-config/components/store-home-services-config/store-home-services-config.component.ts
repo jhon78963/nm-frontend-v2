@@ -2,6 +2,7 @@ import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { MediaPickerFieldComponent } from '../../../../../shared/ui/media-picker/media-picker-field.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { StoreHomeServicesService } from '../../data-access/store-home-services.service';
@@ -18,7 +19,7 @@ const EMPTY_FORM: StoreHomeServicesFormModel = {
 
 @Component({
   selector: 'app-store-home-services-config',
-  imports: [AlertComponent, ButtonComponent, TableActionButtonComponent],
+  imports: [AlertComponent, ButtonComponent, MediaPickerFieldComponent, TableActionButtonComponent],
   templateUrl: './store-home-services-config.component.html',
 })
 export class StoreHomeServicesConfigComponent implements OnInit {

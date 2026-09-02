@@ -170,15 +170,11 @@
           Mostrar banner
         </label>
         <div class="grid gap-4 md:grid-cols-2">
-          <label class="block text-sm">
-            <span class="mb-1 block font-medium text-gray-700">URL de imagen</span>
-            <input
-              type="text"
-              class="input-field w-full"
-              [value]="formModel().rightPanel.productBanner.imageUrl"
-              (input)="updateProductBanner({ imageUrl: $any($event.target).value })"
-            />
-          </label>
+          <app-media-picker-field
+            label="Imagen del banner"
+            [value]="formModel().rightPanel.productBanner.imageUrl"
+            (valueChange)="updateProductBanner({ imageUrl: $event })"
+          />
           <label class="block text-sm">
             <span class="mb-1 block font-medium text-gray-700">Enlace</span>
             <input

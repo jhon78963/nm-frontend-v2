@@ -2,6 +2,7 @@ import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { MediaPickerFieldComponent } from '../../../../../shared/ui/media-picker/media-picker-field.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { StoreHomeCategoryProductsService } from '../../data-access/store-home-category-products.service';
@@ -38,7 +39,7 @@ const EMPTY_FORM: StoreHomeCategoryProductsFormModel = {
 
 @Component({
   selector: 'app-store-home-category-products-config',
-  imports: [AlertComponent, ButtonComponent, TableActionButtonComponent],
+  imports: [AlertComponent, ButtonComponent, MediaPickerFieldComponent, TableActionButtonComponent],
   templateUrl: './store-home-category-products-config.component.html',
 })
 export class StoreHomeCategoryProductsConfigComponent implements OnInit {

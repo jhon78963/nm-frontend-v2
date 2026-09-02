@@ -4,6 +4,7 @@ import { forkJoin } from 'rxjs';
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
+import { MediaPickerFieldComponent } from '../../../../../shared/ui/media-picker/media-picker-field.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { StoreHomeBannersService } from '../../data-access/store-home-banners.service';
 import {
@@ -32,6 +33,7 @@ const EMPTY_FORM: StoreHomeBannersFormModel = {
   imports: [
     AlertComponent,
     ButtonComponent,
+    MediaPickerFieldComponent,
     TableActionButtonComponent,
   ],
   templateUrl: './store-home-banners-config.component.html',

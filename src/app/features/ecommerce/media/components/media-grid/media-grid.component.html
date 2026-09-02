@@ -1,0 +1,55 @@
+@if (loading()) {
+  <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6" aria-busy="true">
+    @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+      <div class="aspect-square animate-pulse rounded-xl bg-gray-100"></div>
+    }
+  </div>
+} @else if (items().length === 0) {
+  <div class="rounded-xl border border-dashed border-gray-200 px-4 py-12 text-center">
+    <p class="text-sm text-gray-500">No hay archivos en la biblioteca.</p>
+  </div>
+} @else {
+  <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+    @for (item of items(); track item.id) {
+      <button
+        type="button"
+        class="group relative overflow-hidden rounded-xl border bg-white text-left shadow-sm transition"
+        [class.border-indigo-500]="isSelected(item)"
+        [class.ring-2]="isSelected(item)"
+        [class.ring-indigo-500]="isSelected(item)"
+        [class.border-gray-200]="!isSelected(item)"
+        [class.hover:border-gray-300]="!isSelected(item)"
+        (click)="onItemClick(item)"
+      >
+        <div class="aspect-square bg-gray-50">
+          @if (isImage(item)) {
+            <img
+              [src]="item.url"
+              [alt]="displayName(item)"
+              class="h-full w-full object-cover"
+              loading="lazy"
+            />
+          } @else {
+            <div class="flex h-full flex-col items-center justify-center gap-2 p-3 text-center">
+              <span class="rounded-full bg-gray-200 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-gray-600">
+                {{ typeLabel(item.mimeType) }}
+              </span>
+              <span class="line-clamp-3 text-xs text-gray-600">{{ displayName(item) }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="space-y-0.5 border-t border-gray-100 p-2">
+          <p class="truncate text-xs font-medium text-gray-900">{{ displayName(item) }}</p>
+          <p class="text-[11px] text-gray-500">{{ formatSize(item.size) }}</p>
+        </div>
+
+        @if (selectable() && isSelected(item)) {
+          <span class="absolute right-2 top-2 rounded-full bg-indigo-600 px-2 py-0.5 text-[10px] font-semibold text-white">
+            Seleccionado
+          </span>
+        }
+      </button>
+    }
+  </div>
+}
