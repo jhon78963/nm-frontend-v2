@@ -43,6 +43,11 @@ const routes: Routes = [
     loadChildren: () => import('./home-collections-config/home-collections-config.routes'),
   },
   {
+    path: 'shop-collections',
+    data: { breadcrumb: 'Colecciones de la tienda' },
+    loadChildren: () => import('./shop-collections-config/shop-collections-config.routes'),
+  },
+  {
     path: 'category-products',
     data: { breadcrumb: 'Productos por categoría' },
     loadChildren: () =>

@@ -106,8 +106,13 @@ export class MainLayoutComponent implements OnInit {
           permission: 'tenant.get',
         },
         {
-          label: 'Colecciones',
+          label: 'Colecciones del home',
           route: '/ecommerce/collections',
+          permission: 'tenant.get',
+        },
+        {
+          label: 'Colecciones de la tienda',
+          route: '/ecommerce/shop-collections',
           permission: 'tenant.get',
         },
         {
