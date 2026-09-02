@@ -7,6 +7,11 @@ import { TableActionButtonComponent } from '../../../../../shared/ui/table-actio
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { StoreFooterService } from '../../data-access/store-footer.service';
 import {
+  RECOMMENDED_FOOTER_AYUDA_LINKS,
+  RECOMMENDED_FOOTER_INFORMACION_LINKS,
+  RECOMMENDED_FOOTER_NOSOTROS_LINKS,
+} from '../../constants/recommended-footer-links.constants';
+import {
   StoreFooterFormModel,
   StoreFooterLinkItem,
 } from '../../models/store-footer.model';
@@ -64,11 +69,22 @@ export class StoreFooterConfigComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (config) => {
+          const nextConfig = this.isLegacyFooterConfig(config)
+            ? this.applyRecommendedLinks(config)
+            : config;
+
+          if (nextConfig !== config) {
+            this.toastService.show(
+              'success',
+              'Se reemplazaron enlaces de plantilla por la estructura recomendada en español. Guarda para confirmar.',
+            );
+          }
+
           this.formModel.set({
-            ...config,
-            categories: config.categories.map((item) => ({ ...item })),
-            usefulLinks: config.usefulLinks.map((item) => ({ ...item })),
-            helpCenterLinks: config.helpCenterLinks.map((item) => ({ ...item })),
+            ...nextConfig,
+            categories: nextConfig.categories.map((item) => ({ ...item })),
+            usefulLinks: nextConfig.usefulLinks.map((item) => ({ ...item })),
+            helpCenterLinks: nextConfig.helpCenterLinks.map((item) => ({ ...item })),
           });
           this.loading.set(false);
         },
@@ -108,6 +124,56 @@ export class StoreFooterConfigComponent implements OnInit {
     this.formModel.update((current) => ({ ...current, [key]: items }));
   }
 
+  protected loadRecommendedLinks(): void {
+    const confirmed = confirm(
+      '¿Reemplazar los enlaces de Nosotros, Información y Centro de ayuda con la estructura recomendada en español?',
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.formModel.update((current) => this.applyRecommendedLinks(current));
+
+    this.toastService.show(
+      'success',
+      'Enlaces recomendados cargados. Revisa y guarda para aplicar los cambios.',
+    );
+  }
+
+  private applyRecommendedLinks(config: StoreFooterFormModel): StoreFooterFormModel {
+    return {
+      ...config,
+      categories: RECOMMENDED_FOOTER_NOSOTROS_LINKS.map((item) => ({ ...item })),
+      usefulLinks: RECOMMENDED_FOOTER_INFORMACION_LINKS.map((item) => ({ ...item })),
+      helpCenterLinks: RECOMMENDED_FOOTER_AYUDA_LINKS.map((item) => ({ ...item })),
+    };
+  }
+
+  private isLegacyFooterConfig(config: StoreFooterFormModel): boolean {
+    const legacyCategoryNames = new Set([
+      'Baby Essentials',
+      'Bag Emporium',
+      'Books',
+      'Christmas',
+      'Classic Furnishings',
+    ]);
+
+    const hasLegacyCategories = config.categories.some((category) =>
+      legacyCategoryNames.has(category.name),
+    );
+
+    const hasLegacyUsefulLinks = config.usefulLinks.some((link) =>
+      ['Home', 'About Us', 'Offers'].includes(link.name),
+    );
+
+    const hasLegacyHelpLinks = config.helpCenterLinks.some((link) =>
+      ['My Account', 'My Orders', 'Wishlist', "Faq's", 'Contact Us'].includes(link.name),
+    );
+
+    return hasLegacyCategories || hasLegacyUsefulLinks || hasLegacyHelpLinks;
+  }
+
   protected onSubmit(event: Event): void {
     event.preventDefault();
 
@@ -116,7 +182,10 @@ export class StoreFooterConfigComponent implements OnInit {
       ...model.categories,
       ...model.usefulLinks,
       ...model.helpCenterLinks,
-    ].some((item) => !item.name.trim() || !item.href.trim());
+    ].some(
+      (item) =>
+        (item.name.trim() && !item.href.trim()) || (!item.name.trim() && item.href.trim()),
+    );
 
     if (!model.newsletterTitle.trim() || !model.aboutText.trim()) {
       this.toastService.show('error', 'Completa al menos el título del newsletter y el texto sobre la tienda.');
@@ -131,11 +200,13 @@ export class StoreFooterConfigComponent implements OnInit {
     this.saving.set(true);
 
     const mapLinks = (items: StoreFooterLinkItem[]) =>
-      items.map((item) => ({
-        id: toPersistedId(item.id),
-        name: item.name.trim(),
-        href: item.href.trim(),
-      }));
+      items
+        .filter((item) => item.name.trim() && item.href.trim())
+        .map((item) => ({
+          id: toPersistedId(item.id),
+          name: item.name.trim(),
+          href: item.href.trim(),
+        }));
 
     this.storeFooterService
       .saveConfig({
@@ -147,9 +218,9 @@ export class StoreFooterConfigComponent implements OnInit {
         supportEmail: model.supportEmail.trim(),
         socialMediaEnabled: model.socialMediaEnabled,
         facebookUrl: model.facebookUrl.trim(),
-        twitterUrl: model.twitterUrl.trim(),
+        twitterUrl: '',
         instagramUrl: model.instagramUrl.trim(),
-        pinterestUrl: model.pinterestUrl.trim(),
+        pinterestUrl: '',
         tiktokUrl: model.tiktokUrl.trim(),
         categories: mapLinks(model.categories),
         usefulLinks: mapLinks(model.usefulLinks),
