@@ -99,7 +99,7 @@ export class StoreHeaderConfigComponent implements OnInit {
         },
         error: () => {
           this.loadError.set(
-            'No se pudo cargar la configuración de la tienda online.',
+            'No se pudo cargar la configuración del header.',
           );
           this.loading.set(false);
         },
@@ -224,7 +224,7 @@ export class StoreHeaderConfigComponent implements OnInit {
           this.saving.set(false);
           this.toastService.show(
             'success',
-            'Configuración de la tienda guardada correctamente.',
+            'Configuración del header guardada correctamente.',
           );
         },
         error: (message: string) => {

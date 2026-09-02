@@ -1,0 +1,212 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight text-gray-900">Banners del home</h1>
+    <p class="mt-1 text-sm text-gray-500">
+      Administra el banner principal (slider) y los mini banners promocionales del inicio de
+      <span class="font-medium text-gray-700">nm-ecommerce</span>.
+    </p>
+  </div>
+
+  @if (loadError()) {
+    <app-alert variant="error" [message]="loadError()" />
+    <app-button type="button" variant="secondary" (clicked)="loadConfig()">
+      Reintentar
+    </app-button>
+  } @else if (loading()) {
+    <div class="space-y-4" aria-busy="true" aria-label="Cargando banners">
+      @for (i of [1, 2]; track i) {
+        <div class="h-32 animate-pulse rounded-xl bg-gray-100"></div>
+      }
+    </div>
+  } @else {
+    <form class="space-y-8" (submit)="onSubmit($event)">
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-gray-900">Banner principal</h2>
+            <p class="mt-1 text-sm text-gray-500">
+              Carrusel grande en la parte superior del home. Puedes agregar varios slides.
+            </p>
+          </div>
+          <app-button type="button" variant="secondary" (clicked)="addHeroSlide()">
+            Agregar slide
+          </app-button>
+        </div>
+
+        @if (heroSlides().length === 0) {
+          <p class="mt-5 rounded-lg border border-dashed border-gray-200 px-4 py-8 text-center text-sm text-gray-500">
+            No hay slides configurados. Agrega al menos uno para el banner principal.
+          </p>
+        } @else {
+          <div class="mt-5 space-y-3">
+            @for (item of heroSlides(); track $index; let i = $index) {
+              <div class="grid gap-3 rounded-lg border border-gray-100 bg-gray-50/80 p-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_minmax(0,1fr)_auto_auto] lg:items-end">
+                <label class="block text-sm">
+                  <span class="mb-1 block font-medium text-gray-700">URL de imagen</span>
+                  <input
+                    type="text"
+                    class="input-field w-full"
+                    placeholder="/images/home/home-hero-1.png"
+                    [value]="item.imageUrl"
+                    (input)="updateHeroSlide(i, { imageUrl: $any($event.target).value })"
+                  />
+                </label>
+
+                <label class="block text-sm">
+                  <span class="mb-1 block font-medium text-gray-700">Enlace</span>
+                  <input
+                    type="text"
+                    class="input-field w-full"
+                    placeholder="/tienda"
+                    [value]="item.href"
+                    (input)="updateHeroSlide(i, { href: $any($event.target).value })"
+                  />
+                </label>
+
+                <label class="block text-sm">
+                  <span class="mb-1 block font-medium text-gray-700">Texto alternativo</span>
+                  <input
+                    type="text"
+                    class="input-field w-full"
+                    placeholder="Banner principal"
+                    [value]="item.alt"
+                    (input)="updateHeroSlide(i, { alt: $any($event.target).value })"
+                  />
+                </label>
+
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    [checked]="item.isActive"
+                    (change)="updateHeroSlide(i, { isActive: $any($event.target).checked })"
+                  />
+                  Activo
+                </label>
+
+                <div class="flex items-center gap-1">
+                  <app-table-action-button
+                    label="Subir"
+                    tone="neutral"
+                    [disabled]="i === 0"
+                    (clicked)="moveHeroSlide(i, -1)"
+                  >
+                    ↑
+                  </app-table-action-button>
+                  <app-table-action-button
+                    label="Bajar"
+                    tone="neutral"
+                    [disabled]="i === heroSlides().length - 1"
+                    (clicked)="moveHeroSlide(i, 1)"
+                  >
+                    ↓
+                  </app-table-action-button>
+                  <app-table-action-button
+                    label="Eliminar"
+                    tone="danger"
+                    (clicked)="removeHeroSlide(i)"
+                  >
+                    ✕
+                  </app-table-action-button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 class="text-base font-semibold text-gray-900">Mini banners promocionales</h2>
+            <p class="mt-1 text-sm text-gray-500">
+              Grid de hasta 4 banners debajo del slider principal (ratio 2:1).
+            </p>
+          </div>
+          <app-button type="button" variant="secondary" (clicked)="addPromoBanner()">
+            Agregar mini banner
+          </app-button>
+        </div>
+
+        @if (promoBanners().length === 0) {
+          <p class="mt-5 rounded-lg border border-dashed border-gray-200 px-4 py-8 text-center text-sm text-gray-500">
+            No hay mini banners configurados.
+          </p>
+        } @else {
+          <div class="mt-5 space-y-3">
+            @for (item of promoBanners(); track $index; let i = $index) {
+              <div class="grid gap-3 rounded-lg border border-gray-100 bg-gray-50/80 p-4 md:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto_auto] md:items-end">
+                <label class="block text-sm">
+                  <span class="mb-1 block font-medium text-gray-700">URL de imagen</span>
+                  <input
+                    type="text"
+                    class="input-field w-full"
+                    placeholder="/images/banners/banner-1.png"
+                    [value]="item.imageUrl"
+                    (input)="updatePromoBanner(i, { imageUrl: $any($event.target).value })"
+                  />
+                </label>
+
+                <label class="block text-sm">
+                  <span class="mb-1 block font-medium text-gray-700">Enlace</span>
+                  <input
+                    type="text"
+                    class="input-field w-full"
+                    placeholder="/tienda"
+                    [value]="item.href"
+                    (input)="updatePromoBanner(i, { href: $any($event.target).value })"
+                  />
+                </label>
+
+                <label class="flex items-center gap-2 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                    [checked]="item.isActive"
+                    (change)="updatePromoBanner(i, { isActive: $any($event.target).checked })"
+                  />
+                  Activo
+                </label>
+
+                <div class="flex items-center gap-1">
+                  <app-table-action-button
+                    label="Subir"
+                    tone="neutral"
+                    [disabled]="i === 0"
+                    (clicked)="movePromoBanner(i, -1)"
+                  >
+                    ↑
+                  </app-table-action-button>
+                  <app-table-action-button
+                    label="Bajar"
+                    tone="neutral"
+                    [disabled]="i === promoBanners().length - 1"
+                    (clicked)="movePromoBanner(i, 1)"
+                  >
+                    ↓
+                  </app-table-action-button>
+                  <app-table-action-button
+                    label="Eliminar"
+                    tone="danger"
+                    (clicked)="removePromoBanner(i)"
+                  >
+                    ✕
+                  </app-table-action-button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <div class="flex justify-end gap-3 border-t border-gray-200 pt-4">
+        <app-button type="button" variant="secondary" (clicked)="loadConfig()" [disabled]="saving()">
+          Descartar cambios
+        </app-button>
+        <app-button type="submit" variant="primary" [loading]="saving()">
+          Guardar banners
+        </app-button>
+      </div>
+    </form>
+  }
+</div>

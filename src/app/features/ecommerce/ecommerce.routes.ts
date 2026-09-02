@@ -13,11 +13,17 @@ const routes: Routes = [
   //   loadChildren: () => import('./multimedia/multimedia.routes'),
   // },
   {
-    path: 'config',
-    data: { breadcrumb: 'Configuración tienda' },
+    path: 'header',
+    data: { breadcrumb: 'Header' },
     loadChildren: () => import('./header-config/header-config.routes'),
   },
-  { path: '', redirectTo: 'config', pathMatch: 'full' },
+  {
+    path: 'banners',
+    data: { breadcrumb: 'Banners del home' },
+    loadChildren: () => import('./home-banners-config/home-banners-config.routes'),
+  },
+  { path: 'config', redirectTo: 'header', pathMatch: 'full' },
+  { path: '', redirectTo: 'header', pathMatch: 'full' },
 ];
 
 export default routes;

@@ -81,8 +81,13 @@ export class MainLayoutComponent implements OnInit {
         // { label: 'Publicar productos', route: '/ecommerce/products', permissions: ['product.update', 'product.create'] },
         // { label: 'Multimedia', route: '/ecommerce/multimedia', permission: 'product.update' },
         {
-          label: 'Configuración tienda',
-          route: '/ecommerce/config',
+          label: 'Header',
+          route: '/ecommerce/header',
+          permission: 'tenant.get',
+        },
+        {
+          label: 'Banners del home',
+          route: '/ecommerce/banners',
           permission: 'tenant.get',
         },
       ],

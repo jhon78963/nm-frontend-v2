@@ -4,15 +4,15 @@ import { roleGuard } from '../../../core/auth/role.guard';
 const routes: Routes = [
   {
     path: '',
-    title: 'Header',
+    title: 'Banners del home',
     data: {
-      breadcrumb: 'Header',
+      breadcrumb: 'Banners del home',
       roles: ['Admin', 'Super Admin'],
     },
     canActivate: [roleGuard],
     loadComponent: () =>
-      import('./components/store-header-config/store-header-config.component').then(
-        (m) => m.StoreHeaderConfigComponent,
+      import('./components/store-home-banners-config/store-home-banners-config.component').then(
+        (m) => m.StoreHomeBannersConfigComponent,
       ),
   },
 ];
