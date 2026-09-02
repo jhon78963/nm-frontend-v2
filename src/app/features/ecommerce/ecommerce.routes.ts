@@ -19,7 +19,7 @@ const routes: Routes = [
   },
   {
     path: 'banners',
-    data: { breadcrumb: 'Banners del home' },
+    data: { breadcrumb: 'Banners' },
     loadChildren: () => import('./home-banners-config/home-banners-config.routes'),
   },
   { path: 'config', redirectTo: 'header', pathMatch: 'full' },

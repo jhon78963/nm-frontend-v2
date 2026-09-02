@@ -4,9 +4,9 @@ import { roleGuard } from '../../../core/auth/role.guard';
 const routes: Routes = [
   {
     path: '',
-    title: 'Banners del home',
+    title: 'Banners',
     data: {
-      breadcrumb: 'Banners del home',
+      breadcrumb: 'Banners',
       roles: ['Admin', 'Super Admin'],
     },
     canActivate: [roleGuard],

@@ -86,7 +86,7 @@ export class MainLayoutComponent implements OnInit {
           permission: 'tenant.get',
         },
         {
-          label: 'Banners del home',
+          label: 'Banners',
           route: '/ecommerce/banners',
           permission: 'tenant.get',
         },

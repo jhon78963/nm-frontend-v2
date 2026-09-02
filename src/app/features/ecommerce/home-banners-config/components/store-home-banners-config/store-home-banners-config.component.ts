@@ -11,6 +11,7 @@ import {
   StoreHomeBannersFormModel,
   StorePromoBanner,
 } from '../../models/store-home-banners.model';
+import { toPersistedId } from '../../utils/persisted-id.util';
 
 const EMPTY_FORM: StoreHomeBannersFormModel = {
   heroSlides: [],
@@ -62,7 +63,7 @@ export class StoreHomeBannersConfigComponent implements OnInit {
           this.loading.set(false);
         },
         error: () => {
-          this.loadError.set('No se pudieron cargar los banners del home.');
+          this.loadError.set('No se pudieron cargar los banners.');
           this.loading.set(false);
         },
       });
@@ -171,7 +172,7 @@ export class StoreHomeBannersConfigComponent implements OnInit {
     forkJoin({
       heroSlides: this.storeHomeBannersService.saveHeroSlides({
         slides: model.heroSlides.map((item, index) => ({
-          id: item.id,
+          id: toPersistedId(item.id),
           imageUrl: item.imageUrl.trim(),
           href: item.href.trim(),
           alt: item.alt.trim() || 'Banner promocional',
@@ -181,7 +182,7 @@ export class StoreHomeBannersConfigComponent implements OnInit {
       }),
       promoBanners: this.storeHomeBannersService.savePromoBanners({
         banners: model.promoBanners.map((item, index) => ({
-          id: item.id,
+          id: toPersistedId(item.id),
           imageUrl: item.imageUrl.trim(),
           href: item.href.trim(),
           order: index,
@@ -197,7 +198,7 @@ export class StoreHomeBannersConfigComponent implements OnInit {
             promoBanners: promoBanners.map((item) => ({ ...item })),
           });
           this.saving.set(false);
-          this.toastService.show('success', 'Banners del home guardados correctamente.');
+          this.toastService.show('success', 'Banners guardados correctamente.');
         },
         error: (message: string) => {
           this.saving.set(false);
