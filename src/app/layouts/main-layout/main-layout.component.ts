@@ -2,7 +2,7 @@ import { Component, computed, DestroyRef, effect, inject, OnInit, signal } from 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
-import { isSuperAdmin } from '../../core/auth/permission.util';
+import { isSuperAdmin, isAdminOrSuperAdmin } from '../../core/auth/permission.util';
 import { buildBreadcrumbPaths } from '../../core/navigation/breadcrumb.util';
 import { AuthService } from '../../features/auth/data-access/auth.service';
 import {
@@ -228,6 +228,10 @@ export class MainLayoutComponent implements OnInit {
     () => !isSuperAdmin(this.authService.currentUser()),
   );
 
+  protected readonly showChatbotLink = computed(() =>
+    isAdminOrSuperAdmin(this.authService.currentUser()),
+  );
+
   protected readonly navItems = computed(() => {
     const user = this.authService.currentUser();
     const groups = isSuperAdmin(user)
@@ -372,6 +376,11 @@ export class MainLayoutComponent implements OnInit {
   protected isHomeActive(): boolean {
     const url = this.currentUrl().split('?')[0];
     return url === '/dashboard' || url === '/';
+  }
+
+  protected isChatbotActive(): boolean {
+    const url = this.currentUrl().split('?')[0];
+    return url === '/chatbot' || url.startsWith('/chatbot/');
   }
 
   protected isNavActive(item: NavItem, siblings: NavItem[]): boolean {

@@ -88,6 +88,13 @@ export const routes: Routes = [
         loadChildren: () => import('./features/ai/ai.routes'),
       },
       {
+        path: 'chatbot',
+        title: 'WhatsApp Bot',
+        canActivate: [roleGuard],
+        data: { breadcrumb: 'WhatsApp Bot', roles: ['Admin', 'Super Admin'] },
+        loadChildren: () => import('./features/chatbot/chatbot.routes'),
+      },
+      {
         path: 'profile',
         title: 'Mi Perfil',
         data: { breadcrumb: 'Mi Perfil' },
