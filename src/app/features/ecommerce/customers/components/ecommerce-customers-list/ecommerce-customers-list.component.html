@@ -1,0 +1,114 @@
+<div class="space-y-5">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight text-gray-900">Clientes</h1>
+    <p class="mt-0.5 text-sm text-gray-500">
+      Cuentas registradas del ecommerce, sus pedidos, reembolsos y actividad.
+    </p>
+  </div>
+
+  <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto]" [formGroup]="filterForm">
+    <app-input
+      class="block w-full"
+      label="Buscar"
+      formControlName="search"
+      placeholder="Nombre o correo…"
+    />
+
+    <app-select
+      label="Estado"
+      formControlName="status"
+      [options]="statusOptions"
+    />
+
+    <div class="flex flex-col gap-2">
+      <span class="text-sm font-medium text-gray-700 invisible" aria-hidden="true">Acciones</span>
+      <app-button type="button" variant="secondary" (clicked)="clearFilters()">
+        Limpiar filtros
+      </app-button>
+    </div>
+  </div>
+
+  <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+        <tr>
+          <th class="px-4 py-3">Cliente</th>
+          <th class="px-4 py-3">Registro</th>
+          <th class="px-4 py-3">Pedidos</th>
+          <th class="px-4 py-3">Reembolsos</th>
+          <th class="px-4 py-3">Total gastado</th>
+          <th class="px-4 py-3">Estado</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        @if (loading()) {
+          <tr>
+            <td colspan="7" class="px-4 py-8 text-center text-gray-500">Cargando clientes…</td>
+          </tr>
+        } @else if (customers().length === 0) {
+          <tr>
+            <td colspan="7" class="px-4 py-8 text-center text-gray-500">No hay clientes.</td>
+          </tr>
+        } @else {
+          @for (customer of customers(); track customer.id) {
+            <tr class="hover:bg-gray-50">
+              <td class="px-4 py-3">
+                <div class="font-medium text-gray-900">{{ customer.name }}</div>
+                <div class="text-xs text-gray-500">{{ customer.email }}</div>
+              </td>
+              <td class="px-4 py-3 text-gray-600">{{ formatDate(customer.createdAt) }}</td>
+              <td class="px-4 py-3 text-gray-600">{{ customer.orderCount }}</td>
+              <td class="px-4 py-3 text-gray-600">{{ customer.refundCount }}</td>
+              <td class="px-4 py-3 font-medium text-gray-900">
+                {{ formatMoney(customer.totalSpent) }}
+              </td>
+              <td class="px-4 py-3">
+                <span
+                  class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
+                  [class.bg-emerald-50]="customer.isEnabled"
+                  [class.text-emerald-700]="customer.isEnabled"
+                  [class.bg-gray-100]="!customer.isEnabled"
+                  [class.text-gray-600]="!customer.isEnabled"
+                >
+                  {{ customer.isEnabled ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <a
+                  [routerLink]="['/ecommerce/customers', customer.id]"
+                  class="text-sm font-semibold text-indigo-600 hover:text-indigo-800"
+                >
+                  Ver
+                </a>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="flex items-center justify-between text-sm text-gray-600">
+    <span>{{ total() }} cliente(s)</span>
+    <div class="flex items-center gap-2">
+      <app-button
+        type="button"
+        variant="secondary"
+        [disabled]="page() <= 1"
+        (clicked)="goToPage(page() - 1)"
+      >
+        Anterior
+      </app-button>
+      <span>Página {{ page() }} de {{ totalPages() }}</span>
+      <app-button
+        type="button"
+        variant="secondary"
+        [disabled]="page() >= totalPages()"
+        (clicked)="goToPage(page() + 1)"
+      >
+        Siguiente
+      </app-button>
+    </div>
+  </div>
+</div>

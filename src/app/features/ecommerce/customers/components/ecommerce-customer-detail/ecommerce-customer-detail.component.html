@@ -1,0 +1,303 @@
+<div class="space-y-5">
+  <div class="flex flex-col gap-3">
+    <a
+      routerLink="/ecommerce/customers"
+      class="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800"
+    >
+      ← Volver a clientes
+    </a>
+
+    @if (loading()) {
+      <p class="text-sm text-gray-500">Cargando cliente…</p>
+    } @else if (!detail()) {
+      <p class="text-sm text-gray-500">Cliente no encontrado.</p>
+    } @else {
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-gray-900">{{ detail()!.customer.name }}</h1>
+        <p class="mt-0.5 text-sm text-gray-500">{{ detail()!.customer.email }}</p>
+      </div>
+
+      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <div class="rounded-xl border border-gray-200 bg-white p-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Pedidos</p>
+          <p class="mt-1 text-2xl font-bold text-gray-900">{{ detail()!.stats.orderCount }}</p>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-white p-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Total gastado</p>
+          <p class="mt-1 text-2xl font-bold text-gray-900">
+            {{ formatMoney(detail()!.stats.totalSpent) }}
+          </p>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-white p-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Reembolsos</p>
+          <p class="mt-1 text-2xl font-bold text-gray-900">{{ detail()!.stats.refundCount }}</p>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-white p-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Reseñas</p>
+          <p class="mt-1 text-2xl font-bold text-gray-900">{{ detail()!.stats.reviewCount }}</p>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-white p-4">
+          <p class="text-xs font-semibold uppercase tracking-wide text-gray-500">Pedidos invitado</p>
+          <p class="mt-1 text-2xl font-bold text-gray-900">{{ detail()!.stats.guestOrderCount }}</p>
+        </div>
+      </div>
+
+      <app-tab-view
+        [tabs]="tabs"
+        [activeTab]="activeTab()"
+        (activeTabChange)="onTabChange($event)"
+      >
+        <ng-template appTabPanel tabId="profile">
+          <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <section class="rounded-xl border border-gray-200 bg-white p-5">
+              <h2 class="text-lg font-semibold text-gray-900">Datos de la cuenta</h2>
+              <form class="mt-4 space-y-4" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+                <app-input label="Nombre" formControlName="name" />
+                <app-select
+                  label="Estado de la cuenta"
+                  formControlName="isEnabled"
+                  [options]="[
+                    { label: 'Activo', value: 'true' },
+                    { label: 'Inactivo', value: 'false' }
+                  ]"
+                />
+                <app-button type="submit" [disabled]="saving()">
+                  {{ saving() ? 'Guardando…' : 'Guardar cambios' }}
+                </app-button>
+              </form>
+
+              <dl class="mt-6 space-y-3 text-sm">
+                <div class="flex justify-between gap-4">
+                  <dt class="text-gray-500">Correo</dt>
+                  <dd class="text-right text-gray-900">{{ detail()!.customer.email }}</dd>
+                </div>
+                <div class="flex justify-between gap-4">
+                  <dt class="text-gray-500">Usuario vinculado</dt>
+                  <dd class="text-right text-gray-900">
+                    {{ detail()!.customer.username || '—' }}
+                  </dd>
+                </div>
+                <div class="flex justify-between gap-4">
+                  <dt class="text-gray-500">Teléfono</dt>
+                  <dd class="text-right text-gray-900">
+                    {{ detail()!.customer.userPhone || '—' }}
+                  </dd>
+                </div>
+                <div class="flex justify-between gap-4">
+                  <dt class="text-gray-500">Registro</dt>
+                  <dd class="text-right text-gray-900">
+                    {{ formatDate(detail()!.customer.createdAt, true) }}
+                  </dd>
+                </div>
+              </dl>
+            </section>
+
+            <section class="space-y-6">
+              <div class="rounded-xl border border-gray-200 bg-white p-5">
+                <h2 class="text-lg font-semibold text-gray-900">Direcciones guardadas</h2>
+                @if (detail()!.addresses.length === 0) {
+                  <p class="mt-3 text-sm text-gray-500">Sin direcciones guardadas.</p>
+                } @else {
+                  <div class="mt-4 space-y-3">
+                    @for (address of detail()!.addresses; track address.id) {
+                      <div class="rounded-lg border border-gray-100 bg-gray-50 p-4 text-sm">
+                        <div class="flex items-center justify-between gap-3">
+                          <p class="font-medium text-gray-900">
+                            {{ address.label }} — {{ address.firstName }} {{ address.lastName }}
+                          </p>
+                          @if (address.isDefault) {
+                            <span class="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-700">
+                              Principal
+                            </span>
+                          }
+                        </div>
+                        <p class="mt-2 text-gray-600">{{ formatAddress(address) }}</p>
+                        @if (address.phone) {
+                          <p class="mt-1 text-gray-500">{{ address.phone }}</p>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="rounded-xl border border-gray-200 bg-white p-5">
+                <h2 class="text-lg font-semibold text-gray-900">Preferencias de notificación</h2>
+                <dl class="mt-4 space-y-3 text-sm">
+                  <div class="flex justify-between gap-4">
+                    <dt class="text-gray-500">Actualizaciones de pedidos</dt>
+                    <dd>{{ detail()!.notificationSettings.orderUpdates ? 'Sí' : 'No' }}</dd>
+                  </div>
+                  <div class="flex justify-between gap-4">
+                    <dt class="text-gray-500">Promociones</dt>
+                    <dd>{{ detail()!.notificationSettings.promotions ? 'Sí' : 'No' }}</dd>
+                  </div>
+                  <div class="flex justify-between gap-4">
+                    <dt class="text-gray-500">Newsletter</dt>
+                    <dd>{{ detail()!.notificationSettings.newsletter ? 'Sí' : 'No' }}</dd>
+                  </div>
+                </dl>
+              </div>
+            </section>
+          </div>
+        </ng-template>
+
+        <ng-template appTabPanel tabId="orders">
+          <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+              <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <tr>
+                  <th class="px-4 py-3">Pedido</th>
+                  <th class="px-4 py-3">Fecha</th>
+                  <th class="px-4 py-3">Estado</th>
+                  <th class="px-4 py-3">Pago</th>
+                  <th class="px-4 py-3">Origen</th>
+                  <th class="px-4 py-3 text-right">Total</th>
+                  <th class="px-4 py-3"></th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                @if (orders().length === 0) {
+                  <tr>
+                    <td colspan="7" class="px-4 py-8 text-center text-gray-500">Sin pedidos.</td>
+                  </tr>
+                } @else {
+                  @for (order of orders(); track order.id) {
+                    <tr class="hover:bg-gray-50">
+                      <td class="px-4 py-3 font-medium text-gray-900">#{{ order.orderNumber }}</td>
+                      <td class="px-4 py-3 text-gray-600">{{ formatDate(order.createdAt, true) }}</td>
+                      <td class="px-4 py-3">{{ order.statusLabel }}</td>
+                      <td class="px-4 py-3">
+                        {{ order.paymentStatus === 'paid' ? 'Pagado' : 'Pendiente' }}
+                      </td>
+                      <td class="px-4 py-3">
+                        {{ order.isGuestOrder ? 'Invitado' : 'Cuenta' }}
+                      </td>
+                      <td class="px-4 py-3 text-right font-medium">{{ formatMoney(order.total) }}</td>
+                      <td class="px-4 py-3 text-right">
+                        <a
+                          [routerLink]="['/ecommerce/orders', order.id]"
+                          class="text-sm font-semibold text-indigo-600 hover:text-indigo-800"
+                        >
+                          Ver
+                        </a>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        </ng-template>
+
+        <ng-template appTabPanel tabId="refunds">
+          @if (refunds().length === 0) {
+            <p class="text-sm text-gray-500">Sin solicitudes de reembolso.</p>
+          } @else {
+            <div class="space-y-4">
+              @for (refund of refunds(); track refund.id) {
+                <section class="rounded-xl border border-gray-200 bg-white p-5">
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h3 class="font-semibold text-gray-900">
+                        Pedido #{{ refund.order?.orderNumber }}
+                      </h3>
+                      <p class="mt-1 text-sm text-gray-500">
+                        {{ formatDate(refund.createdAt, true) }}
+                        @if (refund.amount !== null) {
+                          · {{ formatMoney(refund.amount) }}
+                        }
+                      </p>
+                    </div>
+                    <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">
+                      {{ refund.status }}
+                    </span>
+                  </div>
+
+                  <p class="mt-4 text-sm text-gray-700">{{ refund.reason }}</p>
+
+                  <form
+                    class="mt-4 grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)_auto]"
+                    [formGroup]="getRefundForm(refund)"
+                    (ngSubmit)="saveRefund(refund)"
+                  >
+                    <app-select
+                      label="Estado"
+                      formControlName="status"
+                      [options]="refundStatusOptions.map((option) => ({
+                        label: option.label,
+                        value: option.value
+                      }))"
+                    />
+                    <app-textarea
+                      label="Notas internas"
+                      formControlName="adminNotes"
+                      [rows]="3"
+                    />
+                    <div class="flex items-end">
+                      <app-button type="submit">Actualizar</app-button>
+                    </div>
+                  </form>
+                </section>
+              }
+            </div>
+          }
+        </ng-template>
+
+        <ng-template appTabPanel tabId="reviews">
+          @if (reviews().length === 0) {
+            <p class="text-sm text-gray-500">Sin reseñas.</p>
+          } @else {
+            <div class="space-y-4">
+              @for (review of reviews(); track review.id) {
+                <section class="rounded-xl border border-gray-200 bg-white p-5">
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <h3 class="font-semibold text-gray-900">{{ review.productName }}</h3>
+                      <p class="mt-1 text-sm text-gray-500">
+                        Pedido #{{ review.orderNumber }} · {{ formatDate(review.createdAt) }}
+                      </p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-sm font-medium text-gray-900">{{ review.rating }}/5</p>
+                      <p class="text-xs text-gray-500">{{ review.status }}</p>
+                    </div>
+                  </div>
+                  <p class="mt-3 text-sm text-gray-700">{{ review.description }}</p>
+                  @if (review.rejectionReason) {
+                    <p class="mt-2 text-sm text-red-600">
+                      Motivo de rechazo: {{ review.rejectionReason }}
+                    </p>
+                  }
+                </section>
+              }
+            </div>
+          }
+        </ng-template>
+
+        <ng-template appTabPanel tabId="notifications">
+          @if (notifications().length === 0) {
+            <p class="text-sm text-gray-500">Sin notificaciones.</p>
+          } @else {
+            <div class="space-y-3">
+              @for (notification of notifications(); track notification.id) {
+                <section class="rounded-xl border border-gray-200 bg-white p-4">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <h3 class="font-medium text-gray-900">{{ notification.title }}</h3>
+                      <p class="mt-1 text-sm text-gray-600">{{ notification.message }}</p>
+                    </div>
+                    <div class="text-right text-xs text-gray-500">
+                      <p>{{ formatDate(notification.createdAt, true) }}</p>
+                      <p>{{ notification.readAt ? 'Leída' : 'No leída' }}</p>
+                    </div>
+                  </div>
+                </section>
+              }
+            </div>
+          }
+        </ng-template>
+      </app-tab-view>
+    }
+  </div>
+</div>

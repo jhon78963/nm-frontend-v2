@@ -11,8 +11,21 @@ const routes: Routes = [
     },
     canActivate: [roleGuard],
     loadComponent: () =>
-      import('./components/ecommerce-customers-placeholder/ecommerce-customers-placeholder.component').then(
-        (m) => m.EcommerceCustomersPlaceholderComponent,
+      import('./components/ecommerce-customers-list/ecommerce-customers-list.component').then(
+        (m) => m.EcommerceCustomersListComponent,
+      ),
+  },
+  {
+    path: ':id',
+    title: 'Detalle de cliente',
+    data: {
+      breadcrumb: 'Detalle de cliente',
+      roles: ['Admin', 'Super Admin'],
+    },
+    canActivate: [roleGuard],
+    loadComponent: () =>
+      import('./components/ecommerce-customer-detail/ecommerce-customer-detail.component').then(
+        (m) => m.EcommerceCustomerDetailComponent,
       ),
   },
 ];
