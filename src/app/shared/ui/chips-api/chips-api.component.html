@@ -70,6 +70,7 @@
             class="chips-option"
             role="option"
             tabindex="0"
+            (mousedown)="$event.preventDefault()"
             (click)="selectOption(item)"
             (keydown)="onOptionKeydown($event, item)"
           >

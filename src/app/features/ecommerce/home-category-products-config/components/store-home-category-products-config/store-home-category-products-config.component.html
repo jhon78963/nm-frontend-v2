@@ -51,16 +51,11 @@
             Panel activo
           </label>
         </div>
-        <label class="block text-sm">
-          <span class="mb-1 block font-medium text-gray-700">IDs de productos (UUID separados por coma)</span>
-          <input
-            type="text"
-            class="input-field w-full font-mono text-xs"
-            placeholder="uuid-1, uuid-2"
-            [value]="formatProductIdsInput(formModel().leftPanel.productIds)"
-            (input)="updateLeftPanelProductIds($any($event.target).value)"
-          />
-        </label>
+        <app-product-chips-picker
+          label="Productos"
+          [productIds]="formModel().leftPanel.productIds"
+          (productIdsChange)="updateLeftPanel({ productIds: $event })"
+        />
       </section>
 
       <section class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
@@ -135,15 +130,11 @@
                     />
                   </label>
                 </div>
-                <label class="block text-sm">
-                  <span class="mb-1 block font-medium text-gray-700">IDs de productos (UUID separados por coma)</span>
-                  <input
-                    type="text"
-                    class="input-field w-full font-mono text-xs"
-                    [value]="formatProductIdsInput(tab.productIds)"
-                    (input)="updateTabProductIds(i, $any($event.target).value)"
-                  />
-                </label>
+                <app-product-chips-picker
+                  label="Productos"
+                  [productIds]="tab.productIds"
+                  (productIdsChange)="updateTab(i, { productIds: $event })"
+                />
                 <div class="flex justify-end">
                   <app-table-action-button
                     icon="trash"

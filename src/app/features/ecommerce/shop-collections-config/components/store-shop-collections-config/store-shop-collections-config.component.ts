@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { MediaPickerFieldComponent } from '../../../../../shared/ui/media-picker/media-picker-field.component';
+import { ProductChipsPickerComponent } from '../../../../../shared/ui/product-chips-picker/product-chips-picker.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { StoreShopCollectionsService } from '../../data-access/store-shop-collections.service';
@@ -10,10 +11,6 @@ import {
   StoreShopCollectionItem,
   StoreShopCollectionsFormModel,
 } from '../../models/store-shop-collections.model';
-import {
-  formatProductIdsInput,
-  parseProductIdsInput,
-} from '../../utils/product-ids.util';
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -27,6 +24,7 @@ const EMPTY_FORM: StoreShopCollectionsFormModel = {
     AlertComponent,
     ButtonComponent,
     MediaPickerFieldComponent,
+    ProductChipsPickerComponent,
     TableActionButtonComponent,
   ],
   templateUrl: './store-shop-collections-config.component.html',
@@ -42,8 +40,6 @@ export class StoreShopCollectionsConfigComponent implements OnInit {
 
   protected readonly formModel = signal<StoreShopCollectionsFormModel>({ ...EMPTY_FORM });
   protected readonly collections = computed(() => this.formModel().collections);
-
-  protected readonly formatProductIdsInput = formatProductIdsInput;
 
   ngOnInit(): void {
     this.loadConfig();
@@ -99,10 +95,6 @@ export class StoreShopCollectionsConfigComponent implements OnInit {
     );
 
     this.formModel.update((current) => ({ ...current, collections: items }));
-  }
-
-  protected updateProductIdsInput(index: number, value: string): void {
-    this.updateCollection(index, { productIds: parseProductIdsInput(value) });
   }
 
   protected onSubmit(event: Event): void {

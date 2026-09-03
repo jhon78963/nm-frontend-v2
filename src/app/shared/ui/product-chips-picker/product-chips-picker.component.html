@@ -1,0 +1,13 @@
+<app-chips-api
+  [label]="label()"
+  [placeholder]="placeholder()"
+  [minChars]="minChars()"
+  [disabled]="disabled()"
+  [items]="selectedItems()"
+  [options]="searchOptions()"
+  [isLoading]="isLoading()"
+  [displayFn]="displayProduct"
+  (search)="onSearch($event)"
+  (selected)="onSelect($event)"
+  (removed)="onRemove($event)"
+/>

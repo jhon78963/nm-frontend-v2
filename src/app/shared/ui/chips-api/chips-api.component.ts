@@ -83,10 +83,12 @@ export class ChipsApiComponent {
     this.isOpen.set(false);
     if (this.debounceTimer) clearTimeout(this.debounceTimer);
     this.selected.emit(item);
+    this.focusInput();
   }
 
   protected removeItem(item: unknown): void {
     this.removed.emit(item);
+    this.focusInput();
   }
 
   protected onOptionKeydown(event: KeyboardEvent, item: unknown): void {
@@ -110,5 +112,11 @@ export class ChipsApiComponent {
     if (!this.elRef.nativeElement.contains(event.target)) {
       this.isOpen.set(false);
     }
+  }
+
+  private focusInput(): void {
+    queueMicrotask(() => {
+      document.getElementById(this.inputId)?.focus();
+    });
   }
 }

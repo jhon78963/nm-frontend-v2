@@ -2,6 +2,7 @@ import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { ProductChipsPickerComponent } from '../../../../../shared/ui/product-chips-picker/product-chips-picker.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { StoreHomeCollectionsService } from '../../data-access/store-home-collections.service';
@@ -9,10 +10,6 @@ import {
   StoreHomeCollectionItem,
   StoreHomeCollectionsFormModel,
 } from '../../models/store-home-collections.model';
-import {
-  formatProductIdsInput,
-  parseProductIdsInput,
-} from '../../utils/product-ids.util';
 
 const EMPTY_FORM: StoreHomeCollectionsFormModel = {
   collections: [],
@@ -20,7 +17,7 @@ const EMPTY_FORM: StoreHomeCollectionsFormModel = {
 
 @Component({
   selector: 'app-store-home-collections-config',
-  imports: [AlertComponent, ButtonComponent, TableActionButtonComponent],
+  imports: [AlertComponent, ButtonComponent, ProductChipsPickerComponent, TableActionButtonComponent],
   templateUrl: './store-home-collections-config.component.html',
 })
 export class StoreHomeCollectionsConfigComponent implements OnInit {
@@ -34,8 +31,6 @@ export class StoreHomeCollectionsConfigComponent implements OnInit {
 
   protected readonly formModel = signal<StoreHomeCollectionsFormModel>({ ...EMPTY_FORM });
   protected readonly collections = computed(() => this.formModel().collections);
-
-  protected readonly formatProductIdsInput = formatProductIdsInput;
 
   ngOnInit(): void {
     this.loadConfig();
@@ -89,10 +84,6 @@ export class StoreHomeCollectionsConfigComponent implements OnInit {
     );
 
     this.formModel.update((current) => ({ ...current, collections: items }));
-  }
-
-  protected updateProductIdsInput(index: number, value: string): void {
-    this.updateCollection(index, { productIds: parseProductIdsInput(value) });
   }
 
   protected onSubmit(event: Event): void {

@@ -21,7 +21,7 @@
           <div>
             <h2 class="text-base font-semibold text-gray-900">Colecciones</h2>
             <p class="mt-1 text-sm text-gray-500">
-              Cada colección muestra un grid de productos por UUID del catálogo.
+              Cada colección muestra un grid de productos del catálogo.
             </p>
           </div>
           <app-button type="button" variant="secondary" (clicked)="addCollection()">
@@ -92,16 +92,11 @@
                   />
                 </label>
 
-                <label class="block text-sm">
-                  <span class="mb-1 block font-medium text-gray-700">IDs de productos (UUID separados por coma)</span>
-                  <input
-                    type="text"
-                    class="input-field w-full font-mono text-xs"
-                    placeholder="uuid-1, uuid-2, uuid-3"
-                    [value]="formatProductIdsInput(item.productIds)"
-                    (input)="updateProductIdsInput(i, $any($event.target).value)"
-                  />
-                </label>
+                <app-product-chips-picker
+                  label="Productos"
+                  [productIds]="item.productIds"
+                  (productIdsChange)="updateCollection(i, { productIds: $event })"
+                />
 
                 <div class="flex justify-end">
                   <app-table-action-button

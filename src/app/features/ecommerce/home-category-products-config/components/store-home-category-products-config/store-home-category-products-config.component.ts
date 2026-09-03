@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { MediaPickerFieldComponent } from '../../../../../shared/ui/media-picker/media-picker-field.component';
+import { ProductChipsPickerComponent } from '../../../../../shared/ui/product-chips-picker/product-chips-picker.component';
 import { TableActionButtonComponent } from '../../../../../shared/ui/table-action-button/table-action-button.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { StoreHomeCategoryProductsService } from '../../data-access/store-home-category-products.service';
@@ -10,10 +11,6 @@ import {
   StoreCategoryProductTab,
   StoreHomeCategoryProductsFormModel,
 } from '../../models/store-home-category-products.model';
-import {
-  formatProductIdsInput,
-  parseProductIdsInput,
-} from '../../utils/product-ids.util';
 
 const EMPTY_FORM: StoreHomeCategoryProductsFormModel = {
   status: true,
@@ -39,7 +36,13 @@ const EMPTY_FORM: StoreHomeCategoryProductsFormModel = {
 
 @Component({
   selector: 'app-store-home-category-products-config',
-  imports: [AlertComponent, ButtonComponent, MediaPickerFieldComponent, TableActionButtonComponent],
+  imports: [
+    AlertComponent,
+    ButtonComponent,
+    MediaPickerFieldComponent,
+    ProductChipsPickerComponent,
+    TableActionButtonComponent,
+  ],
   templateUrl: './store-home-category-products-config.component.html',
 })
 export class StoreHomeCategoryProductsConfigComponent implements OnInit {
@@ -64,8 +67,6 @@ export class StoreHomeCategoryProductsConfigComponent implements OnInit {
   });
 
   protected readonly tabs = computed(() => this.formModel().rightPanel.productCategory.tabs);
-
-  protected readonly formatProductIdsInput = formatProductIdsInput;
 
   ngOnInit(): void {
     this.loadConfig();
@@ -113,10 +114,6 @@ export class StoreHomeCategoryProductsConfigComponent implements OnInit {
     }));
   }
 
-  protected updateLeftPanelProductIds(value: string): void {
-    this.updateLeftPanel({ productIds: parseProductIdsInput(value) });
-  }
-
   protected updateProductCategory(
     patch: Partial<StoreHomeCategoryProductsFormModel['rightPanel']['productCategory']>,
   ): void {
@@ -161,10 +158,6 @@ export class StoreHomeCategoryProductsConfigComponent implements OnInit {
     );
 
     this.updateProductCategory({ tabs });
-  }
-
-  protected updateTabProductIds(index: number, value: string): void {
-    this.updateTab(index, { productIds: parseProductIdsInput(value) });
   }
 
   protected onSubmit(event: Event): void {
