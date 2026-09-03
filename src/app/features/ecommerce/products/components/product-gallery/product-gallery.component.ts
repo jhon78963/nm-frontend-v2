@@ -33,9 +33,7 @@ import { PublishProductService } from '../../data-access/publish-product.service
 import { ProductMediaService } from '../../data-access/product-media.service';
 import {
   PublishMediaItem,
-  WooCommerceSyncResult,
 } from '../../models/product-media.model';
-import { notifyWooCommerceSyncResult } from '../../utils/woocommerce-sync.util';
 
 type UploadJobStatus = 'pending' | 'uploading' | 'error';
 
@@ -80,7 +78,6 @@ export class ProductGalleryComponent implements OnDestroy {
   private readonly autoDrainAfterUpload = signal(false);
 
   private sessionUploaded: PublishMediaItem[] = [];
-  private sessionWorstSync: WooCommerceSyncResult | undefined;
   private queueWaiters: Array<{
     quiet: boolean;
     resolve: (items: PublishMediaItem[]) => void;
@@ -325,7 +322,6 @@ export class ProductGalleryComponent implements OnDestroy {
     this.revokeLocalPreviews();
     this.dropzone()?.clear();
     this.sessionUploaded = [];
-    this.sessionWorstSync = undefined;
     this.suppressErrorToast.set(false);
     this.queueWaiters = [];
 
@@ -347,9 +343,8 @@ export class ProductGalleryComponent implements OnDestroy {
       .subscribe({
         next: (response) => {
           this.deletingMediaId.set(null);
-          notifyWooCommerceSyncResult(
-            this.toastService,
-            response.body?.wooCommerceSync,
+          this.toastService.show(
+            'success',
             response.body?.message ?? 'Imagen eliminada correctamente.',
           );
           this.revokeDisplayUrl(mediaId);
@@ -445,11 +440,6 @@ export class ProductGalleryComponent implements OnDestroy {
 
           const current = this.trackedFiles().get(key)!;
           current.media = response.body?.media;
-
-          this.sessionWorstSync = this.mergeSyncResults(
-            this.sessionWorstSync,
-            response.body?.wooCommerceSync,
-          );
 
           if (response.body?.media) {
             this.sessionUploaded.push(response.body.media);
@@ -568,14 +558,12 @@ export class ProductGalleryComponent implements OnDestroy {
     if (this.isUploading()) return;
 
     const uploaded = [...this.sessionUploaded];
-    const worstSync = this.sessionWorstSync;
     const waiters = [...this.queueWaiters];
     const suppressToast =
       this.suppressErrorToast() ||
       (waiters.length > 0 && waiters.every((waiter) => waiter.quiet));
 
     this.sessionUploaded = [];
-    this.sessionWorstSync = undefined;
     this.suppressErrorToast.set(false);
     this.autoDrainAfterUpload.set(false);
     this.queueWaiters = [];
@@ -585,9 +573,8 @@ export class ProductGalleryComponent implements OnDestroy {
     }
 
     if (uploaded.length > 0 && !suppressToast) {
-      notifyWooCommerceSyncResult(
-        this.toastService,
-        worstSync,
+      this.toastService.show(
+        'success',
         uploaded.length === 1
           ? 'Imagen subida correctamente.'
           : `${uploaded.length} imágenes subidas correctamente.`,
@@ -644,7 +631,6 @@ export class ProductGalleryComponent implements OnDestroy {
     this.selectedQueueKey.set(null);
     this.revokeLocalPreviews();
     this.sessionUploaded = [];
-    this.sessionWorstSync = undefined;
     this.queueWaiters = [];
     this.isPumpingQueue.set(false);
     this.suppressErrorToast.set(false);
@@ -653,23 +639,6 @@ export class ProductGalleryComponent implements OnDestroy {
 
   private emitMediaCount(): void {
     this.mediaCountChange.emit(this.mediaItems().length);
-  }
-
-  private mergeSyncResults(
-    current: WooCommerceSyncResult | undefined,
-    next: WooCommerceSyncResult | undefined,
-  ): WooCommerceSyncResult | undefined {
-    if (!next) return current;
-    if (!current) return next;
-
-    const score = (sync: WooCommerceSyncResult): number => {
-      if (!sync.attempted) return 3;
-      if (sync.errors > 0) return 2;
-      if (sync.products < 1) return 1;
-      return 0;
-    };
-
-    return score(next) >= score(current) ? next : current;
   }
 
   private loadDisplayUrls(): void {

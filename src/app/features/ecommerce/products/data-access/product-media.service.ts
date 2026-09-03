@@ -5,12 +5,10 @@ import { environment } from '../../../../../environments/environment';
 import {
   ProductMediaDeleteResponse,
   ProductMediaUploadResponse,
-  WooCommerceSyncResponse,
 } from '../models/product-media.model';
 import {
   adaptMediaDeleteResponse,
   adaptMediaUploadResponse,
-  adaptWooCommerceSyncResponse,
 } from './product-media.adapter';
 
 @Service()
@@ -63,29 +61,5 @@ export class ProductMediaService {
     return this.http.get(`${this.base}/${productId}/media/${mediaId}/preview`, {
       responseType: 'blob',
     });
-  }
-}
-
-@Service()
-export class WooCommerceService {
-  private readonly http = inject(HttpClient);
-  private readonly base = `${environment.apiUrl}/products`;
-
-  syncProduct(
-    productId: string,
-  ): Observable<HttpResponse<WooCommerceSyncResponse>> {
-    return this.http
-      .post<unknown>(`${this.base}/${productId}/woocommerce/sync`, {}, {
-        observe: 'response',
-      })
-      .pipe(
-        map((response) =>
-          response.clone({
-            body: response.body
-              ? adaptWooCommerceSyncResponse(response.body)
-              : null,
-          }),
-        ),
-      );
   }
 }

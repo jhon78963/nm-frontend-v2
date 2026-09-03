@@ -4,8 +4,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { catchError, of } from 'rxjs';
 
-import { ButtonComponent } from '../../../../shared/ui/button/button.component';
-import { ToastService } from '../../../../shared/ui/toast/toast.service';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { EcommerceReviewsService } from '../../data-access/ecommerce-reviews.service';
 import {
   EcommerceReview,

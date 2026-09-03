@@ -25,9 +25,6 @@
           @if (product().barcode) {
             · Código {{ product().barcode }}
           }
-          @if (product().wooCommerce?.productId) {
-            · WooCommerce #{{ product().wooCommerce?.productId }}
-          }
         </p>
       </div>
       <app-table-action-button
@@ -46,7 +43,7 @@
   <div class="flex-1 space-y-5 overflow-y-auto px-5 py-5">
     <!-- Settings -->
     <section class="rounded-xl border border-gray-200 bg-gray-50 p-4">
-      <h3 class="text-sm font-semibold text-gray-900">Configuración WooCommerce</h3>
+      <h3 class="text-sm font-semibold text-gray-900">Configuración de tienda online</h3>
 
       <div class="mt-4 grid gap-4 sm:grid-cols-2">
         <app-checkbox
@@ -79,7 +76,7 @@
 
       <div class="mt-4">
         <app-radio-group
-          label="Estado en WordPress"
+          label="Estado en tienda online"
           name="wooStatus"
           [options]="wooStatusRadioOptions"
           [value]="settingsModel().wooStatus"
@@ -111,7 +108,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0 3 3m-3-3-3 3M6.75 19.5a4.5 4.5 0 0 1-1.41-8.775 5.25 5.25 0 0 1 10.233-2.33 3 3 0 0 1 3.758 3.848A3.752 3.752 0 0 1 18 19.5H6.75Z"/>
         </svg>
       }
-      {{ saving() ? 'Guardando y sincronizando…' : 'Guardar y sincronizar con WordPress' }}
+      {{ saving() ? 'Guardando…' : 'Guardar configuración' }}
     </app-button>
   </div>
 </div>

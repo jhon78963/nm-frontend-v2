@@ -28,7 +28,7 @@ import {
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { PublishProductService } from '../../../products/data-access/publish-product.service';
 import { PublishProduct } from '../../../products/models/publish-product.model';
-import { mediaCountFor } from '../../../products/utils/woocommerce-sync.util';
+import { mediaCountFor } from '../../../products/utils/product-media.util';
 import { ProductGalleryComponent } from '../../../products/components/product-gallery/product-gallery.component';
 
 @Component({

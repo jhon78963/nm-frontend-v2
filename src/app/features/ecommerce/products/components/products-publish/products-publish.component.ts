@@ -27,7 +27,7 @@ import {
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { PublishProductService } from '../../data-access/publish-product.service';
 import { PublishProduct } from '../../models/publish-product.model';
-import { mediaCountFor } from '../../utils/woocommerce-sync.util';
+import { mediaCountFor } from '../../utils/product-media.util';
 import { ProductCreateDrawerComponent } from '../product-create-drawer/product-create-drawer.component';
 import { ProductPublishPanelComponent } from '../product-publish-panel/product-publish-panel.component';
 
@@ -88,7 +88,7 @@ export class ProductsPublishComponent implements OnInit {
       : 'Sin productos en el almacén',
     description: currentSearchEmpty(this.currentSearch())
       ? 'Prueba con otro término de búsqueda o crea un producto nuevo.'
-      : 'Crea un producto con variantes para publicarlo en WooCommerce.',
+      : 'Crea un producto con variantes para publicarlo en la tienda online.',
     actionLabel: 'Nuevo producto',
   }));
 

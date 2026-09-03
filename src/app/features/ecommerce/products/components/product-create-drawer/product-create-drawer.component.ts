@@ -199,7 +199,7 @@ export class ProductCreateDrawerComponent implements OnInit {
         next: (productId) => {
           this.toastService.show(
             'success',
-            'Producto creado. Configura la publicación en WordPress.',
+            'Producto creado. Configura el contenido de tienda online.',
           );
           this.created.emit(productId);
         },

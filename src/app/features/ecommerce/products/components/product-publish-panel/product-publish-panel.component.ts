@@ -23,12 +23,10 @@ import { TableActionButtonComponent } from '../../../../../shared/ui/table-actio
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { fieldErrorMessage } from '../../../../auth/utils/form-field.util';
 import { PublishProductService } from '../../data-access/publish-product.service';
-import { WooCommerceService } from '../../data-access/product-media.service';
 import {
   PublishProduct,
   PublishSettingsFormModel,
 } from '../../models/publish-product.model';
-import { notifyWooCommerceSyncResult } from '../../utils/woocommerce-sync.util';
 import { ProductGalleryComponent } from '../product-gallery/product-gallery.component';
 
 const DEFAULT_SETTINGS: PublishSettingsFormModel = {
@@ -58,7 +56,6 @@ function settingsFromProduct(product: PublishProduct): PublishSettingsFormModel 
 })
 export class ProductPublishPanelComponent {
   private readonly publishProductService = inject(PublishProductService);
-  private readonly wooCommerceService = inject(WooCommerceService);
   private readonly toastService = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -79,13 +76,13 @@ export class ProductPublishPanelComponent {
 
   protected readonly wooStatusError = computed(() =>
     fieldErrorMessage(this.settingsForm.wooStatus, {
-      required: 'Selecciona un estado en WordPress.',
+      required: 'Selecciona un estado en la tienda.',
     }),
   );
 
   protected readonly wooStatusOptions = [
     { label: 'Borrador', value: 'draft' as const, description: 'Oculto en la tienda' },
-    { label: 'Publicado', value: 'publish' as const, description: 'Visible en WooCommerce' },
+    { label: 'Publicado', value: 'publish' as const, description: 'Visible en nm-ecommerce' },
   ];
 
   protected readonly wooStatusRadioOptions = this.wooStatusOptions.map((option) => ({
@@ -167,17 +164,12 @@ export class ProductPublishPanelComponent {
             wooStatus: settings.wooStatus,
           }),
         ),
-        switchMap(() => this.wooCommerceService.syncProduct(product.id)),
         finalize(() => this.saving.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (response) => {
-          notifyWooCommerceSyncResult(
-            this.toastService,
-            response.body?.wooCommerceSync,
-            'Configuración guardada.',
-          );
+        next: () => {
+          this.toastService.show('success', 'Configuración guardada correctamente.');
 
           const updated: PublishProduct = {
             ...product,
@@ -188,20 +180,13 @@ export class ProductPublishPanelComponent {
             wooStatus: settings.wooStatus,
           };
 
-          if (response.body?.wooProductId) {
-            updated.wooCommerce = {
-              productId: response.body.wooProductId,
-              lastSyncedAt: response.body.lastSyncedAt,
-            };
-          }
-
           this.updated.emit(updated);
         },
         error: (err: unknown) => {
           const message =
             typeof err === 'string'
               ? err
-              : 'No se pudo guardar, subir imágenes ni sincronizar el producto.';
+              : 'No se pudo guardar la configuración del producto.';
           this.toastService.show('error', message);
         },
       });
