@@ -20,7 +20,11 @@ function readBoolean(value: unknown, fallback = false): boolean {
   return fallback;
 }
 
-function adaptWooCommerceSync(raw: unknown): WooCommerceSyncResult {
+function adaptWooCommerceSync(raw: unknown): WooCommerceSyncResult | undefined {
+  if (!raw || typeof raw !== 'object') {
+    return undefined;
+  }
+
   const r = raw as Record<string, unknown>;
   return {
     attempted: readBoolean(r['attempted']),
@@ -79,17 +83,21 @@ export function adaptMediaUploadResponse(raw: unknown): ProductMediaUploadRespon
     message: readString(r['message']),
     productId: String(r['productId'] ?? ''),
     media: adaptPublishMediaItem(r['media']),
-    wooCommerceSync: adaptWooCommerceSync(r['wooCommerceSync']) ?? WOOCOMMERCE_SYNC_DISABLED,
+    wooCommerceSync:
+      adaptWooCommerceSync(r['wooCommerceSync']) ?? WOOCOMMERCE_SYNC_DISABLED,
   };
 }
 
 export function adaptMediaDeleteResponse(raw: unknown): ProductMediaDeleteResponse {
   const r = raw as Record<string, unknown>;
+  const deletedMediaId = readString(r['deletedMediaId'] ?? r['id'] ?? '');
+
   return {
     message: readString(r['message'] ?? 'Imagen eliminada correctamente.'),
     productId: readString(r['productId']),
-    deletedMediaId: readString(r['deletedMediaId']),
-    wooCommerceSync: adaptWooCommerceSync(r['wooCommerceSync']) ?? WOOCOMMERCE_SYNC_DISABLED,
+    deletedMediaId,
+    wooCommerceSync:
+      adaptWooCommerceSync(r['wooCommerceSync']) ?? WOOCOMMERCE_SYNC_DISABLED,
   };
 }
 
@@ -97,7 +105,8 @@ export function adaptWooCommerceSyncResponse(raw: unknown): WooCommerceSyncRespo
   const r = raw as Record<string, unknown>;
   return {
     message: readString(r['message']),
-    wooCommerceSync: adaptWooCommerceSync(r['wooCommerceSync']),
+    wooCommerceSync:
+      adaptWooCommerceSync(r['wooCommerceSync']) ?? WOOCOMMERCE_SYNC_DISABLED,
     wooProductId: r['wooProductId'] != null ? String(r['wooProductId']) : null,
     lastSyncedAt: r['lastSyncedAt'] ? readString(r['lastSyncedAt']) : null,
   };

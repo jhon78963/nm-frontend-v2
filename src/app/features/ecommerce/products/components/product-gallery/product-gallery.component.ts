@@ -18,6 +18,7 @@ import {
   forkJoin,
   Observable,
   of,
+  take,
   tap,
   throwError,
 } from 'rxjs';
@@ -342,7 +343,7 @@ export class ProductGalleryComponent implements OnDestroy {
 
     this.productMediaService
       .deleteImage(this.productId(), mediaId)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .pipe(take(1))
       .subscribe({
         next: (response) => {
           this.deletingMediaId.set(null);
@@ -505,13 +506,15 @@ export class ProductGalleryComponent implements OnDestroy {
     const item = tracked.get(key);
     if (!item) return;
 
+    // Quitar del dropzone antes de borrar el mapa file→key (removeByKey lo necesita).
+    this.dropzone()?.removeByKey(key);
+
     const keyByRef = this.fileKeyByRef;
     keyByRef.delete(item.file);
     tracked.delete(key);
 
     this.trackedFiles.set(new Map(tracked));
     this.queueOrder.set(this.queueOrder().filter((k) => k !== key));
-    this.dropzone()?.removeByKey(key);
 
     if (this.selectedQueueKey() === key) {
       this.selectedQueueKey.set(null);
