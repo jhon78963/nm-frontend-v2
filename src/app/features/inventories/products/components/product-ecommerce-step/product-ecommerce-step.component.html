@@ -11,229 +11,154 @@
   </div>
 } @else {
   <div class="space-y-6">
-    @switch (syncStatus()) {
-      @case ('never') {
-        <div
-          class="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3"
-          role="status"
-        >
-          <svg class="mt-0.5 h-5 w-5 shrink-0 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-          </svg>
-          <p class="text-sm text-gray-700">
-            Este producto aún no ha sido publicado en la tienda online.
-          </p>
-        </div>
+    <div
+      class="flex flex-col gap-2 rounded-xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+      [class.border-emerald-200]="isPublished()"
+      [class.bg-emerald-50]="isPublished()"
+      [class.border-amber-200]="!isPublished()"
+      [class.bg-amber-50]="!isPublished()"
+      role="status"
+    >
+      <div>
+        <p class="text-sm font-medium" [class.text-emerald-800]="isPublished()" [class.text-amber-800]="!isPublished()">
+          @if (isPublished()) {
+            Publicado en la tienda online
+          } @else {
+            Borrador — no visible en nm-ecommerce
+          }
+        </p>
+        <p class="mt-0.5 text-xs text-gray-600">
+          Completa descripciones, etiquetas e imágenes para alimentar el product-box y la ficha del producto (PDP).
+        </p>
+      </div>
+      @if (mediaCount() === 0) {
+        <span class="inline-flex rounded-full bg-red-100 px-2.5 py-1 text-xs font-medium text-red-700">
+          Sin imágenes
+        </span>
       }
-      @case ('synced') {
-        <div
-          class="flex flex-col gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-          role="status"
-        >
-          <div class="flex items-start gap-3">
-            <svg class="mt-0.5 h-5 w-5 shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <p class="text-sm font-medium text-green-800">Publicado en WooCommerce</p>
-              @if (ecommerceState()?.wooProductId) {
-                <p class="mt-0.5 text-xs text-green-700">
-                  ID tienda #{{ ecommerceState()?.wooProductId }}
-                  @if (lastSyncedLabel()) {
-                    · Sincronizado {{ lastSyncedLabel() }}
-                  }
-                </p>
-              }
-              @if (ecommerceState()?.wooUrl; as url) {
-                <a
-                  class="mt-1 inline-flex text-sm font-medium text-green-800 underline decoration-green-300 underline-offset-2 hover:text-green-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
-                  [href]="url"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Ver producto en la tienda
-                </a>
-              }
-            </div>
-          </div>
-          <app-button
-            type="button"
-            variant="secondary"
-            [loading]="isSyncing()"
-            [disabled]="isSyncing()"
-            (clicked)="syncNow()"
-          >
-            Sincronizar ahora
-          </app-button>
-        </div>
-      }
-      @case ('pending') {
-        <div
-          class="flex flex-col gap-3 rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
-          role="status"
-        >
-          <div class="flex items-start gap-3">
-            <svg class="mt-0.5 h-5 w-5 shrink-0 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <p class="text-sm text-yellow-800">
-              Pendiente de sincronización. El producto está marcado para la tienda online pero aún no se reflejó en WooCommerce.
-            </p>
-          </div>
-          <app-button
-            type="button"
-            variant="primary"
-            [loading]="isSyncing()"
-            [disabled]="isSyncing()"
-            (clicked)="syncNow()"
-          >
-            Sincronizar ahora
-          </app-button>
-        </div>
-      }
-      @case ('error') {
-        <div
-          class="flex flex-col gap-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3 sm:flex-row sm:items-start sm:justify-between"
-          role="alert"
-        >
-          <div class="flex items-start gap-3">
-            <svg class="mt-0.5 h-5 w-5 shrink-0 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-            </svg>
-            <div>
-              <p class="text-sm font-medium text-red-800">Error de sincronización</p>
-              <p class="mt-0.5 text-sm text-red-700">
-                {{ ecommerceState()?.lastSyncError || 'No se pudo sincronizar con WooCommerce.' }}
-              </p>
-            </div>
-          </div>
-          <app-button
-            type="button"
-            variant="danger"
-            [loading]="isSyncing()"
-            [disabled]="isSyncing()"
-            (clicked)="syncNow()"
-          >
-            Reintentar
-          </app-button>
-        </div>
-      }
-    }
+    </div>
 
-    @if (!isPublished()) {
-      <section class="rounded-xl border border-gray-200 bg-white p-5" aria-labelledby="publish-panel-title">
-        <h2 id="publish-panel-title" class="text-base font-semibold text-gray-900">
-          Publicar en tienda online
-        </h2>
+    <form class="space-y-6" (submit)="save($event)" novalidate>
+      <section class="rounded-xl border border-gray-200 bg-white p-5">
+        <h2 class="text-base font-semibold text-gray-900">Visibilidad en tienda</h2>
         <p class="mt-1 text-sm text-gray-500">
-          Configura la ficha de WooCommerce. El precio por variante se gestiona en Tallas y Colores.
+          Solo los productos publicados aparecen en el catálogo público de nm-ecommerce.
         </p>
 
-        <form class="mt-5 space-y-5" (submit)="saveAndPublish($event)" novalidate>
-          <app-checkbox
-            label="¿Publicar en tienda online?"
-            [value]="formModel().publishOnline"
-            (valueChange)="onPublishToggle($event)"
+        <div class="mt-4">
+          <app-radio-group
+            label="Estado en tienda online"
+            name="storeStatus"
+            [options]="storeStatusOptions"
+            [value]="formModel().storeStatus"
+            (valueChange)="onStoreStatusChange($any($event))"
+          />
+        </div>
+      </section>
+
+      <section class="rounded-xl border border-gray-200 bg-white p-5">
+        <h2 class="text-base font-semibold text-gray-900">Descripciones</h2>
+        <p class="mt-1 text-sm text-gray-500">
+          La descripción corta se usa en tarjetas y listados; la larga en la ficha del producto.
+        </p>
+
+        <div class="mt-4 space-y-4">
+          <app-textarea
+            label="Descripción corta"
+            placeholder="Resumen para product-box, listados y SEO"
+            [rows]="3"
+            [maxLength]="500"
+            [value]="formModel().shortDescription"
+            (valueChange)="onShortDescriptionChange($event)"
+            hint="Máximo 500 caracteres. Aparece debajo del título en tarjetas."
           />
 
           <app-textarea
-            label="Descripción breve para WooCommerce"
-            placeholder="Texto visible en la tienda online"
-            [rows]="4"
-            [maxLength]="255"
-            [value]="formModel().wooDescription"
+            label="Descripción larga"
+            placeholder="Detalle del producto para la PDP (puede incluir HTML básico)"
+            [rows]="8"
+            [value]="formModel().description"
             (valueChange)="onDescriptionChange($event)"
-            hint="Puede diferir de la descripción interna del inventario."
+            hint="Contenido principal de la pestaña Descripción en la ficha del producto."
           />
 
-          <app-money-input
-            label="Precio de venta online"
-            [formField]="publishForm.onlinePrice"
+          <app-textarea
+            label="Información adicional"
+            placeholder="Materiales, cuidados, medidas, composición, etc."
+            [rows]="6"
+            [value]="formModel().additionalInfo"
+            (valueChange)="onAdditionalInfoChange($event)"
+            hint="Se muestra en la pestaña de información adicional del PDP."
           />
-
-          <app-button
-            type="submit"
-            variant="primary"
-            [loading]="isSaving() || isSyncing()"
-            [disabled]="isSaving() || isSyncing() || !formModel().publishOnline"
-          >
-            Guardar y publicar
-          </app-button>
-        </form>
+        </div>
       </section>
-    } @else {
-      <section aria-labelledby="variants-title">
-        <div class="mb-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 id="variants-title" class="text-base font-semibold text-gray-900">
-              Variantes publicadas
-            </h2>
-            <p class="mt-0.5 text-sm text-gray-500">
-              Talla × color con stock y precio enviados a WooCommerce.
-            </p>
-          </div>
-          <app-button
-            type="button"
-            variant="secondary"
-            [loading]="isSyncing()"
-            [disabled]="isSyncing()"
-            (clicked)="syncNow()"
-          >
-            Sincronizar todo
-          </app-button>
+
+      <section class="rounded-xl border border-gray-200 bg-gray-50 p-5">
+        <h2 class="text-base font-semibold text-gray-900">Etiquetas y promociones</h2>
+        <p class="mt-1 text-sm text-gray-500">
+          Controlan badges y precios promocionales en la tienda online.
+        </p>
+
+        <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <app-checkbox
+            label="Producto nuevo"
+            [value]="formModel().isNew"
+            (valueChange)="toggleIsNew($event)"
+          />
+          <app-checkbox
+            label="Producto destacado"
+            [value]="formModel().isFeatured"
+            (valueChange)="toggleIsFeatured($event)"
+          />
+          <app-checkbox
+            label="En oferta"
+            [value]="formModel().isOnSale"
+            (valueChange)="toggleIsOnSale($event)"
+          />
         </div>
 
-        @if (variants().length === 0) {
-          <p class="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-500">
-            Este producto no tiene variantes talla × color. Agrégalas en los pasos anteriores para publicarlas.
-          </p>
-        } @else {
-          <app-table-data
-            [columns]="variantColumns"
-            [data]="variants()"
-            [variant]="'plain'"
-            [theme]="'emerald'"
-            [minWidth]="'100%'"
-            [mobileCompact]="false"
-            [ariaLabel]="'Variantes talla y color para WooCommerce'"
-          >
-            <ng-template #rowTemplate let-variant>
-              <tr>
-                <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-900">{{ variant.sizeLabel }}</td>
-                <td class="whitespace-nowrap px-4 py-3 text-gray-700">
-                  <span class="inline-flex items-center gap-2">
-                    @if (variant.colorHash) {
-                      <span
-                        class="h-3.5 w-3.5 rounded-full border border-gray-200"
-                        [style.background-color]="variant.colorHash"
-                        aria-hidden="true"
-                      ></span>
-                    }
-                    {{ variant.colorLabel }}
-                  </span>
-                </td>
-                <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ formatMoney(variant.price) }}</td>
-                <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ variant.stock }}</td>
-                <td class="whitespace-nowrap px-4 py-3">
-                  @if (variant.syncStatus === 'synced') {
-                    <span class="inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
-                      Sincronizado
-                    </span>
-                  } @else {
-                    <span class="inline-flex rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
-                      Pendiente
-                    </span>
-                  }
-                </td>
-              </tr>
-            </ng-template>
-          </app-table-data>
-        }
+        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+          <app-input
+            type="text"
+            label="Descuento por porcentaje (%)"
+            placeholder="Ej. 15"
+            [formField]="ecommerceForm.percentageDiscount"
+          />
+          <app-input
+            type="text"
+            label="Descuento en efectivo (S/)"
+            placeholder="Ej. 20"
+            [formField]="ecommerceForm.cashDiscount"
+          />
+        </div>
       </section>
-    }
 
-    @if (productId()) {
-      <app-product-gallery [productId]="productId()" />
-    }
+      @if (productId()) {
+        <section class="rounded-xl border border-gray-200 bg-white p-5">
+          <h2 class="text-base font-semibold text-gray-900">Galería de imágenes</h2>
+          <p class="mt-1 text-sm text-gray-500">
+            La primera imagen (portada) se usa en product-box; el resto alimenta la galería del PDP.
+          </p>
+
+          <div class="mt-4">
+            <app-product-gallery
+              [productId]="productId()"
+              (mediaCountChange)="onMediaCountChange($event)"
+            />
+          </div>
+        </section>
+      }
+
+      <div class="flex justify-end">
+        <app-button
+          type="submit"
+          variant="primary"
+          [loading]="isSaving()"
+          [disabled]="isSaving()"
+        >
+          Guardar contenido de tienda
+        </app-button>
+      </div>
+    </form>
   </div>
 }

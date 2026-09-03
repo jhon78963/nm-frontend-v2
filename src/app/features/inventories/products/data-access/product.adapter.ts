@@ -299,6 +299,8 @@ export function adaptProduct(raw: unknown): Product {
     name: readString(r['name']),
     barcode: readString(r['barcode']),
     description: readString(r['description']),
+    shortDescription: r['shortDescription'] != null ? readString(r['shortDescription']) : undefined,
+    additionalInfo: r['additionalInfo'] != null ? readString(r['additionalInfo']) : undefined,
     purchasePrice: readNumber(r['purchasePrice']),
     salePrice: readNumber(r['salePrice']),
     minSalePrice: readNumber(r['minSalePrice']),
@@ -318,6 +320,7 @@ export function adaptProduct(raw: unknown): Product {
     media,
     isFeatured: r['isFeatured'] ? readBoolean(r['isFeatured']) : undefined,
     isOnSale: r['isOnSale'] ? readBoolean(r['isOnSale']) : undefined,
+    isNew: r['isNew'] ? readBoolean(r['isNew']) : undefined,
     wooStatus:
       r['wooStatus'] === 'draft' || r['wooStatus'] === 'publish'
         ? r['wooStatus']
@@ -338,6 +341,12 @@ export function toProductWritePayload(
   }
   if (source['description'] !== undefined) {
     payload.description = readString(source['description']);
+  }
+  if (source['shortDescription'] !== undefined) {
+    payload.shortDescription = readString(source['shortDescription']);
+  }
+  if (source['additionalInfo'] !== undefined) {
+    payload.additionalInfo = readString(source['additionalInfo']);
   }
   if (source['barcode'] !== undefined) {
     payload.barcode = readString(source['barcode']);
@@ -365,6 +374,9 @@ export function toProductWritePayload(
   }
   if (source['isOnSale'] !== undefined) {
     payload.isOnSale = readBoolean(source['isOnSale']);
+  }
+  if (source['isNew'] !== undefined) {
+    payload.isNew = readBoolean(source['isNew']);
   }
   const wooStatus = source['wooStatus'];
   if (wooStatus === 'draft' || wooStatus === 'publish') {

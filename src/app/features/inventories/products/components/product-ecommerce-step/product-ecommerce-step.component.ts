@@ -5,39 +5,42 @@ import {
   inject,
   OnInit,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { form, FormField } from '@angular/forms/signals';
-import { forkJoin } from 'rxjs';
+import { finalize, switchMap } from 'rxjs';
 import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
-import {
-  TableDataColumn,
-  TableDataComponent,
-} from '../../../../../shared/ui/table-data/table-data.component';
-import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { RadioGroupComponent } from '../../../../../shared/ui/radio-group/radio-group.component';
 import { TextareaComponent } from '../../../../../shared/ui/textarea/textarea.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { ProductGalleryComponent } from '../../../../ecommerce/products/components/product-gallery/product-gallery.component';
-import { WooCommerceService } from '../../../../ecommerce/products/data-access/product-media.service';
-import { toEcommerceStepState } from '../../../../ecommerce/products/data-access/publish-product.adapter';
-import { PublishProductService } from '../../../../ecommerce/products/data-access/publish-product.service';
+import { ProductService } from '../../data-access/product.service';
 import {
-  EcommercePublishFormModel,
-  EcommerceStepState,
-  PublishProduct,
-} from '../../../../ecommerce/products/models/publish-product.model';
-import { notifyWooCommerceSyncResult } from '../../../../ecommerce/products/utils/woocommerce-sync.util';
-import { ProductColorsService } from '../../data-access/product-colors.service';
-import { EcommerceVariantRow } from '../../models/product.model';
+  EMPTY_PRODUCT_ECOMMERCE_FORM,
+  ProductEcommerceFormModel,
+} from '../../models/product-ecommerce.model';
+import { Product } from '../../models/product.model';
 
-const EMPTY_FORM: EcommercePublishFormModel = {
-  publishOnline: false,
-  wooDescription: '',
-  onlinePrice: null,
-};
+function formFromProduct(product: Product): ProductEcommerceFormModel {
+  return {
+    storeStatus: product.wooStatus === 'publish' ? 'publish' : 'draft',
+    shortDescription: product.shortDescription ?? '',
+    description: product.description ?? '',
+    additionalInfo: product.additionalInfo ?? '',
+    isNew: product.isNew ?? false,
+    isFeatured: product.isFeatured ?? false,
+    isOnSale: product.isOnSale ?? false,
+    percentageDiscount: product.percentageDiscount
+      ? String(product.percentageDiscount)
+      : '',
+    cashDiscount: product.cashDiscount ? String(product.cashDiscount) : '',
+  };
+}
 
 @Component({
   selector: 'app-product-ecommerce-step',
@@ -46,8 +49,8 @@ const EMPTY_FORM: EcommercePublishFormModel = {
     AlertComponent,
     ButtonComponent,
     CheckboxComponent,
-    TableDataComponent,
-    MoneyInputComponent,
+    InputComponent,
+    RadioGroupComponent,
     TextareaComponent,
     ProductGalleryComponent,
   ],
@@ -57,59 +60,30 @@ export class ProductEcommerceStepComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly toastService = inject(ToastService);
-  private readonly publishProductService = inject(PublishProductService);
-  private readonly wooCommerceService = inject(WooCommerceService);
-  private readonly productColorsService = inject(ProductColorsService);
+  private readonly productService = inject(ProductService);
 
   protected readonly productId = signal('');
-  protected readonly product = signal<PublishProduct | null>(null);
-  protected readonly ecommerceState = signal<EcommerceStepState | null>(null);
-  protected readonly variants = signal<EcommerceVariantRow[]>([]);
+  protected readonly product = signal<Product | null>(null);
   protected readonly isLoading = signal(false);
-  protected readonly isSyncing = signal(false);
   protected readonly isSaving = signal(false);
   protected readonly loadError = signal('');
+  protected readonly mediaCount = signal(0);
 
-  protected readonly isPublished = computed(
-    () => this.ecommerceState()?.isPublished ?? false,
-  );
+  protected readonly formModel = signal<ProductEcommerceFormModel>({
+    ...EMPTY_PRODUCT_ECOMMERCE_FORM,
+  });
+  protected readonly ecommerceForm = form(this.formModel);
 
-  protected readonly syncStatus = computed(
-    () => this.ecommerceState()?.syncStatus ?? 'never',
-  );
-
-  protected readonly formModel = signal<EcommercePublishFormModel>({ ...EMPTY_FORM });
-  protected readonly publishForm = form(this.formModel);
-
-  protected readonly variantColumns: TableDataColumn<EcommerceVariantRow>[] = [
-    { key: 'sizeLabel', label: 'Talla' },
-    { key: 'colorLabel', label: 'Color' },
-    { key: 'price', label: 'Precio' },
-    { key: 'stock', label: 'Stock' },
-    { key: 'syncStatus', label: 'Sincronización' },
+  protected readonly storeStatusOptions = [
+    { value: 'draft' as const, label: 'Borrador — oculto en la tienda online' },
+    { value: 'publish' as const, label: 'Publicado — visible en nm-ecommerce' },
   ];
 
-  protected readonly lastSyncedLabel = computed(() => {
-    const raw = this.ecommerceState()?.lastSyncedAt;
-    if (!raw) {
-      return '';
-    }
+  protected readonly isPublished = computed(
+    () => this.formModel().storeStatus === 'publish',
+  );
 
-    const date = new Date(raw);
-    if (Number.isNaN(date.getTime())) {
-      return raw;
-    }
-
-    return new Intl.DateTimeFormat('es-PE', {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    }).format(date);
-  });
-
-  protected readonly moneyFormatter = new Intl.NumberFormat('es-PE', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  private readonly galleryRef = viewChild(ProductGalleryComponent);
 
   ngOnInit(): void {
     const id = this.route.parent?.snapshot.paramMap.get('id') ?? '';
@@ -127,15 +101,14 @@ export class ProductEcommerceStepComponent implements OnInit {
     this.isLoading.set(true);
     this.loadError.set('');
 
-    forkJoin({
-      product: this.publishProductService.getOne(id),
-      variants: this.productColorsService.getAttachedColorVariants(id),
-    })
+    this.productService
+      .getOne(id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ product, variants }) => {
-          this.applyProduct(product, null);
-          this.variants.set(this.withVariantSyncStatus(variants));
+        next: (product) => {
+          this.product.set(product);
+          this.formModel.set(formFromProduct(product));
+          this.mediaCount.set(product.media?.length ?? 0);
           this.isLoading.set(false);
         },
         error: (err: unknown) => {
@@ -149,154 +122,108 @@ export class ProductEcommerceStepComponent implements OnInit {
       });
   }
 
-  protected onPublishToggle(checked: boolean): void {
-    this.formModel.update((model) => ({ ...model, publishOnline: checked }));
+  protected onStoreStatusChange(status: 'draft' | 'publish'): void {
+    this.formModel.update((model) => ({ ...model, storeStatus: status }));
+  }
+
+  protected onShortDescriptionChange(value: string): void {
+    this.formModel.update((model) => ({ ...model, shortDescription: value }));
   }
 
   protected onDescriptionChange(value: string): void {
-    this.formModel.update((model) => ({ ...model, wooDescription: value }));
+    this.formModel.update((model) => ({ ...model, description: value }));
   }
 
-  protected saveAndPublish(event: Event): void {
-    event.preventDefault();
-    const product = this.product();
-    const model = this.formModel();
+  protected onAdditionalInfoChange(value: string): void {
+    this.formModel.update((model) => ({ ...model, additionalInfo: value }));
+  }
 
-    if (!product || this.isSaving()) {
+  protected toggleIsNew(checked: boolean): void {
+    this.formModel.update((model) => ({ ...model, isNew: checked }));
+  }
+
+  protected toggleIsFeatured(checked: boolean): void {
+    this.formModel.update((model) => ({ ...model, isFeatured: checked }));
+  }
+
+  protected toggleIsOnSale(checked: boolean): void {
+    this.formModel.update((model) => ({ ...model, isOnSale: checked }));
+  }
+
+  protected onMediaCountChange(count: number): void {
+    this.mediaCount.set(count);
+  }
+
+  protected save(event: Event): void {
+    event.preventDefault();
+
+    const current = this.product();
+    const model = this.formModel();
+    if (!current || this.isSaving()) {
       return;
     }
 
-    if (!model.publishOnline) {
-      this.toastService.show(
-        'info',
-        'Activa “Publicar en tienda online” para sincronizar el producto.',
-      );
+    const gallery = this.galleryRef();
+    if (!gallery) {
+      this.toastService.show('error', 'La galería aún no está lista.');
       return;
     }
 
     this.isSaving.set(true);
-    this.isSyncing.set(true);
 
-    this.publishProductService
-      .update(product.id, {
-        id: product.id,
-        name: product.name,
-        barcode: product.barcode,
-        description: model.wooDescription.trim() || product.description,
-        status: product.status,
-        genderId: product.genderId,
-        warehouseId: product.warehouseId,
-        percentageDiscount: product.percentageDiscount,
-        cashDiscount: product.cashDiscount,
-        isFeatured: product.isFeatured,
-        isOnSale: product.isOnSale,
-        wooStatus: 'publish',
-      })
-      .pipe(takeUntilDestroyed(this.destroyRef))
+    gallery
+      .uploadPendingIfAny(true)
+      .pipe(
+        switchMap(() =>
+          this.productService.update(current.id, {
+            id: current.id,
+            name: current.name,
+            barcode: current.barcode,
+            description: model.description.trim(),
+            shortDescription: model.shortDescription.trim(),
+            additionalInfo: model.additionalInfo.trim(),
+            status: current.status,
+            genderId: current.genderId,
+            warehouseId: current.warehouseId,
+            percentageDiscount: Number(model.percentageDiscount) || 0,
+            cashDiscount: Number(model.cashDiscount) || 0,
+            isFeatured: model.isFeatured,
+            isOnSale: model.isOnSale,
+            isNew: model.isNew,
+            wooStatus: model.storeStatus,
+          }),
+        ),
+        finalize(() => this.isSaving.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
-        next: () => this.syncProduct(),
+        next: () => {
+          this.toastService.show('success', 'Contenido de tienda online guardado.');
+          this.product.update((product) =>
+            product
+              ? {
+                  ...product,
+                  description: model.description.trim(),
+                  shortDescription: model.shortDescription.trim(),
+                  additionalInfo: model.additionalInfo.trim(),
+                  percentageDiscount: Number(model.percentageDiscount) || 0,
+                  cashDiscount: Number(model.cashDiscount) || 0,
+                  isFeatured: model.isFeatured,
+                  isOnSale: model.isOnSale,
+                  isNew: model.isNew,
+                  wooStatus: model.storeStatus,
+                }
+              : product,
+          );
+        },
         error: (err: unknown) => {
-          this.isSaving.set(false);
-          this.isSyncing.set(false);
           this.toastService.show(
             'error',
             typeof err === 'string'
               ? err
-              : 'No se pudo guardar la configuración de ecommerce.',
+              : 'No se pudo guardar el contenido de ecommerce.',
           );
         },
       });
-  }
-
-  protected syncNow(): void {
-    if (this.isSyncing()) {
-      return;
-    }
-
-    this.isSyncing.set(true);
-    this.syncProduct();
-  }
-
-  protected formatMoney(value: number): string {
-    return `S/ ${this.moneyFormatter.format(value)}`;
-  }
-
-  private syncProduct(): void {
-    const id = this.productId();
-    if (!id) {
-      this.isSaving.set(false);
-      this.isSyncing.set(false);
-      return;
-    }
-
-    this.wooCommerceService
-      .syncProduct(id)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (response) => {
-          this.isSaving.set(false);
-          this.isSyncing.set(false);
-
-          const body = response.body;
-          const sync = body?.wooCommerceSync;
-          notifyWooCommerceSyncResult(
-            this.toastService,
-            sync,
-            body?.message ?? 'Sincronización completada.',
-          );
-
-          const lastError =
-            sync && (sync.errors > 0 || sync.products < 1 || !sync.attempted)
-              ? (sync.error ?? 'La sincronización no se completó.')
-              : null;
-
-          const current = this.product();
-          if (current) {
-            const updated: PublishProduct = {
-              ...current,
-              wooStatus: 'publish',
-              description: this.formModel().wooDescription || current.description,
-              wooCommerce: {
-                productId: body?.wooProductId ?? current.wooCommerce?.productId ?? null,
-                lastSyncedAt:
-                  body?.lastSyncedAt ?? current.wooCommerce?.lastSyncedAt ?? null,
-              },
-            };
-            this.applyProduct(updated, lastError);
-            this.variants.update((rows) => this.withVariantSyncStatus(rows));
-          } else {
-            this.load();
-          }
-        },
-        error: (err: unknown) => {
-          this.isSaving.set(false);
-          this.isSyncing.set(false);
-          const message =
-            typeof err === 'string'
-              ? err
-              : 'No se pudo sincronizar con WooCommerce.';
-          this.toastService.show('error', message);
-
-          const current = this.product();
-          if (current) {
-            this.applyProduct(current, message);
-          }
-        },
-      });
-  }
-
-  private applyProduct(product: PublishProduct, lastError: string | null): void {
-    this.product.set(product);
-    this.ecommerceState.set(toEcommerceStepState(product, lastError));
-    this.formModel.set({
-      publishOnline: product.wooStatus === 'publish' || !!product.wooCommerce?.productId,
-      wooDescription: product.description,
-      onlinePrice: null,
-    });
-  }
-
-  private withVariantSyncStatus(rows: EcommerceVariantRow[]): EcommerceVariantRow[] {
-    const status = this.syncStatus() === 'synced' ? 'synced' : 'pending';
-    return rows.map((row) => ({ ...row, syncStatus: status }));
   }
 }

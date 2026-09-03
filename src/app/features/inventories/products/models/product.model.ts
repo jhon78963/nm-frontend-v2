@@ -59,6 +59,8 @@ export interface Product {
   name: string;
   barcode: string;
   description: string;
+  shortDescription?: string;
+  additionalInfo?: string;
   purchasePrice: number;
   salePrice: number;
   minSalePrice: number;
@@ -78,6 +80,7 @@ export interface Product {
   media?: ProductMediaItem[];
   isFeatured?: boolean;
   isOnSale?: boolean;
+  isNew?: boolean;
   wooStatus?: 'draft' | 'publish' | null;
   wooCommerce?: {
     productId: string | null;
@@ -98,6 +101,8 @@ export interface ProductFormData {
   name: string;
   barcode: string;
   description: string;
+  shortDescription?: string;
+  additionalInfo?: string;
   purchasePrice?: number;
   salePrice?: number;
   minSalePrice?: number;
@@ -107,6 +112,7 @@ export interface ProductFormData {
   cashDiscount: number;
   isFeatured?: boolean;
   isOnSale?: boolean;
+  isNew?: boolean;
   wooStatus?: 'draft' | 'publish' | null;
   warehouseId: string;
 }
@@ -115,12 +121,15 @@ export interface ProductFormData {
 export interface ProductApiWritePayload {
   name?: string;
   description?: string;
+  shortDescription?: string;
+  additionalInfo?: string;
   barcode?: string;
   genderId?: string;
   vendorId?: string;
   warehouseId?: string;
   isFeatured?: boolean;
   isOnSale?: boolean;
+  isNew?: boolean;
   wooStatus?: 'draft' | 'publish' | null;
   status?: string;
   percentageDiscount?: number;
