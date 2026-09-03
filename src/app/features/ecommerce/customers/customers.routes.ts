@@ -4,15 +4,15 @@ import { roleGuard } from '../../../core/auth/role.guard';
 const routes: Routes = [
   {
     path: '',
-    title: 'Reseñas',
+    title: 'Clientes',
     data: {
-      breadcrumb: 'Reseñas',
+      breadcrumb: 'Clientes',
       roles: ['Admin', 'Super Admin'],
     },
     canActivate: [roleGuard],
     loadComponent: () =>
-      import('./components/ecommerce-reviews-list/ecommerce-reviews-list.component').then(
-        (m) => m.EcommerceReviewsListComponent,
+      import('./components/ecommerce-customers-placeholder/ecommerce-customers-placeholder.component').then(
+        (m) => m.EcommerceCustomersPlaceholderComponent,
       ),
   },
 ];

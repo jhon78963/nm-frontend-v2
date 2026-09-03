@@ -40,6 +40,17 @@ export class EcommerceReviewsListComponent implements OnInit {
     this.rejectionDrafts.update((current) => ({ ...current, [id]: value }));
   }
 
+  protected statusLabel(status: EcommerceReviewStatus): string {
+    switch (status) {
+      case 'pending':
+        return 'Pendiente';
+      case 'approved':
+        return 'Aprobada';
+      case 'rejected':
+        return 'Rechazada';
+    }
+  }
+
   protected approve(review: EcommerceReview): void {
     this.reviewsService
       .moderate(review.id, { status: 'approved' })

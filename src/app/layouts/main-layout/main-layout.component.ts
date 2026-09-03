@@ -75,11 +75,8 @@ export class MainLayoutComponent implements OnInit {
       ],
     },
     {
-      label: 'Ecommerce',
+      label: 'Diseño de la Tienda',
       items: [
-        // WordPress / WooCommerce — desactivado (reemplazado por nm-ecommerce)
-        // { label: 'Publicar productos', route: '/ecommerce/products', permissions: ['product.update', 'product.create'] },
-        // { label: 'Multimedia', route: '/ecommerce/multimedia', permission: 'product.update' },
         {
           label: 'Header',
           route: '/ecommerce/header',
@@ -125,14 +122,24 @@ export class MainLayoutComponent implements OnInit {
           route: '/ecommerce/media',
           permission: 'tenant.get',
         },
+      ],
+    },
+    {
+      label: 'Comercio',
+      items: [
         {
-          label: 'Pedidos web',
+          label: 'Pedidos',
           route: '/ecommerce/orders',
           permission: 'tenant.get',
         },
         {
           label: 'Reseñas',
           route: '/ecommerce/reviews',
+          permission: 'tenant.get',
+        },
+        {
+          label: 'Clientes',
+          route: '/ecommerce/customers',
           permission: 'tenant.get',
         },
       ],
