@@ -63,6 +63,11 @@ const routes: Routes = [
     data: { breadcrumb: 'Pedidos web' },
     loadChildren: () => import('./orders/orders.routes'),
   },
+  {
+    path: 'reviews',
+    data: { breadcrumb: 'Reseñas' },
+    loadChildren: () => import('./reviews/reviews.routes'),
+  },
   { path: 'config', redirectTo: 'header', pathMatch: 'full' },
   { path: '', redirectTo: 'header', pathMatch: 'full' },
 ];

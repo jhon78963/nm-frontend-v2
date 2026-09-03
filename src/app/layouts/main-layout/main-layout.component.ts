@@ -130,6 +130,11 @@ export class MainLayoutComponent implements OnInit {
           route: '/ecommerce/orders',
           permission: 'tenant.get',
         },
+        {
+          label: 'Reseñas',
+          route: '/ecommerce/reviews',
+          permission: 'tenant.get',
+        },
       ],
     },
     {
