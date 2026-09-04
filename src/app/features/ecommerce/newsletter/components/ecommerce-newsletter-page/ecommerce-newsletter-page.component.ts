@@ -1,14 +1,14 @@
-import { DatePipe, NgClass } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-import { ButtonComponent } from '../../../../shared/ui/button/button.component';
-import { InputComponent } from '../../../../shared/ui/input/input.component';
-import { SelectComponent } from '../../../../shared/ui/select/select.component';
-import { TextareaComponent } from '../../../../shared/ui/textarea/textarea.component';
-import { ToastService } from '../../../../shared/ui/toast/toast.service';
+import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
+import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { SelectComponent } from '../../../../../shared/ui/select/select.component';
+import { TextareaComponent } from '../../../../../shared/ui/textarea/textarea.component';
+import { ToastService } from '../../../../../shared/ui/toast/toast.service';
 import { EcommerceNewsletterService } from '../../data-access/ecommerce-newsletter.service';
 import {
   NEWSLETTER_STATUS_OPTIONS,
@@ -20,7 +20,6 @@ import {
   selector: 'app-ecommerce-newsletter-page',
   imports: [
     ReactiveFormsModule,
-    NgClass,
     DatePipe,
     ButtonComponent,
     InputComponent,

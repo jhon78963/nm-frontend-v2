@@ -67,7 +67,7 @@
 /* ─────────────────────────────────────────────────────────────
    Form field components
    Custom elements default to inline; block display lets
-   Tailwind space-y-* / flex gap utilities stack fields correctly.
+   parent containers control spacing with gap / .form-stack.
    ───────────────────────────────────────────────────────────── */
 @layer components {
   :is(
@@ -101,40 +101,5 @@
   /* Badge/contador alineado con controles de 42px */
   .control-badge {
     @apply inline-flex h-control items-center rounded-xl border border-gray-200 bg-white px-3 text-sm;
-  }
-
-  :is(
-    app-input,
-    app-select,
-    app-textarea,
-    app-money-input,
-    app-date-input,
-    app-phone-input,
-    app-checkbox,
-    app-radio-group,
-    app-color-picker-input,
-    app-autocomplete-api,
-    app-multi-select,
-    app-chips-api,
-    app-file-dropzone,
-    app-excel-upload
-  )
-    + :is(
-      app-input,
-      app-select,
-      app-textarea,
-      app-money-input,
-      app-date-input,
-      app-phone-input,
-      app-checkbox,
-      app-radio-group,
-      app-color-picker-input,
-      app-autocomplete-api,
-      app-multi-select,
-      app-chips-api,
-      app-file-dropzone,
-      app-excel-upload
-    ) {
-    @apply mt-5;
   }
 }
