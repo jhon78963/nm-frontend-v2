@@ -73,6 +73,11 @@ const routes: Routes = [
     data: { breadcrumb: 'Clientes' },
     loadChildren: () => import('./customers/customers.routes'),
   },
+  {
+    path: 'newsletter',
+    data: { breadcrumb: 'Boletín' },
+    loadChildren: () => import('./newsletter/newsletter.routes'),
+  },
   { path: 'config', redirectTo: 'header', pathMatch: 'full' },
   { path: '', redirectTo: 'header', pathMatch: 'full' },
 ];

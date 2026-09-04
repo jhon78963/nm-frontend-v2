@@ -142,6 +142,11 @@ export class MainLayoutComponent implements OnInit {
           route: '/ecommerce/customers',
           permission: 'tenant.get',
         },
+        {
+          label: 'Boletín',
+          route: '/ecommerce/newsletter',
+          permission: 'tenant.get',
+        },
       ],
     },
     {

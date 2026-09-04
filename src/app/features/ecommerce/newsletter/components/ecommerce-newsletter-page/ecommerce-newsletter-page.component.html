@@ -1,0 +1,189 @@
+<div class="space-y-8">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight text-gray-900">Boletín</h1>
+    <p class="mt-0.5 text-sm text-gray-500">
+      Gestiona suscriptores del newsletter y envía comunicaciones a tu audiencia.
+    </p>
+  </div>
+
+  <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+    <h2 class="text-lg font-semibold text-gray-900">Enviar boletín</h2>
+    <p class="mt-1 text-sm text-gray-500">
+      Se enviará a {{ activeCount() }} suscriptor(es) activo(s).
+    </p>
+
+    <form class="mt-4 grid gap-4" [formGroup]="campaignForm" (ngSubmit)="sendCampaign()">
+      <div class="grid gap-4 lg:grid-cols-2">
+        <app-input label="Asunto del correo" formControlName="subject" placeholder="Novedades de esta semana" />
+        <app-input label="Título del boletín" formControlName="title" placeholder="Ofertas exclusivas" />
+      </div>
+
+      <app-textarea
+        label="Contenido"
+        [value]="campaignForm.controls.body.value"
+        (valueChange)="campaignForm.controls.body.setValue($event)"
+        [rows]="6"
+        placeholder="Escribe el mensaje del boletín..."
+      />
+
+      <div class="grid gap-4 lg:grid-cols-3">
+        <app-input label="Texto de vista previa (opcional)" formControlName="previewText" />
+        <app-input label="URL del botón (opcional)" formControlName="ctaUrl" placeholder="https://..." />
+        <app-input label="Texto del botón (opcional)" formControlName="ctaLabel" placeholder="Ver ofertas" />
+      </div>
+
+      <div>
+        <app-button type="submit" [disabled]="sendingCampaign()">
+          {{ sendingCampaign() ? 'Enviando...' : 'Enviar boletín' }}
+        </app-button>
+      </div>
+    </form>
+  </section>
+
+  <section class="space-y-4">
+    <div class="flex items-center justify-between gap-3">
+      <h2 class="text-lg font-semibold text-gray-900">Suscriptores</h2>
+      <span class="text-sm text-gray-500">{{ total() }} registro(s)</span>
+    </div>
+
+    <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px_auto]" [formGroup]="filterForm">
+      <app-input
+        class="block w-full"
+        label="Buscar"
+        formControlName="search"
+        placeholder="Correo electrónico…"
+      />
+
+      <app-select label="Estado" formControlName="status" [options]="statusOptions" />
+
+      <div class="flex flex-col gap-2">
+        <span class="text-sm font-medium text-gray-700 invisible" aria-hidden="true">Acciones</span>
+        <app-button type="button" variant="secondary" (clicked)="clearFilters()">
+          Limpiar filtros
+        </app-button>
+      </div>
+    </div>
+
+    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <tr>
+            <th class="px-4 py-3">Correo</th>
+            <th class="px-4 py-3">Cliente</th>
+            <th class="px-4 py-3">Origen</th>
+            <th class="px-4 py-3">Suscripción</th>
+            <th class="px-4 py-3">Estado</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          @if (loadingSubscribers()) {
+            <tr>
+              <td colspan="6" class="px-4 py-8 text-center text-gray-500">Cargando suscriptores…</td>
+            </tr>
+          } @else if (subscribers().length === 0) {
+            <tr>
+              <td colspan="6" class="px-4 py-8 text-center text-gray-500">No hay suscriptores.</td>
+            </tr>
+          } @else {
+            @for (subscriber of subscribers(); track subscriber.id) {
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium text-gray-900">{{ subscriber.email }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ subscriber.customer?.name ?? '—' }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ subscriber.source }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ subscriber.subscribedAt | date: 'medium' }}</td>
+                <td class="px-4 py-3">
+                  <span
+                    class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
+                    [class.bg-emerald-50]="subscriber.status === 'active'"
+                    [class.text-emerald-700]="subscriber.status === 'active'"
+                    [class.bg-gray-100]="subscriber.status !== 'active'"
+                    [class.text-gray-600]="subscriber.status !== 'active'"
+                  >
+                    {{ statusLabel(subscriber.status) }}
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-right">
+                  @if (subscriber.status === 'active') {
+                    <app-button
+                      type="button"
+                      variant="secondary"
+                      (clicked)="unsubscribe(subscriber)"
+                    >
+                      Dar de baja
+                    </app-button>
+                  }
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="flex items-center justify-between text-sm text-gray-600">
+      <span>{{ total() }} suscriptor(es)</span>
+      <div class="flex items-center gap-2">
+        <app-button
+          type="button"
+          variant="secondary"
+          [disabled]="page() <= 1"
+          (clicked)="goToPage(page() - 1)"
+        >
+          Anterior
+        </app-button>
+        <span>Página {{ page() }} de {{ totalPages() }}</span>
+        <app-button
+          type="button"
+          variant="secondary"
+          [disabled]="page() >= totalPages()"
+          (clicked)="goToPage(page() + 1)"
+        >
+          Siguiente
+        </app-button>
+      </div>
+    </div>
+  </section>
+
+  <section class="space-y-4">
+    <h2 class="text-lg font-semibold text-gray-900">Historial de envíos</h2>
+
+    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <tr>
+            <th class="px-4 py-3">Asunto</th>
+            <th class="px-4 py-3">Enviados</th>
+            <th class="px-4 py-3">Fallidos</th>
+            <th class="px-4 py-3">Fecha</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          @if (loadingCampaigns()) {
+            <tr>
+              <td colspan="4" class="px-4 py-8 text-center text-gray-500">Cargando historial…</td>
+            </tr>
+          } @else if (campaigns().length === 0) {
+            <tr>
+              <td colspan="4" class="px-4 py-8 text-center text-gray-500">Aún no hay envíos.</td>
+            </tr>
+          } @else {
+            @for (campaign of campaigns(); track campaign.id) {
+              <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">
+                  <div class="font-medium text-gray-900">{{ campaign.subject }}</div>
+                  <div class="text-xs text-gray-500">{{ campaign.title }}</div>
+                </td>
+                <td class="px-4 py-3 text-gray-600">{{ campaign.sentCount }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ campaign.failedCount }}</td>
+                <td class="px-4 py-3 text-gray-600">
+                  {{ (campaign.sentAt ?? campaign.createdAt) | date: 'medium' }}
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
