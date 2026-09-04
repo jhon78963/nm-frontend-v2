@@ -8,7 +8,7 @@ export interface ProductEcommerceFormModel {
   isOnSale: boolean;
   percentageDiscount: string;
   cashDiscount: string;
-  offerPrice: string;
+  offerPrice: number | null;
 }
 
 export const EMPTY_PRODUCT_ECOMMERCE_FORM: ProductEcommerceFormModel = {
@@ -21,5 +21,5 @@ export const EMPTY_PRODUCT_ECOMMERCE_FORM: ProductEcommerceFormModel = {
   isOnSale: false,
   percentageDiscount: '',
   cashDiscount: '',
-  offerPrice: '',
+  offerPrice: null,
 };

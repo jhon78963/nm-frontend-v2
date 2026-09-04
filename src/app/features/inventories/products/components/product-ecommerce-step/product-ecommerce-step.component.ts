@@ -27,6 +27,42 @@ import {
 } from '../../models/product-ecommerce.model';
 import { Product } from '../../models/product.model';
 
+function resolveOfferPrice(value: number | null | undefined): number | null {
+  if (value == null || Number.isNaN(value) || value <= 0) {
+    return null;
+  }
+
+  return value;
+}
+
+function resolveErrorMessage(err: unknown, fallback: string): string {
+  if (typeof err === 'string' && err.trim()) {
+    return err;
+  }
+
+  if (err instanceof Error && err.message.trim()) {
+    return err.message;
+  }
+
+  const http = err as {
+    error?: { message?: string | string[] };
+    message?: string;
+  };
+  const backendMessage = http?.error?.message;
+
+  if (typeof backendMessage === 'string' && backendMessage.trim()) {
+    return backendMessage;
+  }
+  if (Array.isArray(backendMessage) && backendMessage.length > 0) {
+    return backendMessage.join(' ');
+  }
+  if (typeof http?.message === 'string' && http.message.trim()) {
+    return http.message;
+  }
+
+  return fallback;
+}
+
 function formFromProduct(product: Product): ProductEcommerceFormModel {
   return {
     storeStatus: product.wooStatus === 'publish' ? 'publish' : 'draft',
@@ -40,7 +76,7 @@ function formFromProduct(product: Product): ProductEcommerceFormModel {
       ? String(product.percentageDiscount)
       : '',
     cashDiscount: product.cashDiscount ? String(product.cashDiscount) : '',
-    offerPrice: product.offerPrice ? String(product.offerPrice) : '',
+    offerPrice: resolveOfferPrice(product.offerPrice),
   };
 }
 
@@ -190,7 +226,7 @@ export class ProductEcommerceStepComponent implements OnInit {
             warehouseId: current.warehouseId,
             percentageDiscount: Number(model.percentageDiscount) || 0,
             cashDiscount: Number(model.cashDiscount) || 0,
-            offerPrice: model.offerPrice.trim() ? Number(model.offerPrice) : null,
+            offerPrice: resolveOfferPrice(model.offerPrice),
             isFeatured: model.isFeatured,
             isOnSale: model.isOnSale,
             isNew: model.isNew,
@@ -212,7 +248,7 @@ export class ProductEcommerceStepComponent implements OnInit {
                   additionalInfo: model.additionalInfo.trim(),
                   percentageDiscount: Number(model.percentageDiscount) || 0,
                   cashDiscount: Number(model.cashDiscount) || 0,
-                  offerPrice: model.offerPrice.trim() ? Number(model.offerPrice) : null,
+                  offerPrice: resolveOfferPrice(model.offerPrice),
                   isFeatured: model.isFeatured,
                   isOnSale: model.isOnSale,
                   isNew: model.isNew,
@@ -224,9 +260,10 @@ export class ProductEcommerceStepComponent implements OnInit {
         error: (err: unknown) => {
           this.toastService.show(
             'error',
-            typeof err === 'string'
-              ? err
-              : 'No se pudo guardar el contenido de ecommerce.',
+            resolveErrorMessage(
+              err,
+              'No se pudo guardar el contenido de ecommerce.',
+            ),
           );
         },
       });
