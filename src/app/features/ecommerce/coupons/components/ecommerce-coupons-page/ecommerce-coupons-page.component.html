@@ -1,0 +1,152 @@
+<div class="space-y-6">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight text-gray-900">Cupones</h1>
+    <p class="mt-0.5 text-sm text-gray-500">
+      Crea y administra cupones de descuento por porcentaje o monto fijo para el checkout de nm-ecommerce.
+    </p>
+  </div>
+
+  <section class="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+    <h2 class="text-lg font-semibold text-gray-900">Nuevo cupón</h2>
+    <form class="mt-4 grid gap-4 md:grid-cols-2" [formGroup]="createForm" (ngSubmit)="createCoupon()">
+      <app-input
+        label="Código"
+        formControlName="code"
+        placeholder="VERANO20"
+      />
+
+      <app-select
+        label="Tipo de descuento"
+        formControlName="discountType"
+        [options]="discountTypeOptions"
+      />
+
+      <app-input
+        label="Valor"
+        type="number"
+        formControlName="discountValue"
+        placeholder="10"
+      />
+
+      <app-input
+        label="Subtotal mínimo (S/)"
+        type="number"
+        formControlName="minSubtotal"
+      />
+
+      <app-input
+        label="Descuento máximo (S/)"
+        type="number"
+        formControlName="maxDiscount"
+        placeholder="Opcional"
+      />
+
+      <app-input
+        label="Límite por cliente"
+        type="number"
+        formControlName="perCustomerLimit"
+      />
+
+      <app-input
+        label="Límite por IP"
+        type="number"
+        formControlName="perIpLimit"
+      />
+
+      <label class="flex items-center gap-2 text-sm text-gray-700 md:col-span-2">
+        <input type="checkbox" formControlName="singleUse" />
+        Uso único (1 por cuenta y 1 por IP)
+      </label>
+
+      <app-textarea
+        class="md:col-span-2"
+        label="Descripción"
+        formControlName="description"
+        placeholder="Descripción visible para el cliente"
+      />
+
+      <label class="flex items-center gap-2 text-sm text-gray-700">
+        <input type="checkbox" formControlName="isWelcome" />
+        Cupón de bienvenida
+      </label>
+
+      <label class="flex items-center gap-2 text-sm text-gray-700">
+        <input type="checkbox" formControlName="isActive" />
+        Activo
+      </label>
+
+      <div class="md:col-span-2">
+        <app-button type="submit" [loading]="saving()">Crear cupón</app-button>
+      </div>
+    </form>
+  </section>
+
+  @if (loading()) {
+    <div class="flex justify-center py-12">
+      <svg class="h-8 w-8 animate-spin text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+      </svg>
+    </div>
+  } @else if (coupons().length === 0) {
+    <p class="rounded-xl border border-dashed border-gray-300 bg-white px-4 py-10 text-center text-sm text-gray-500">
+      No hay cupones registrados.
+    </p>
+  } @else {
+    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+          <tr>
+            <th class="px-4 py-3">Código</th>
+            <th class="px-4 py-3">Descuento</th>
+            <th class="px-4 py-3">Usos</th>
+            <th class="px-4 py-3">Estado</th>
+            <th class="px-4 py-3">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+          @for (coupon of coupons(); track coupon.id) {
+            <tr>
+              <td class="px-4 py-3">
+                <div class="font-semibold text-gray-900">{{ coupon.code }}</div>
+                @if (coupon.description) {
+                  <div class="text-xs text-gray-500">{{ coupon.description }}</div>
+                }
+                @if (coupon.isWelcome) {
+                  <span class="mt-1 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800">
+                    Bienvenida
+                  </span>
+                }
+              </td>
+              <td class="px-4 py-3 text-gray-700">{{ discountLabel(coupon) }}</td>
+              <td class="px-4 py-3 text-gray-700">
+                {{ coupon.usageCount }}
+                @if (coupon.usageLimit) {
+                  / {{ coupon.usageLimit }}
+                }
+                <div class="mt-1 text-xs text-gray-500">
+                  Cliente: {{ coupon.perCustomerLimit || '∞' }} · IP: {{ coupon.perIpLimit || '∞' }}
+                </div>
+              </td>
+              <td class="px-4 py-3">
+                <span
+                  class="rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide"
+                  [ngClass]="coupon.isActive ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'"
+                >
+                  {{ coupon.isActive ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="px-4 py-3">
+                <app-button
+                  variant="secondary"
+                  (click)="toggleActive(coupon)"
+                >
+                  {{ coupon.isActive ? 'Desactivar' : 'Activar' }}
+                </app-button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
