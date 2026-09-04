@@ -313,6 +313,10 @@ export function adaptProduct(raw: unknown): Product {
     sizeTypeId,
     percentageDiscount: readNumber(r['percentageDiscount']),
     cashDiscount: readNumber(r['cashDiscount']),
+    offerPrice:
+      r['offerPrice'] !== undefined && r['offerPrice'] !== null
+        ? readNumber(r['offerPrice'])
+        : null,
     warehouseId: String(r['warehouseId'] ?? ''),
     inventory: adaptProductVariantInventory(r['inventory']),
     thumbnail: r['thumbnail'] ? readString(r['thumbnail']) : null,
@@ -368,6 +372,13 @@ export function toProductWritePayload(
   }
   if (source['cashDiscount'] !== undefined) {
     payload.cashDiscount = readNumber(source['cashDiscount']);
+  }
+  if (source['offerPrice'] !== undefined) {
+    const rawOfferPrice = source['offerPrice'];
+    payload.offerPrice =
+      rawOfferPrice === null || rawOfferPrice === ''
+        ? null
+        : readNumber(rawOfferPrice);
   }
   if (source['isFeatured'] !== undefined) {
     payload.isFeatured = readBoolean(source['isFeatured']);

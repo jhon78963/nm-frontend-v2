@@ -117,7 +117,7 @@
           />
         </div>
 
-        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+        <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <app-input
             type="text"
             label="Descuento por porcentaje (%)"
@@ -130,7 +130,14 @@
             placeholder="Ej. 20"
             [formField]="ecommerceForm.cashDiscount"
           />
+          <app-money-input
+            label="Precio oferta (S/)"
+            [formField]="ecommerceForm.offerPrice"
+          />
         </div>
+        <p class="mt-2 text-xs text-gray-500">
+          Si defines un precio oferta, ese monto se mostrará en nm-ecommerce en lugar del precio de venta por talla.
+        </p>
       </section>
 
       @if (productId()) {

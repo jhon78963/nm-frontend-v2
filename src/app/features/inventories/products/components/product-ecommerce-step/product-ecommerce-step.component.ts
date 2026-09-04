@@ -15,6 +15,7 @@ import { AlertComponent } from '../../../../../shared/ui/alert/alert.component';
 import { ButtonComponent } from '../../../../../shared/ui/button/button.component';
 import { CheckboxComponent } from '../../../../../shared/ui/checkbox/checkbox.component';
 import { InputComponent } from '../../../../../shared/ui/input/input.component';
+import { MoneyInputComponent } from '../../../../../shared/ui/money-input/money-input.component';
 import { RadioGroupComponent } from '../../../../../shared/ui/radio-group/radio-group.component';
 import { TextareaComponent } from '../../../../../shared/ui/textarea/textarea.component';
 import { ToastService } from '../../../../../shared/ui/toast/toast.service';
@@ -39,6 +40,7 @@ function formFromProduct(product: Product): ProductEcommerceFormModel {
       ? String(product.percentageDiscount)
       : '',
     cashDiscount: product.cashDiscount ? String(product.cashDiscount) : '',
+    offerPrice: product.offerPrice ? String(product.offerPrice) : '',
   };
 }
 
@@ -50,6 +52,7 @@ function formFromProduct(product: Product): ProductEcommerceFormModel {
     ButtonComponent,
     CheckboxComponent,
     InputComponent,
+    MoneyInputComponent,
     RadioGroupComponent,
     TextareaComponent,
     ProductGalleryComponent,
@@ -187,6 +190,7 @@ export class ProductEcommerceStepComponent implements OnInit {
             warehouseId: current.warehouseId,
             percentageDiscount: Number(model.percentageDiscount) || 0,
             cashDiscount: Number(model.cashDiscount) || 0,
+            offerPrice: model.offerPrice.trim() ? Number(model.offerPrice) : null,
             isFeatured: model.isFeatured,
             isOnSale: model.isOnSale,
             isNew: model.isNew,
@@ -208,6 +212,7 @@ export class ProductEcommerceStepComponent implements OnInit {
                   additionalInfo: model.additionalInfo.trim(),
                   percentageDiscount: Number(model.percentageDiscount) || 0,
                   cashDiscount: Number(model.cashDiscount) || 0,
+                  offerPrice: model.offerPrice.trim() ? Number(model.offerPrice) : null,
                   isFeatured: model.isFeatured,
                   isOnSale: model.isOnSale,
                   isNew: model.isNew,

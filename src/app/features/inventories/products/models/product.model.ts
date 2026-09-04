@@ -82,6 +82,7 @@ export interface Product {
   isOnSale?: boolean;
   isNew?: boolean;
   wooStatus?: 'draft' | 'publish' | null;
+  offerPrice?: number | null;
   wooCommerce?: {
     productId: string | null;
     lastSyncedAt: string | null;
@@ -110,6 +111,7 @@ export interface ProductFormData {
   genderId: string;
   percentageDiscount: number;
   cashDiscount: number;
+  offerPrice?: number | null;
   isFeatured?: boolean;
   isOnSale?: boolean;
   isNew?: boolean;
@@ -134,6 +136,7 @@ export interface ProductApiWritePayload {
   status?: string;
   percentageDiscount?: number;
   cashDiscount?: number;
+  offerPrice?: number | null;
   sizes?: unknown[];
 }
 
