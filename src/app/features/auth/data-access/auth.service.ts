@@ -33,6 +33,7 @@ import {
 @Service()
 export class AuthService {
   private static readonly SESSION_FLAG_KEY = 'authSession';
+  private static readonly USER_CACHE_KEY = 'authUserCache';
   private static readonly PERSISTENT_STORAGE_KEYS: readonly string[] = [];
 
   private readonly http = inject(HttpClient);
@@ -98,6 +99,14 @@ export class AuthService {
 
     if (!this.hasLocalSession()) {
       return of(null);
+    }
+
+    const storedUser = this.readCachedUser();
+    if (storedUser?.username?.trim()) {
+      this.currentUser.set(storedUser);
+      this.activeWarehouseService.syncFromAuthUser(storedUser);
+      this.revalidateSessionInBackground();
+      return of(storedUser);
     }
 
     if (!this.sessionLoadRequest$) {
@@ -206,6 +215,7 @@ export class AuthService {
     this.sessionLoadRequest$ = undefined;
     this.tokenStorage.clearTokens();
     this.activeWarehouseService.clearWarehouse();
+    sessionStorage.removeItem(AuthService.USER_CACHE_KEY);
 
     const preserved = this.preservePersistentStorage();
     localStorage.clear();
@@ -242,13 +252,42 @@ export class AuthService {
   }
 
   private setUserData(user: AuthUser): void {
-    this.currentUser.set({ ...user });
-    this.activeWarehouseService.syncFromAuthUser(user);
+    const normalized = { ...user };
+    this.currentUser.set(normalized);
+    this.activeWarehouseService.syncFromAuthUser(normalized);
     this.sessionLoadRequest$ = undefined;
     localStorage.setItem(
       AuthService.SESSION_FLAG_KEY,
       JSON.stringify({ isLoggedIn: true }),
     );
+    sessionStorage.setItem(AuthService.USER_CACHE_KEY, JSON.stringify(normalized));
+  }
+
+  private readCachedUser(): AuthUser | null {
+    try {
+      const raw = sessionStorage.getItem(AuthService.USER_CACHE_KEY);
+      if (!raw) {
+        return null;
+      }
+      const parsed = JSON.parse(raw) as AuthUser;
+      return parsed?.username?.trim() ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private revalidateSessionInBackground(): void {
+    if (this.sessionLoadRequest$) {
+      return;
+    }
+    this.sessionLoadRequest$ = this.restoreSession().pipe(
+      shareReplay({ bufferSize: 1, refCount: false }),
+    );
+    this.sessionLoadRequest$.subscribe({
+      error: () => {
+        this.sessionLoadRequest$ = undefined;
+      },
+    });
   }
 
   private extractErrorMessage(err: unknown): string {

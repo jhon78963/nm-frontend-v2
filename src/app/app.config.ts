@@ -1,6 +1,6 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withPreloading, PreloadAllModules } from '@angular/router';
 
 import { routes } from './app.routes';
 import { errorInterceptor } from './core/http/error.interceptor';
@@ -17,6 +17,6 @@ export const appConfig: ApplicationConfig = {
         errorInterceptor,      // 3. Toast de errores + redirect en 403/422/5xx
       ]),
     ),
-    provideRouter(routes),
+    provideRouter(routes, withPreloading(PreloadAllModules)),
   ],
 };
