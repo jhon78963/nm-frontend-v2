@@ -91,6 +91,31 @@
                   "with": "src/environments/environment.staging.ts"
                 }
               ]
+            },
+            "docker": {
+              "index": {
+                "input": "src/index.prod.html",
+                "output": "index.html"
+              },
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "8kB",
+                  "maximumError": "16kB"
+                }
+              ],
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.docker.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"

@@ -74,7 +74,7 @@ export const EMPTY_CASH_DAILY_REPORT: CashDailyReport = {
 };
 
 export const QUICK_EXPENSE_PRESETS = [
-  { label: 'Pasaje', icon: 'car', amount: 4 },
+  { label: 'Pasaje', icon: 'car', amount: 7 },
   { label: 'Almuerzo', icon: 'food', amount: 10 },
   { label: 'Vigilancia', icon: 'shield', amount: 1 },
 ] as const;

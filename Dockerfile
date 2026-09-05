@@ -9,6 +9,8 @@ ARG NODE_VERSION=22-alpine
 FROM node:${NODE_VERSION} AS builder
 WORKDIR /app
 
+ARG NG_CONFIGURATION=docker
+
 COPY package.json package-lock.json ./
 
 RUN npm config set fetch-retries 5 && \
@@ -20,7 +22,7 @@ RUN --mount=type=cache,target=/root/.npm \
 
 COPY . .
 
-RUN npm run build -- --configuration=production && \
+RUN npm run build -- --configuration=${NG_CONFIGURATION} && \
     OUT="dist/nm-frontend-v2/browser" && \
     if [ -f "$OUT/index.prod.html" ]; then mv "$OUT/index.prod.html" "$OUT/index.html"; fi
 
